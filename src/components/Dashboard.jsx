@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
@@ -141,12 +141,24 @@ export default function Dashboard() {
   const [fileDetailsText, setFileDetailsText] = useState("");
   const [uploadReportNotification, setUploadReportNotification] = useState(null);
 
-  // Lead Generation States
+  // Lead Generation States + PERMANENT PERSISTENCE (localStorage)
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); // 'detail' | 'pdf'
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Cost Sharing & Managed Account' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+
+  // PERIKSA STATUS UNLOCK DARI LOCALSTORAGE SAAT PERTAMA KALI LOAD
+  useEffect(() => {
+    const savedUnlocked = localStorage.getItem('tc_lead_unlocked');
+    const savedUserData = localStorage.getItem('tc_user_data');
+    if (savedUnlocked === 'true') {
+      setIsLeadUnlocked(true);
+      if (savedUserData) {
+        try { setLeadForm(JSON.parse(savedUserData)); } catch(e){}
+      }
+    }
+  }, []);
 
   // Admin Mode States
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -195,6 +207,10 @@ export default function Dashboard() {
       interest: leadForm.interest,
       signalName: displayName
     };
+
+    // SIMPAN PERMANEN DI BROWSER USER (AGAR TIDAK PERLU ISI DUA KALI)
+    localStorage.setItem('tc_lead_unlocked', 'true');
+    localStorage.setItem('tc_user_data', JSON.stringify(leadForm));
 
     try {
       if (GAS_WEBHOOK_URL) {
