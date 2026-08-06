@@ -2,8 +2,11 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send
 } from 'lucide-react';
+
+// URL GOOGLE APPS SCRIPT WEBHOOK INTEX
+const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
 const initialAnalysesList = [
   {
@@ -138,6 +141,13 @@ export default function Dashboard() {
   const [fileDetailsText, setFileDetailsText] = useState("");
   const [uploadReportNotification, setUploadReportNotification] = useState(null);
 
+  // Lead Generation States
+  const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'detail' | 'pdf'
+  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Cost Sharing & Managed Account' });
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+
   // Admin Mode States
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [adminPassword, setAdminPassword] = useState("151264");
@@ -151,8 +161,66 @@ export default function Dashboard() {
   const displayName = isAdminMode ? data.realSignalName : data.indexName;
   const displayProvider = isAdminMode ? data.realProvider : data.indexProvider;
 
-  const handlePrintPdf = () => {
-    window.print();
+  const handleTabChange = (tab) => {
+    if (tab === 'detail' && !isLeadUnlocked) {
+      setPendingAction('detail');
+      setShowLeadModal(true);
+    } else {
+      setActiveTab(tab);
+    }
+  };
+
+  const handlePrintPdfRequest = () => {
+    if (!isLeadUnlocked) {
+      setPendingAction('pdf');
+      setShowLeadModal(true);
+    } else {
+      window.print();
+    }
+  };
+
+  const handleLeadSubmit = async (e) => {
+    e.preventDefault();
+    if (!leadForm.name || !leadForm.whatsapp || !leadForm.email) {
+      alert("Mohon isi Nama, WhatsApp, dan Email Anda.");
+      return;
+    }
+
+    setIsSubmittingLead(true);
+
+    const payload = {
+      name: leadForm.name,
+      whatsapp: leadForm.whatsapp,
+      email: leadForm.email,
+      interest: leadForm.interest,
+      signalName: displayName
+    };
+
+    try {
+      if (GAS_WEBHOOK_URL) {
+        fetch(GAS_WEBHOOK_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(err => console.log("GAS log notice:", err));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    setTimeout(() => {
+      setIsSubmittingLead(false);
+      setIsLeadUnlocked(true);
+      setShowLeadModal(false);
+
+      if (pendingAction === 'detail') {
+        setActiveTab('detail');
+      } else if (pendingAction === 'pdf') {
+        window.print();
+      }
+      setPendingAction(null);
+    }, 600);
   };
 
   const handleAdminAuth = (e) => {
@@ -329,7 +397,7 @@ export default function Dashboard() {
         setAnalysesList(prev => prev.map(item => item.id === existingSignal.id ? newOrUpdatedSignalData : item));
         setSelectedSignalId(existingSignal.id);
         setUploadReportNotification([
-          `[UPDATE PRESISI INSTITUSIONAL] Sinyal "${targetSignalName}" diperbarui.`,
+          `[UPDATE PRESISI INSTITUSIONAL] Sinyal "${targetSignalName}" berhasil diperbarui.`,
           `Calmar Ratio: ${newOrUpdatedSignalData.calmarRatio} | Recovery Factor: ${newOrUpdatedSignalData.recoveryFactor}`,
           `File Berkas: ${fullFileSummary}`
         ]);
@@ -408,11 +476,13 @@ export default function Dashboard() {
       {/* TOP BAR */}
       <div className="no-print flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex bg-slate-200 p-1 rounded-xl w-full md:w-fit space-x-1">
-          <button onClick={() => setActiveTab('summary')} className={`flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === 'summary' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
+          <button onClick={() => handleTabChange('summary')} className={`flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === 'summary' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
             <BarChart2 size={16} /> <span>Executive Summary ({displayName})</span>
           </button>
-          <button onClick={() => setActiveTab('detail')} className={`flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === 'detail' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
-            <BookOpen size={16} /> <span>Analisis Detail & Review</span>
+          <button onClick={() => handleTabChange('detail')} className={`flex-1 md:flex-none px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center space-x-2 ${activeTab === 'detail' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
+            <BookOpen size={16} /> 
+            <span>Analisis Detail & Review</span>
+            {!isLeadUnlocked && <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-1">LOCKED</span>}
           </button>
         </div>
 
@@ -439,6 +509,101 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+
+      {/* LEAD CAPTURE MODAL (FUNNEL PEMANTAUAN DATA SANGAT ELEGAN) */}
+      {showLeadModal && (
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-100 animate-fadeIn">
+            <div className="flex justify-between items-start border-b pb-3">
+              <div>
+                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase">
+                  Institutional Audit Access
+                </span>
+                <h3 className="text-base font-bold text-slate-900 mt-1">
+                  Buka Laporan Audit Lengkap — {displayName}
+                </h3>
+              </div>
+              <button onClick={() => setShowLeadModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Dapatkan akses analisis mendalam (Calmar Ratio, Sortino, Deteksi Toxic Martingale, & Cetak PDF) yang dirancang untuk keputusan alokasi modal institusional.
+            </p>
+
+            <form onSubmit={handleLeadSubmit} className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Nama Lengkap</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Contoh: Budi Santoso" 
+                  value={leadForm.name}
+                  onChange={(e) => setLeadForm({...leadForm, name: e.target.value})}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Nomor WhatsApp (Aktif)</label>
+                <input 
+                  type="tel" 
+                  required
+                  placeholder="Contoh: 081234567890" 
+                  value={leadForm.whatsapp}
+                  onChange={(e) => setLeadForm({...leadForm, whatsapp: e.target.value})}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Alamat Email</label>
+                <input 
+                  type="email" 
+                  required
+                  placeholder="Contoh: budi@gmail.com" 
+                  value={leadForm.email}
+                  onChange={(e) => setLeadForm({...leadForm, email: e.target.value})}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Peminatan Layanan TradersClub</label>
+                <select 
+                  value={leadForm.interest}
+                  onChange={(e) => setLeadForm({...leadForm, interest: e.target.value})}
+                  className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                  <option value="Cost Sharing & Managed Account">Patungan Sinyal Premium & Copy Trade Portfolio</option>
+                  <option value="Patungan Sinyal Only">Patungan Sinyal Premium ($5/bln)</option>
+                  <option value="Managed Account Only">Fund Management / Bagi Hasil Profit</option>
+                </select>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={isSubmittingLead}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg text-xs shadow-md transition-all mt-2 flex items-center justify-center space-x-2"
+              >
+                {isSubmittingLead ? (
+                  <span>Memproses Akses...</span>
+                ) : (
+                  <>
+                    <Send size={15} />
+                    <span>Buka Laporan Audit & PDF Sekarang</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="text-[10px] text-slate-400 text-center">
+              Data Anda aman dan tidak akan disebarluaskan.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ADMIN AUTH & SETTINGS MODALS */}
       {showAuthModal && (
@@ -510,7 +675,7 @@ export default function Dashboard() {
         </section>
       )}
 
-      {/* EXECUTIVE SUMMARY TAB (RINGKASAN EKSEKUTIF UTAMA) */}
+      {/* EXECUTIVE SUMMARY TAB */}
       {activeTab === 'summary' && (
         <div className="space-y-6 animate-fadeIn">
           <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
@@ -601,7 +766,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* DETAIL TAB: BEDAH ANALISIS KOMPREHENSIF KELAS HEDGE FUND CRO */}
+      {/* DETAIL TAB: BEDAH ANALISIS MENDALAM STANDAR HEDGE FUND CRO */}
       {activeTab === 'detail' && (
         <div className="space-y-6 animate-fadeIn">
           
@@ -769,7 +934,7 @@ export default function Dashboard() {
 
           {/* TOMBOL PRINT/DOWNLOAD PDF DENGAN NAMA SINYAL SPESIFIK */}
           <div className="no-print flex justify-end">
-            <button onClick={handlePrintPdf} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center space-x-2 transition-colors shadow-sm">
+            <button onClick={handlePrintPdfRequest} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center space-x-2 transition-colors shadow-sm">
               <FileDown size={18} /> <span>Download Laporan PDF — {displayName}</span>
             </button>
           </div>
