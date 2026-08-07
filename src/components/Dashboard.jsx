@@ -202,12 +202,32 @@ export default function Dashboard() {
     }
   };
 
+  // FUNGSI INGESTION KANTONG GOOGLE SHEETS UNTUK SETIAP KLIK TOMBOL NGOPI
   const handleOpenNgopiModal = (packageType) => {
     setLeadForm(prev => ({ ...prev, interest: packageType }));
+
     if (!isLeadUnlocked) {
       setShowLeadModal(true);
     } else {
-      alert(`Terima kasih Mas ${leadForm.name || 'Trader'}! Pilihan paket "${packageType}" untuk sinyal ${displayName} telah tercatat. Tim TradersClub akan menghubungimu via WhatsApp.`);
+      // Jika pengguna sudah pernah unlock, langsung tembakkan pembaruan data ke Google Sheets
+      const payload = {
+        name: leadForm.name || "Trader",
+        whatsapp: leadForm.whatsapp || "-",
+        email: leadForm.email || "-",
+        interest: packageType,
+        signalName: displayName
+      };
+
+      if (GAS_WEBHOOK_URL) {
+        fetch(GAS_WEBHOOK_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(err => console.log("GAS log notice:", err));
+      }
+
+      alert(`Terima kasih Mas ${leadForm.name || 'Trader'}! Pilihan paket "${packageType}" untuk sinyal ${displayName} telah tercatat di Google Sheets. Tim TradersClub akan menghubungimu via WhatsApp.`);
     }
   };
 
