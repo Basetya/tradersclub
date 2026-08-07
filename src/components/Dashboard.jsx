@@ -2,10 +2,10 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee
 } from 'lucide-react';
 
-// URL GOOGLE APPS SCRIPT WEBHOOK INTEX
+// URL GOOGLE APPS SCRIPT WEBHOOK INGESTION
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
 const initialAnalysesList = [
@@ -66,7 +66,8 @@ const initialAnalysesList = [
     secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
     bleederAssets: [],
     recommendedCapitalPerLot: 400,
-    fileDetailsInfo: "Total 6 File (.PNG / .CSV)"
+    fileDetailsInfo: "Total 6 File (.PNG / .CSV)",
+    batchReadiness: 85
   },
   {
     id: "MULTI_EA",
@@ -125,7 +126,8 @@ const initialAnalysesList = [
     secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
     bleederAssets: [],
     recommendedCapitalPerLot: 500,
-    fileDetailsInfo: "Master Institutional Audit (Multi EA)"
+    fileDetailsInfo: "Master Institutional Audit (Multi EA)",
+    batchReadiness: 60
   }
 ];
 
@@ -141,14 +143,14 @@ export default function Dashboard() {
   const [fileDetailsText, setFileDetailsText] = useState("");
   const [uploadReportNotification, setUploadReportNotification] = useState(null);
 
-  // Lead Generation States + PERMANENT PERSISTENCE (localStorage)
+  // Lead Generation & Package Selection States
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null); // 'detail' | 'pdf'
-  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Cost Sharing & Managed Account' });
+  const [pendingAction, setPendingAction] = useState(null); 
+  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Bareng ($10/bln)' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  // PERIKSA STATUS UNLOCK DARI LOCALSTORAGE SAAT PERTAMA KALI LOAD
+  // Periksa status unlock dari localStorage
   useEffect(() => {
     const savedUnlocked = localStorage.getItem('tc_lead_unlocked');
     const savedUserData = localStorage.getItem('tc_user_data');
@@ -191,6 +193,15 @@ export default function Dashboard() {
     }
   };
 
+  const handleOpenNgopiModal = (packageType) => {
+    setLeadForm(prev => ({ ...prev, interest: packageType }));
+    if (!isLeadUnlocked) {
+      setShowLeadModal(true);
+    } else {
+      alert(`Terima kasih Mas ${leadForm.name || 'Trader'}! Pilihan paket "${packageType}" untuk sinyal ${displayName} telah tercatat. Tim TradersClub akan menghubungimu via WhatsApp.`);
+    }
+  };
+
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
     if (!leadForm.name || !leadForm.whatsapp || !leadForm.email) {
@@ -208,7 +219,6 @@ export default function Dashboard() {
       signalName: displayName
     };
 
-    // SIMPAN PERMANEN DI BROWSER USER (AGAR TIDAK PERLU ISI DUA KALI)
     localStorage.setItem('tc_lead_unlocked', 'true');
     localStorage.setItem('tc_user_data', JSON.stringify(leadForm));
 
@@ -348,7 +358,8 @@ export default function Dashboard() {
         secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
         bleederAssets: [],
         recommendedCapitalPerLot: 400,
-        fileDetailsInfo: fullFileSummary
+        fileDetailsInfo: fullFileSummary,
+        batchReadiness: 85
       } : {
         id: existingSignal ? existingSignal.id : "MULTI_EA",
         indexName: existingSignal ? existingSignal.indexName : "MT5 Signal - 002",
@@ -406,7 +417,8 @@ export default function Dashboard() {
         secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
         bleederAssets: [],
         recommendedCapitalPerLot: 500,
-        fileDetailsInfo: fullFileSummary
+        fileDetailsInfo: fullFileSummary,
+        batchReadiness: 60
       };
 
       if (existingSignal) {
@@ -526,17 +538,17 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* LEAD CAPTURE MODAL (FUNNEL PEMANTAUAN DATA SANGAT ELEGAN) */}
+      {/* LEAD CAPTURE & NGOPI BARENG MODAL */}
       {showLeadModal && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-100 animate-fadeIn">
             <div className="flex justify-between items-start border-b pb-3">
               <div>
-                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase">
-                  Institutional Audit Access
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full uppercase flex items-center space-x-1 w-fit mb-1">
+                  <Coffee size={12} /> <span>Program Ngopi Bareng TradersClub</span>
                 </span>
-                <h3 className="text-base font-bold text-slate-900 mt-1">
-                  Buka Laporan Audit Lengkap — {displayName}
+                <h3 className="text-base font-bold text-slate-900">
+                  Gabung Patungan Sinyal — {displayName}
                 </h3>
               </div>
               <button onClick={() => setShowLeadModal(false)} className="text-slate-400 hover:text-slate-600">
@@ -545,7 +557,7 @@ export default function Dashboard() {
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Dapatkan akses analisis mendalam (Calmar Ratio, Sortino, Deteksi Toxic Martingale, & Cetak PDF) yang dirancang untuk keputusan alokasi modal institusional.
+              Dapatkan akses laporan audit lengkap dan pilih opsi langganan terhemat dengan menyambungkan akunmu ke Akun Master VPS kami.
             </p>
 
             <form onSubmit={handleLeadSubmit} className="space-y-3">
@@ -586,29 +598,29 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1">Peminatan Layanan TradersClub</label>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Pilihan Paket Ngopi</label>
                 <select 
                   value={leadForm.interest}
                   onChange={(e) => setLeadForm({...leadForm, interest: e.target.value})}
-                  className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium"
                 >
-                  <option value="Cost Sharing & Managed Account">Patungan Sinyal Premium & Copy Trade Portfolio</option>
-                  <option value="Patungan Sinyal Only">Patungan Sinyal Premium ($5/bln)</option>
-                  <option value="Managed Account Only">Fund Management / Bagi Hasil Profit</option>
+                  <option value="Ngopi Bareng ($10/bln)">☕ Ngopi Bareng ($10/bln) — Fast Track Active</option>
+                  <option value="Ngopi Hemat ($5/bln)">☕☕ Ngopi Hemat ($5/bln) — Batch Community Slot</option>
+                  <option value="Usulkan Sinyal">💡 Usulkan Sinyal Ini ke Katalog Komunitas</option>
                 </select>
               </div>
 
               <button 
                 type="submit" 
                 disabled={isSubmittingLead}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg text-xs shadow-md transition-all mt-2 flex items-center justify-center space-x-2"
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg text-xs shadow-md transition-all mt-2 flex items-center justify-center space-x-2"
               >
                 {isSubmittingLead ? (
-                  <span>Memproses Akses...</span>
+                  <span>Memproses Data...</span>
                 ) : (
                   <>
                     <Send size={15} />
-                    <span>Buka Laporan Audit & PDF Sekarang</span>
+                    <span>Konfirmasi & Buka Laporan Audit</span>
                   </>
                 )}
               </button>
@@ -694,6 +706,76 @@ export default function Dashboard() {
       {/* EXECUTIVE SUMMARY TAB */}
       {activeTab === 'summary' && (
         <div className="space-y-6 animate-fadeIn">
+          
+          {/* WIDGET INTERAKTIF: DYNAMIC BATCHING & NGOPI BARENG CTA */}
+          <section className="bg-gradient-to-r from-amber-900 via-amber-950 to-slate-900 text-white rounded-xl p-6 shadow-md border border-amber-700/50 space-y-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-amber-800/60 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
+                  <Coffee size={22} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-amber-300">Status Waktu Kopi (Co-Subscription Program)</h3>
+                  <p className="text-xs text-amber-100/80">Sewa Sinyal MQL5 Premium Terverifikasi bersama Komunitas TradersClub</p>
+                </div>
+              </div>
+              <div className="bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-semibold text-amber-300 flex items-center space-x-1.5">
+                <Zap size={14} className="text-amber-400" />
+                <span>Batch #1 Readiness: {data.batchReadiness || 75}%</span>
+              </div>
+            </div>
+
+            {/* DYNAMIC READINESS PROGRESS BAR */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-medium text-amber-200">
+                <span>Kesiapan Server & Kuota Komunitas ({displayName})</span>
+                <span className="font-bold text-amber-400">{data.batchReadiness || 75}% Ready</span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-3 p-0.5 border border-amber-900/60 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-amber-500 to-emerald-400 h-2 rounded-full transition-all duration-1000 shadow-sm"
+                  style={{ width: `${data.batchReadiness || 75}%` }}
+                ></div>
+              </div>
+              <p className="text-[11px] text-amber-200/70 italic pt-0.5">
+                *Batch dibuka otomatis saat indikator mencapai kesiapan server minimum.
+              </p>
+            </div>
+
+            {/* 3 ACTION BUTTONS (NGOPI BARENG, NGOPI HEMAT, USULKAN SINYAL) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+              <button 
+                onClick={() => handleOpenNgopiModal('Ngopi Bareng ($10/bln)')}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3 rounded-xl text-xs flex flex-col items-center justify-center space-y-1 transition-all shadow-md group"
+              >
+                <span className="flex items-center space-x-1 text-sm">
+                  <Coffee size={16} /> <span>☕ Ngopi Bareng ($10/bln)</span>
+                </span>
+                <span className="text-[10px] text-slate-900 font-medium opacity-90">Fast Track • Akses Investor Pass Instant</span>
+              </button>
+
+              <button 
+                onClick={() => handleOpenNgopiModal('Ngopi Hemat ($5/bln)')}
+                className="bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold p-3 rounded-xl text-xs border border-amber-500/40 flex flex-col items-center justify-center space-y-1 transition-all"
+              >
+                <span className="flex items-center space-x-1 text-sm">
+                  <Users size={16} /> <span>☕☕ Ngopi Hemat ($5/bln)</span>
+                </span>
+                <span className="text-[10px] text-amber-200/80 font-normal">Slot Hemat • Ikut Batch Launching</span>
+              </button>
+
+              <button 
+                onClick={() => handleOpenNgopiModal('Usulkan Sinyal')}
+                className="bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 font-semibold p-3 rounded-xl text-xs border border-indigo-700/50 flex flex-col items-center justify-center space-y-1 transition-all"
+              >
+                <span className="flex items-center space-x-1 text-sm">
+                  <Sparkles size={16} className="text-indigo-400" /> <span>💡 Usulkan Sinyal Ini</span>
+                </span>
+                <span className="text-[10px] text-indigo-300/80 font-normal">Pajang Sinyal Ini di Katalog Komunitas</span>
+              </button>
+            </div>
+          </section>
+
           <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
             <h2 className="text-lg font-bold text-slate-800 border-b pb-2 flex justify-between items-center">
               <span>Executive Summary & Institutional Recommendation ({displayName})</span>
@@ -837,7 +919,7 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              {/* 5. QUANTITATIVE RISK METRICS GRID (TERMASUK CALMAR RATIO) */}
+              {/* 5. QUANTITATIVE RISK METRICS GRID */}
               <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                 <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                   <BarChart2 size={18} /> <span>5. Evaluasi Metrik Risiko Kuantitatif Lanjutan</span>
@@ -941,14 +1023,14 @@ export default function Dashboard() {
                 <p className="text-xs text-blue-600 font-semibold">Trading Activity</p>
                 <p className="text-xl font-bold text-blue-900 mt-1">{data.tradingActivity}%</p>
               </div>
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <p className="text-xs text-slate-600 font-semibold">Max Deposit Load</p>
                 <p className="text-xl font-bold text-slate-800 mt-1">{data.maxDepositLoad}%</p>
               </div>
             </div>
           </section>
 
-          {/* TOMBOL PRINT/DOWNLOAD PDF DENGAN NAMA SINYAL SPESIFIK */}
+          {/* TOMBOL PRINT/DOWNLOAD PDF */}
           <div className="no-print flex justify-end">
             <button onClick={handlePrintPdfRequest} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center space-x-2 transition-colors shadow-sm">
               <FileDown size={18} /> <span>Download Laporan PDF — {displayName}</span>
