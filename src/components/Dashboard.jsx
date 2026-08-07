@@ -189,7 +189,16 @@ export default function Dashboard() {
       setPendingAction('pdf');
       setShowLeadModal(true);
     } else {
+      const originalTitle = document.title;
+      const cleanSignalName = displayName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const cleanDate = (data.analyzedDate || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+      
+      document.title = `Laporan_Audit_TradersClub_${cleanSignalName}_${cleanDate}`;
       window.print();
+      
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 1000);
     }
   };
 
@@ -243,7 +252,7 @@ export default function Dashboard() {
       if (pendingAction === 'detail') {
         setActiveTab('detail');
       } else if (pendingAction === 'pdf') {
-        window.print();
+        handlePrintPdfRequest();
       }
       setPendingAction(null);
     }, 600);
@@ -476,11 +485,14 @@ export default function Dashboard() {
         .print-only-header { display: none; }
       `}</style>
 
-      {/* HEADER KHUSUS CETAK PRINT PDF */}
+      {/* HEADER KHUSUS CETAK PRINT PDF DENGAN NAMA SINYAL SPESIFIK */}
       <div className="print-only-header">
         <h1 className="text-xl font-bold uppercase">TRADERSCLUB EXECUTIVE SIGNAL INTELLIGENCE</h1>
-        <p className="text-xs text-slate-600 font-semibold">
-          Institutional Analyst Assessment Report — {displayName} ({data.analyzedDate})
+        <p className="text-sm font-bold text-indigo-900 mt-1">
+          Laporan Hasil Audit Sinyal: {displayName}
+        </p>
+        <p className="text-xs text-slate-600 font-semibold mt-0.5">
+          Institutional Risk Assessment Report | Tanggal Audit: {data.analyzedDate}
         </p>
       </div>
 
@@ -1030,7 +1042,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* TOMBOL PRINT/DOWNLOAD PDF */}
+          {/* TOMBOL PRINT/DOWNLOAD PDF DENGAN NAMA SINYAL OTOMATIS */}
           <div className="no-print flex justify-end">
             <button onClick={handlePrintPdfRequest} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center space-x-2 transition-colors shadow-sm">
               <FileDown size={18} /> <span>Download Laporan PDF — {displayName}</span>
