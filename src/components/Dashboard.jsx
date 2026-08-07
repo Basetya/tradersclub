@@ -472,22 +472,64 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       
-      {/* STYLE CETAK PRINT PDF */}
+      {/* ATURAN LAYOUT DOKUMEN CETAK PDF DENGAN ANTI-BREAK DISRUPTIVE RULES */}
       <style>{`
         @media print {
-          body { background: white !important; color: black !important; }
-          .no-print, button, nav, header, footer, .bottom-manager-zone { display: none !important; }
-          .print-only-header { display: block !important; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-          .bg-slate-900, .bg-indigo-950 { background-color: #1e293b !important; color: white !important; }
-          .shadow-sm, .shadow-md, .shadow-lg { box-shadow: none !important; }
-          .border { border: 1px solid #cbd5e1 !important; }
+          @page {
+            size: A4 portrait;
+            margin: 12mm 10mm 12mm 10mm;
+          }
+          body {
+            background: white !important;
+            color: #0f172a !important;
+            font-size: 11px !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .no-print, button, nav, header, footer, .bottom-manager-zone {
+            display: none !important;
+          }
+          .print-only-header {
+            display: block !important;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 8px;
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .print-section {
+            page-break-inside: avoid !important;
+            break-inside: avoid-page !important;
+            margin-bottom: 14px !important;
+            padding: 12px !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            background-color: #ffffff !important;
+          }
+          .print-card {
+            page-break-inside: avoid !important;
+            break-inside: avoid-page !important;
+          }
+          .bg-gradient-to-r, .bg-slate-900, .bg-indigo-950 {
+            background: #1e293b !important;
+            color: #ffffff !important;
+          }
+          .text-white {
+            color: #ffffff !important;
+          }
+          .grid {
+            gap: 8px !important;
+          }
+          .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl {
+            box-shadow: none !important;
+          }
         }
         .print-only-header { display: none; }
       `}</style>
 
       {/* HEADER KHUSUS CETAK PRINT PDF DENGAN NAMA SINYAL SPESIFIK */}
       <div className="print-only-header">
-        <h1 className="text-xl font-bold uppercase">TRADERSCLUB EXECUTIVE SIGNAL INTELLIGENCE</h1>
+        <h1 className="text-xl font-bold uppercase text-slate-900">TRADERSCLUB EXECUTIVE SIGNAL INTELLIGENCE</h1>
         <p className="text-sm font-bold text-indigo-900 mt-1">
           Laporan Hasil Audit Sinyal: {displayName}
         </p>
@@ -720,7 +762,7 @@ export default function Dashboard() {
         <div className="space-y-6 animate-fadeIn">
           
           {/* WIDGET INTERAKTIF: DYNAMIC BATCHING & NGOPI BARENG CTA */}
-          <section className="bg-gradient-to-r from-amber-900 via-amber-950 to-slate-900 text-white rounded-xl p-6 shadow-md border border-amber-700/50 space-y-4">
+          <section className="no-print bg-gradient-to-r from-amber-900 via-amber-950 to-slate-900 text-white rounded-xl p-6 shadow-md border border-amber-700/50 space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-amber-800/60 pb-3">
               <div className="flex items-center space-x-2">
                 <div className="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
@@ -788,14 +830,14 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
+          <section className="print-section bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-4">
             <h2 className="text-lg font-bold text-slate-800 border-b pb-2 flex justify-between items-center">
               <span>Executive Summary & Institutional Recommendation ({displayName})</span>
               <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-md">STATUS: {data.status}</span>
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
+              <div className="print-card bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
                 <div className="flex items-center space-x-2 text-emerald-900 font-bold text-sm">
                   <Target size={18} className="text-emerald-600" />
                   <span>1. Investment Thesis</span>
@@ -805,7 +847,7 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2">
+              <div className="print-card bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2">
                 <div className="flex items-center space-x-2 text-amber-900 font-bold text-sm">
                   <AlertTriangle size={18} className="text-amber-600" />
                   <span>2. Key Risk Consideration</span>
@@ -815,7 +857,7 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-xl space-y-2">
+              <div className="print-card bg-indigo-50 border border-indigo-200 p-4 rounded-xl space-y-2">
                 <div className="flex items-center space-x-2 text-indigo-900 font-bold text-sm">
                   <Zap size={18} className="text-indigo-600" />
                   <span>3. Allocation Recommendation</span>
@@ -829,14 +871,14 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <section className="print-section grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Total Growth', value: data.growth, sub: `Reliability: ${data.reliabilityWeeks} Wks`, color: 'text-emerald-600' },
               { label: 'Total Net Profit', value: `$${data.netProfit}`, sub: 'MQL5 Parsed Net Profit', color: 'text-emerald-600' },
               { label: 'Win Rate', value: `${data.winRate}%`, sub: 'Profit Trades Share', color: 'text-slate-700' },
               { label: 'Max Deposit Load', value: `${data.maxDepositLoad}%`, sub: 'Margin Usage Sehat', color: 'text-slate-700' },
             ].map((stat, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+              <div key={idx} className="print-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <p className="text-sm text-slate-500 font-medium mb-2">{stat.label}</p>
                 <div>
                   <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
@@ -846,28 +888,28 @@ export default function Dashboard() {
             ))}
           </section>
 
-          <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <section className="print-section bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center space-x-2">
               <DollarSign className="text-indigo-600" size={20} /> <span>Struktur Saldo & Arus Kas Akun ({displayName})</span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Balance</p>
                 <p className="text-base font-bold text-slate-800">${data.balance}</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Equity</p>
                 <p className="text-base font-bold text-slate-800">${data.equity}</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Initial Deposit</p>
                 <p className="text-base font-bold text-slate-800">${data.initialDeposit}</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Total Deposit</p>
                 <p className="text-base font-bold text-emerald-600">${data.totalDeposit}</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Total Withdrawal</p>
                 <p className="text-base font-bold text-amber-600">${data.totalWithdrawal}</p>
               </div>
@@ -880,7 +922,7 @@ export default function Dashboard() {
       {activeTab === 'detail' && (
         <div className="space-y-6 animate-fadeIn">
           
-          <section className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6">
+          <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6">
             <div className="border-b border-slate-700 pb-3 flex justify-between items-center">
               <h2 className="text-lg font-bold flex items-center space-x-2">
                 <Award className="text-amber-400" size={22} /> 
@@ -892,7 +934,7 @@ export default function Dashboard() {
             <div className="space-y-5 text-sm text-slate-200 leading-relaxed">
               
               {/* 1. GROWTH & EQUITY CURVE */}
-              <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+              <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                 <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                   <TrendingUp size={18} /> <span>1. Analisis Growth & Equity Curve Dynamics</span>
                 </h3>
@@ -902,7 +944,7 @@ export default function Dashboard() {
               </div>
 
               {/* 2. MICROSTRUCTURE & TRADE EXPECTANCY */}
-              <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+              <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                 <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                   <Crosshair size={18} /> <span>2. Market Microstructure & Trade Expectancy</span>
                 </h3>
@@ -912,7 +954,7 @@ export default function Dashboard() {
               </div>
 
               {/* 3. TOXIC STRATEGY CHECK (MARTINGALE / GRID) */}
-              <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+              <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                 <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                   <ShieldAlert size={18} /> <span>3. Deteksi Strategi Toxic (Martingale & Grid Check)</span>
                 </h3>
@@ -922,7 +964,7 @@ export default function Dashboard() {
               </div>
 
               {/* 4. FUND CAPACITY & LIQUIDITY */}
-              <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+              <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                 <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                   <Activity size={18} /> <span>4. Fund Capacity & Liquidity Constraints</span>
                 </h3>
@@ -932,27 +974,27 @@ export default function Dashboard() {
               </div>
 
               {/* 5. QUANTITATIVE RISK METRICS GRID */}
-              <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+              <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                 <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                   <BarChart2 size={18} /> <span>5. Evaluasi Metrik Risiko Kuantitatif Lanjutan</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs pt-1">
-                  <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                  <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
                     <span className="text-slate-400 font-semibold block">Calmar Ratio</span>
                     <span className="text-emerald-400 font-bold text-base">{data.calmarRatio}</span>
                     <p className="text-[11px] text-slate-400 mt-1">Return tahunan dibanding Max Drawdown.</p>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                  <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
                     <span className="text-slate-400 font-semibold block">Sortino Ratio</span>
                     <span className="text-emerald-400 font-bold text-base">{data.sortinoRatio}</span>
                     <p className="text-[11px] text-slate-400 mt-1">Mengukur return terhadap downside volatility.</p>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                  <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
                     <span className="text-slate-400 font-semibold block">Recovery Factor</span>
                     <span className="text-emerald-400 font-bold text-base">{data.recoveryFactor}</span>
                     <p className="text-[11px] text-slate-400 mt-1">Kecepatan akun pulih dari kerugian.</p>
                   </div>
-                  <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                  <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
                     <span className="text-slate-400 font-semibold block">Profit Factor</span>
                     <span className="text-emerald-400 font-bold text-base">{data.profitFactor}</span>
                     <p className="text-[11px] text-slate-400 mt-1">Perbandingan gross profit vs gross loss.</p>
@@ -961,7 +1003,7 @@ export default function Dashboard() {
               </div>
 
               {/* 6. CRO FINAL VERDICT */}
-              <div className="bg-indigo-900/50 p-4 rounded-xl border border-indigo-500/40 space-y-2">
+              <div className="print-card bg-indigo-900/50 p-4 rounded-xl border border-indigo-500/40 space-y-2">
                 <h3 className="font-bold text-emerald-400 text-base flex items-center space-x-2">
                   <CheckCircle size={18} /> <span>6. Kesimpulan CRO (Chief Risk Officer Final Verdict)</span>
                 </h3>
@@ -974,68 +1016,68 @@ export default function Dashboard() {
           </section>
 
           {/* INFORMASI PARAMETER PENDAFTARAN & SUBSCRIPTION FEE */}
-          <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <section className="print-section bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center space-x-2">
               <UserCheck className="text-indigo-600" size={20} /> <span>Informasi Provider, Akses, & Saldo Copier ({displayName})</span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 text-sm">
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Provider Name</p>
                 <p className="font-bold text-slate-800 truncate">{displayProvider}</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Broker / Server</p>
                 <p className="font-bold text-slate-800 truncate">{data.broker}</p>
               </div>
-              <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
+              <div className="print-card p-3 bg-amber-50 border border-amber-100 rounded-lg">
                 <p className="text-xs text-amber-700 font-semibold flex items-center space-x-1"><Tag size={12}/><span>Subscription Fee</span></p>
                 <p className="font-bold text-amber-900 mt-0.5">{data.subscriptionFee}</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Reliability</p>
                 <p className="font-bold text-slate-800">{data.reliabilityWeeks} Weeks</p>
               </div>
-              <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+              <div className="print-card p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
                 <p className="text-xs text-indigo-600 font-semibold flex items-center space-x-1"><Users size={12} /><span>Followers</span></p>
                 <p className="font-bold text-indigo-900 mt-0.5">{data.subscribersCount} Copier</p>
               </div>
-              <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+              <div className="print-card p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
                 <p className="text-xs text-indigo-600 font-semibold">Total Modal Copier</p>
                 <p className="font-bold text-indigo-900 mt-0.5">${data.subscribersCapitalUSD.toLocaleString()} USD</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg">
+              <div className="print-card p-3 bg-slate-50 rounded-lg">
                 <p className="text-xs text-slate-500">Leverage</p>
                 <p className="font-bold text-slate-800">{data.leverage}</p>
               </div>
             </div>
           </section>
 
-          <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <section className="print-section bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center space-x-2">
               <Cpu className="text-indigo-600" size={20} /> <span>Metrik Radar Sinyal MQL5 (Pengukuran Eksekusi)</span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-center">
-              <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+              <div className="print-card p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
                 <p className="text-xs text-indigo-600 font-semibold">Algo Trading</p>
                 <p className="text-xl font-bold text-indigo-900 mt-1">{data.algoTrading}%</p>
               </div>
-              <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
+              <div className="print-card p-3 bg-amber-50 border border-amber-100 rounded-lg">
                 <p className="text-xs text-amber-600 font-semibold">Max Drawdown</p>
                 <p className="text-xl font-bold text-amber-900 mt-1">{data.maxDD}%</p>
               </div>
-              <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
+              <div className="print-card p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
                 <p className="text-xs text-emerald-600 font-semibold">Profit Trades</p>
                 <p className="text-xl font-bold text-emerald-900 mt-1">{data.profitTradesShare}%</p>
               </div>
-              <div className="p-3 bg-rose-50 border border-rose-100 rounded-lg">
+              <div className="print-card p-3 bg-rose-50 border border-rose-100 rounded-lg">
                 <p className="text-xs text-rose-600 font-semibold">Loss Trades</p>
                 <p className="text-xl font-bold text-rose-900 mt-1">{data.lossTradesShare}%</p>
               </div>
-              <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+              <div className="print-card p-3 bg-blue-50 border border-blue-100 rounded-lg">
                 <p className="text-xs text-blue-600 font-semibold">Trading Activity</p>
                 <p className="text-xl font-bold text-blue-900 mt-1">{data.tradingActivity}%</p>
               </div>
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="print-card p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <p className="text-xs text-slate-600 font-semibold">Max Deposit Load</p>
                 <p className="text-xl font-bold text-slate-800 mt-1">{data.maxDepositLoad}%</p>
               </div>
