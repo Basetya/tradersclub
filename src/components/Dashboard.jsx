@@ -2,7 +2,7 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket
 } from 'lucide-react';
 
 // URL GOOGLE APPS SCRIPT WEBHOOK INGESTION
@@ -147,7 +147,7 @@ export default function Dashboard() {
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
-  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Bareng ($10/bln)' });
+  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran, 10% Profit Share)' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Periksa status unlock dari localStorage
@@ -202,16 +202,14 @@ export default function Dashboard() {
     }
   };
 
-  // FUNGSI INGESTION KANTONG GOOGLE SHEETS UNTUK SETIAP KLIK TOMBOL NGOPI
   const handleOpenNgopiModal = (packageType) => {
     setLeadForm(prev => ({ ...prev, interest: packageType }));
 
     if (!isLeadUnlocked) {
       setShowLeadModal(true);
     } else {
-      // Jika pengguna sudah pernah unlock, langsung tembakkan pembaruan data ke Google Sheets
       const payload = {
-        name: leadForm.name || "Trader",
+        name: leadForm.name || "Trader Kakak",
         whatsapp: leadForm.whatsapp || "-",
         email: leadForm.email || "-",
         interest: packageType,
@@ -227,14 +225,14 @@ export default function Dashboard() {
         }).catch(err => console.log("GAS log notice:", err));
       }
 
-      alert(`Terima kasih Mas ${leadForm.name || 'Trader'}! Pilihan paket "${packageType}" untuk sinyal ${displayName} telah tercatat di Google Sheets. Tim TradersClub akan menghubungimu via WhatsApp.`);
+      alert(`Terima kasih Kak ${leadForm.name || 'Trader'}! Pilihan paket "${packageType}" untuk sinyal ${displayName} telah tercatat. Tim TradersClub akan menghubungi Kakak via WhatsApp.`);
     }
   };
 
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
     if (!leadForm.name || !leadForm.whatsapp || !leadForm.email) {
-      alert("Mohon isi Nama, WhatsApp, dan Email Anda.");
+      alert("Mohon isi Nama, WhatsApp, dan Email Kakak.");
       return;
     }
 
@@ -631,7 +629,7 @@ export default function Dashboard() {
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Dapatkan akses laporan audit lengkap dan pilih opsi langganan terhemat dengan menyambungkan akunmu ke Akun Master VPS kami.
+              Dapatkan akses laporan audit lengkap dan pilih opsi langganan terhemat dengan menyambungkan akun Kakak ke Akun Master VPS kami.
             </p>
 
             <form onSubmit={handleLeadSubmit} className="space-y-3">
@@ -678,8 +676,8 @@ export default function Dashboard() {
                   onChange={(e) => setLeadForm({...leadForm, interest: e.target.value})}
                   className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium"
                 >
-                  <option value="Ngopi Bareng ($10/bln)">☕ Ngopi Bareng ($10/bln) — Fast Track Active</option>
-                  <option value="Ngopi Hemat ($5/bln)">☕☕ Ngopi Hemat ($5/bln) — Batch Community Slot</option>
+                  <option value="Ngopi Otomatis (0% Iuran, 10% Profit Share)">🚀 Ngopi Otomatis (0% Iuran, 10% Profit Share)</option>
+                  <option value="Ngopi Mandiri ($5 - $10/bln)">☕ Ngopi Mandiri ($5 - $10/bln) — Investor Pass / Copier</option>
                   <option value="Usulkan Sinyal">💡 Usulkan Sinyal Ini ke Katalog Komunitas</option>
                 </select>
               </div>
@@ -701,7 +699,7 @@ export default function Dashboard() {
             </form>
 
             <p className="text-[10px] text-slate-400 text-center">
-              Data Anda aman dan tidak akan disebarluaskan.
+              Data Kakak aman dan tidak akan disebarluaskan.
             </p>
           </div>
         </div>
@@ -816,26 +814,26 @@ export default function Dashboard() {
               </p>
             </div>
 
-            {/* 3 ACTION BUTTONS (NGOPI BARENG, NGOPI HEMAT, USULKAN SINYAL) */}
+            {/* 3 ACTION BUTTONS (NGOPI OTOMATIS, NGOPI MANDIRI, USULKAN SINYAL) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
               <button 
-                onClick={() => handleOpenNgopiModal('Ngopi Bareng ($10/bln)')}
+                onClick={() => handleOpenNgopiModal('Ngopi Otomatis (0% Iuran, 10% Profit Share)')}
                 className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3 rounded-xl text-xs flex flex-col items-center justify-center space-y-1 transition-all shadow-md group"
               >
                 <span className="flex items-center space-x-1 text-sm">
-                  <Coffee size={16} /> <span>☕ Ngopi Bareng ($10/bln)</span>
+                  <Rocket size={16} /> <span>🚀 Ngopi Otomatis (0% Depan)</span>
                 </span>
-                <span className="text-[10px] text-slate-900 font-medium opacity-90">Fast Track • Akses Investor Pass Instant</span>
+                <span className="text-[10px] text-slate-900 font-medium opacity-90">10% Profit Share • Langsung via App Broker</span>
               </button>
 
               <button 
-                onClick={() => handleOpenNgopiModal('Ngopi Hemat ($5/bln)')}
+                onClick={() => handleOpenNgopiModal('Ngopi Mandiri ($5 - $10/bln)')}
                 className="bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold p-3 rounded-xl text-xs border border-amber-500/40 flex flex-col items-center justify-center space-y-1 transition-all"
               >
                 <span className="flex items-center space-x-1 text-sm">
-                  <Users size={16} /> <span>☕☕ Ngopi Hemat ($5/bln)</span>
+                  <Coffee size={16} /> <span>☕ Ngopi Mandiri ($5 - $10)</span>
                 </span>
-                <span className="text-[10px] text-amber-200/80 font-normal">Slot Hemat • Ikut Batch Launching</span>
+                <span className="text-[10px] text-amber-200/80 font-normal">Flat Fee Bulanan • Investor Pass / Copier</span>
               </button>
 
               <button 
