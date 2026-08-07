@@ -2,7 +2,7 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight
 } from 'lucide-react';
 
 // URL GOOGLE APPS SCRIPT WEBHOOK INGESTION
@@ -147,7 +147,7 @@ export default function Dashboard() {
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
-  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran, 10% Profit Share)' });
+  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Periksa status unlock dari localStorage
@@ -478,7 +478,7 @@ export default function Dashboard() {
 
   const deleteAnalysis = (e, id) => {
     e.stopPropagation();
-    if (window.confirm("Apakah Anda yakin ingin menghapus analisis sinyal ini secara permanen?")) {
+    if (window.confirm("Apakah Kakak yakin ingin menghapus analisis sinyal ini secara permanen?")) {
       const remaining = analysesList.filter(item => item.id !== id);
       setAnalysesList(remaining);
       if (selectedSignalId === id && remaining.length > 0) setSelectedSignalId(remaining[0].id);
@@ -676,7 +676,7 @@ export default function Dashboard() {
                   onChange={(e) => setLeadForm({...leadForm, interest: e.target.value})}
                   className="w-full p-2.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium"
                 >
-                  <option value="Ngopi Otomatis (0% Iuran, 10% Profit Share)">🚀 Ngopi Otomatis (0% Iuran, 10% Profit Share)</option>
+                  <option value="Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)">🚀 Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)</option>
                   <option value="Ngopi Mandiri ($5 - $10/bln)">☕ Ngopi Mandiri ($5 - $10/bln) — Investor Pass / Copier</option>
                   <option value="Usulkan Sinyal">💡 Usulkan Sinyal Ini ke Katalog Komunitas</option>
                 </select>
@@ -817,13 +817,13 @@ export default function Dashboard() {
             {/* 3 ACTION BUTTONS (NGOPI OTOMATIS, NGOPI MANDIRI, USULKAN SINYAL) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
               <button 
-                onClick={() => handleOpenNgopiModal('Ngopi Otomatis (0% Iuran, 10% Profit Share)')}
+                onClick={() => handleOpenNgopiModal('Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)')}
                 className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3 rounded-xl text-xs flex flex-col items-center justify-center space-y-1 transition-all shadow-md group"
               >
                 <span className="flex items-center space-x-1 text-sm">
                   <Rocket size={16} /> <span>🚀 Ngopi Otomatis (0% Depan)</span>
                 </span>
-                <span className="text-[10px] text-slate-900 font-medium opacity-90">10% Profit Share • Langsung via App Broker</span>
+                <span className="text-[10px] text-slate-900 font-medium opacity-90">10% Profit Share • Langsung via App Broker Mitra</span>
               </button>
 
               <button 
@@ -845,6 +845,98 @@ export default function Dashboard() {
                 </span>
                 <span className="text-[10px] text-indigo-300/80 font-normal">Pajang Sinyal Ini di Katalog Komunitas</span>
               </button>
+            </div>
+          </section>
+
+          {/* INSTITUTIONAL EFFICIENCY AUDIT SECTION (EFFICIENCY COMPARISON CARDS) */}
+          <section className="no-print bg-slate-900 text-white rounded-xl p-6 border border-slate-800 shadow-xl space-y-6">
+            <div className="text-center space-y-1.5 border-b border-slate-800 pb-4">
+              <span className="bg-amber-500/20 text-amber-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/30">
+                Institutional Efficiency Audit
+              </span>
+              <h2 className="text-lg md:text-xl font-extrabold text-white">
+                Analisis Komparasi Efisiensi Alokasi Modal
+              </h2>
+              <p className="text-xs text-slate-400 max-w-xl mx-auto">
+                Rasio efisiensi biaya operasional dan akumulasi profit bersih antara alokasi mandiri vs Co-Subscription TradersClub.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              
+              {/* CARD 1: BELI SENDIRI */}
+              <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-600 transition-all">
+                <div className="space-y-2.5">
+                  <div className="flex items-center space-x-2 text-rose-400">
+                    <X size={18} />
+                    <h3 className="font-bold text-sm text-slate-200">Alokasi Mandiri (MQL5)</h3>
+                  </div>
+                  <div className="text-2xl font-black text-white">$45 <span className="text-xs font-normal text-slate-400">/ bulan</span></div>
+                  <ul className="text-xs text-slate-300 space-y-1.5 pt-2 border-t border-slate-700/60">
+                    <li>• Sinyal MQL5 Premium: $30/bln</li>
+                    <li>• MQL5 Dedicated VPS: $15/bln</li>
+                    <li>• Beban konfigurasi server mandiri</li>
+                  </ul>
+                </div>
+                <div className="bg-rose-950/40 border border-rose-800/50 p-2.5 rounded-lg text-rose-200 text-xs font-medium">
+                  ❌ <strong>High Overhead:</strong> Efisiensi modal rendah karena biaya langganan & VPS ditanggung 100% tanpa konsolidasi.
+                </div>
+              </div>
+
+              {/* CARD 2: MASTER BROKER LAIN */}
+              <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-600 transition-all">
+                <div className="space-y-2.5">
+                  <div className="flex items-center space-x-2 text-amber-400">
+                    <AlertTriangle size={18} />
+                    <h3 className="font-bold text-sm text-slate-200">Standard Provider Broker</h3>
+                  </div>
+                  <div className="text-2xl font-black text-white">30% - 50% <span className="text-xs font-normal text-slate-400">Profit Share</span></div>
+                  <ul className="text-xs text-slate-300 space-y-1.5 pt-2 border-t border-slate-700/60">
+                    <li>• Biaya Pendaftaran: $0</li>
+                    <li>• Potongan Performance Fee Jumbo</li>
+                    <li>• Tanpa verifikasi audit risiko independen</li>
+                  </ul>
+                </div>
+                <div className="bg-amber-950/40 border border-amber-800/50 p-2.5 rounded-lg text-amber-200 text-xs font-medium">
+                  ⚠️ <strong>High Friction:</strong> Potongan profit 30%-50% menggerus pertumbuhan akumulasi modal bersih (*Net Yield*) investor.
+                </div>
+              </div>
+
+              {/* CARD 3: TRADERSCLUB (HIGHEST EFFICIENCY) */}
+              <div className="bg-gradient-to-b from-indigo-900/90 to-slate-900 border-2 border-amber-500 rounded-xl p-5 flex flex-col justify-between space-y-4 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-amber-500 text-slate-950 font-black text-[9px] uppercase px-2.5 py-0.5 rounded-bl-lg flex items-center space-x-1">
+                  <Zap size={10} fill="currentColor" /> <span>Optimal Efficiency</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="flex items-center space-x-2 text-emerald-400">
+                    <ShieldCheck size={18} />
+                    <h3 className="font-bold text-sm text-white">TradersClub Co-Sub</h3>
+                  </div>
+                  <div className="text-2xl font-black text-amber-400">$10 <span className="text-xs font-normal text-slate-300">/ bulan + 10% Profit Share</span></div>
+                  <ul className="text-xs text-slate-200 space-y-1.5 pt-2 border-t border-indigo-700/60">
+                    <li className="flex items-center space-x-1.5"><Check size={13} className="text-emerald-400" /> <span>Efisiensi modal sewa sinyal hingga 75%</span></li>
+                    <li className="flex items-center space-x-1.5"><Check size={13} className="text-emerald-400" /> <span>Free Cloud Auto-Execution 24/7 (0% VPS)</span></li>
+                    <li className="flex items-center space-x-1.5"><Check size={13} className="text-emerald-400" /> <span>Performance Fee Terringan (Cuma 10%)</span></li>
+                  </ul>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="bg-emerald-950/60 border border-emerald-500/40 p-2.5 rounded-lg text-emerald-300 text-xs font-medium">
+                    ✨ <strong>Maximized Net Yield:</strong> Biaya operasional minimal & retensi profit bersih investor maksimal (90%).
+                  </div>
+
+                  <button 
+                    onClick={() => handleOpenNgopiModal('Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)')}
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition-all"
+                  >
+                    <span>GABUNG BATCH TRADERSCLUB</span>
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+
+              </div>
+
             </div>
           </section>
 
