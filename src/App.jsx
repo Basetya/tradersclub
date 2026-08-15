@@ -16,40 +16,65 @@ import {
   Clock,
   Sparkles,
   Lock,
-  Unlock,
   UploadCloud,
   FileText,
   Percent,
   X,
   ChevronRight,
-  Database,
-  Activity,
-  FileSpreadsheet,
-  Image as ImageIcon,
   KeyRound,
   LogOut,
-  User
+  User,
+  Trash2,
+  Archive,
+  RotateCcw,
+  PlusCircle,
+  Send,
+  Settings,
+  Check,
+  Inbox
 } from "lucide-react";
 
 export default function App() {
-  // State Interaktif Utama
-  const [assessmentMode, setAssessmentMode] = useState("retail"); // 'retail' | 'institutional'
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  // Mode Analisis: 'retail' | 'institutional'
+  const [assessmentMode, setAssessmentMode] = useState("retail");
+
+  // State Autentikasi Admin
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminUsername, setAdminUsername] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
+  const [adminPassword, setAdminPassword] = useState("151264"); // Default password baru
+  const [inputUsername, setInputUsername] = useState("");
+  const [inputPassword, setInputPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  
+
+  // State Modal Dialog
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [isReviewProposalsModalOpen, setIsReviewProposalsModalOpen] = useState(false);
+
+  // State Ganti Password Admin
+  const [oldPasswordInput, setOldPasswordInput] = useState("");
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
+  const [settingsMessage, setSettingsMessage] = useState("");
+
+  // State Form Usulan Sinyal Visitor
+  const [proposalName, setProposalName] = useState("");
+  const [proposalLink, setProposalLink] = useState("");
+  const [proposalNote, setProposalNote] = useState("");
+
+  // State Navigasi Katalog Sinyal
   const [historyTab, setHistoryTab] = useState("active"); // 'active' | 'archive'
-  const [selectedSignalId, setSelectedSignalId] = useState("MT5 Signal - 003");
+  const [selectedSignalId, setSelectedSignalId] = useState("SIG-003");
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  // Database Sinyal Multi-Signal (Responsif saat diklik)
-  const signalsDatabase = {
-    "MT5 Signal - 003": {
-      name: "World PEACE Multi FX Algo",
-      signalId: "MT5 Signal - 003",
+  // Database Sinyal (Dapat dikelola oleh Admin: Tambah / Arsip / Hapus)
+  const [signalsList, setSignalsList] = useState([
+    {
+      id: "SIG-003",
+      codeName: "MT5 Signal - 003",
+      realName: "World PEACE Multi FX Algo",
+      status: "active",
       dateAudit: "15 Agu 2026 (Audit)",
       provider: "Provider #003 (Nobeyo- Sano JP)",
       broker: "HFMarketsGlobal-Live1",
@@ -81,9 +106,11 @@ export default function App() {
       filesCount: "Total 7 File (.PNG, 1 file .CSV)",
       strategyType: "Multi-Currency Grid & Fibonacci Multiplier (10 Pairs)"
     },
-    "MT5 Signal - 001": {
-      name: "Titanium Alpha Trend Scalper",
-      signalId: "MT5 Signal - 001",
+    {
+      id: "SIG-001",
+      codeName: "MT5 Signal - 001",
+      realName: "Titanium Alpha Trend Scalper",
+      status: "active",
       dateAudit: "07 Agu 2026",
       provider: "Provider #001 (AlphaTech UA)",
       broker: "ICMarkets-SC-Live",
@@ -115,9 +142,11 @@ export default function App() {
       filesCount: "Total 6 File (.PNG / .CSV)",
       strategyType: "Intraday Momentum & Tight Trailing Stop"
     },
-    "MT5 Signal - 002": {
-      name: "Apex Multi-EA Institutional Portfolio",
-      signalId: "MT5 Signal - 002",
+    {
+      id: "SIG-002",
+      codeName: "MT5 Signal - 002",
+      realName: "Apex Multi-EA Institutional Portfolio",
+      status: "active",
       dateAudit: "06 Agu 2026",
       provider: "Provider #002 (QuantEdge UA)",
       broker: "RoboForex-ProLive",
@@ -149,35 +178,169 @@ export default function App() {
       filesCount: "Master Institutional (Multi EA)",
       strategyType: "Portfolio Multi-Strategy (Breakout + Mean Reversion)"
     }
-  };
+  ]);
 
-  // Sinyal yang sedang aktif terpilih
-  const currentSignal = signalsDatabase[selectedSignalId] || signalsDatabase["MT5 Signal - 003"];
+  // Antrean Usulan Sinyal dari Visitor (Proposal Queue)
+  const [proposalsList, setProposalsList] = useState([
+    {
+      id: "PROP-101",
+      name: "Quant Golden Cross EA",
+      mql5Link: "https://www.mql5.com/en/signals/2389100",
+      submitter: "Visitor #842",
+      note: "Sinyal emas konsisten drawdown < 15%, mohon diaudit kak!",
+      submittedAt: "15 Agu 2026"
+    }
+  ]);
 
-  // Handler Upload File
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setUploadedFiles((prev) => [...prev, ...files.map((f) => f.name)]);
-  };
+  // Sinyal yang sedang aktif terpilih di dashboard
+  const activeSignals = signalsList.filter((s) => s.status === "active");
+  const archivedSignals = signalsList.filter((s) => s.status === "archived");
+  const currentSignal = signalsList.find((s) => s.id === selectedSignalId) || activeSignals[0] || signalsList[0];
 
   // Handler Login Admin
   const handleAdminLogin = (e) => {
     e.preventDefault();
-    if (adminUsername.trim() === "admin" && adminPassword.trim() === "admin123") {
+    if (inputUsername.trim() === "admin" && inputPassword.trim() === adminPassword) {
       setIsAdminLoggedIn(true);
       setIsAdminModalOpen(false);
+      setInputUsername("");
+      setInputPassword("");
       setLoginError("");
-      alert("Login Admin Berhasil! Selamat datang di Panel Administrator Traders Club.");
+      alert("✅ Login Admin Berhasil! Mode Admin Aktif: Menampilkan nama asli sinyal.");
     } else {
-      setLoginError("Username atau password admin salah! (Default: admin / admin123)");
+      setLoginError("Kredensial salah! Gunakan username: admin dan password Anda.");
     }
   };
 
-  const handleAdminLogout = () => {
-    setIsAdminLoggedIn(false);
-    setAdminUsername("");
-    setAdminPassword("");
-    alert("Admin berhasil logout.");
+  // Handler Ganti Password Admin
+  const handleChangePassword = (e) => {
+    e.preventDefault();
+    if (oldPasswordInput !== adminPassword) {
+      setSettingsMessage("❌ Password lama tidak sesuai!");
+      return;
+    }
+    if (newPasswordInput.length < 6) {
+      setSettingsMessage("❌ Password baru minimal 6 karakter!");
+      return;
+    }
+    if (newPasswordInput !== confirmPasswordInput) {
+      setSettingsMessage("❌ Konfirmasi password baru tidak cocok!");
+      return;
+    }
+    setAdminPassword(newPasswordInput);
+    setSettingsMessage("✅ Password admin berhasil diperbarui!");
+    setTimeout(() => {
+      setIsSettingsModalOpen(false);
+      setSettingsMessage("");
+      setOldPasswordInput("");
+      setNewPasswordInput("");
+      setConfirmPasswordInput("");
+    }, 1200);
+  };
+
+  // Handler Arsip Sinyal
+  const handleArchiveSignal = (id, e) => {
+    e.stopPropagation();
+    setSignalsList((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, status: "archived" } : s))
+    );
+    alert("Sinyal telah dipindahkan ke tab Arsip.");
+  };
+
+  // Handler Restore Sinyal
+  const handleRestoreSignal = (id, e) => {
+    e.stopPropagation();
+    setSignalsList((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, status: "active" } : s))
+    );
+    alert("Sinyal dipulihkan ke tab Aktif.");
+  };
+
+  // Handler Hapus Sinyal
+  const handleDeleteSignal = (id, e) => {
+    e.stopPropagation();
+    if (window.confirm("Apakah Admin yakin ingin MENGHAPUS sinyal ini secara permanen?")) {
+      const remaining = signalsList.filter((s) => s.id !== id);
+      setSignalsList(remaining);
+      if (selectedSignalId === id && remaining.length > 0) {
+        setSelectedSignalId(remaining[0].id);
+      }
+      alert("Sinyal berhasil dihapus dari database.");
+    }
+  };
+
+  // Handler Submit Usulan Visitor
+  const handleVisitorSubmitProposal = (e) => {
+    e.preventDefault();
+    if (!proposalName || !proposalLink) {
+      alert("Mohon lengkapi nama sinyal dan link MQL5.");
+      return;
+    }
+    const newProp = {
+      id: `PROP-${Date.now().toString().slice(-3)}`,
+      name: proposalName,
+      mql5Link: proposalLink,
+      submitter: "Komunitas Visitor",
+      note: proposalNote || "Diusulkan via formulir web Traders Club",
+      submittedAt: "Baru saja"
+    };
+    setProposalsList((prev) => [newProp, ...prev]);
+    alert("✨ Terima kasih! Usulan sinyal Anda telah dikirimkan ke Admin untuk diverifikasi & diaudit.");
+    setProposalName("");
+    setProposalLink("");
+    setProposalNote("");
+    setIsProposalModalOpen(false);
+  };
+
+  // Handler Approve Usulan Admin
+  const handleApproveProposal = (prop) => {
+    const newSignal = {
+      id: `SIG-${Date.now().toString().slice(-3)}`,
+      codeName: `MT5 Signal - 00${signalsList.length + 1}`,
+      realName: prop.name,
+      status: "active",
+      dateAudit: "Baru Diaudit",
+      provider: "Provider Terverifikasi",
+      broker: "Live Broker ECN",
+      accountType: "MT5 Hedging",
+      leverage: "1:500",
+      subscriptionFee: "$30 USD / Bln",
+      followers: "12 Copier",
+      totalCopierFunds: "$45,000 USD",
+      activePeriod: "40 Weeks",
+      growth: "1,850.00%",
+      initialDeposit: "$1,000 USD",
+      totalDeposits: "$0",
+      totalWithdrawals: "$12,000 USD",
+      realizedProfit: "$18,500 USD",
+      balance: "$7,500 USD",
+      equity: "$7,350 USD",
+      floatingLoss: "-$150 USD (~2%)",
+      maxEquityDD: "18.5%",
+      maxDepositLoad: "10.2%",
+      profitFactor: "2.05",
+      winRate: "74.5%",
+      totalTrades: "1,250",
+      maxPeakLayers: 6,
+      calmarRatio: "3.20",
+      sortinoRatio: "3.10",
+      recoveryFactor: "4.50",
+      expectedPayoff: "$14.8 USD / Trade",
+      holdingTime: "1 Hari",
+      filesCount: "Audit Komunitas MQL5",
+      strategyType: "Community Approved Algorithmic Strategy"
+    };
+    setSignalsList((prev) => [newSignal, ...prev]);
+    setProposalsList((prev) => prev.filter((p) => p.id !== prop.id));
+    setSelectedSignalId(newSignal.id);
+    alert(`✅ Usulan "${prop.name}" DISETUJUI & otomatis ditambahkan ke Katalog Sinyal Aktif!`);
+  };
+
+  // Handler Reject Usulan Admin
+  const handleRejectProposal = (propId) => {
+    if (window.confirm("Tolak usulan sinyal ini?")) {
+      setProposalsList((prev) => prev.filter((p) => p.id !== propId));
+    }
   };
 
   return (
@@ -192,12 +355,18 @@ export default function App() {
             <div>
               <div className="text-base font-extrabold tracking-wide text-white flex items-center gap-2">
                 ALPHA ANALYZER
-                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  LIVE SYSTEM
+                <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full border ${
+                  isAdminLoggedIn
+                    ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
+                    : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                }`}>
+                  {isAdminLoggedIn ? "ADMIN MODE ACTIVE" : "LIVE SYSTEM"}
                 </span>
               </div>
               <p className="text-[10px] text-slate-400">
-                Traders Club Executive Signal Intelligence
+                {isAdminLoggedIn
+                  ? "Admin Panel: Menampilkan Nama Asli Sinyal MT4/MT5 & Manajemen Katalog"
+                  : "Traders Club Executive Signal Intelligence"}
               </p>
             </div>
           </div>
@@ -205,11 +374,31 @@ export default function App() {
           <div className="flex items-center gap-2.5">
             {isAdminLoggedIn ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5" /> Admin Active
-                </span>
+                {/* Tombol Cek Usulan Visitor */}
                 <button
-                  onClick={handleAdminLogout}
+                  onClick={() => setIsReviewProposalsModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-700/50 bg-amber-950/40 text-xs font-semibold text-amber-300 hover:bg-amber-900/60 transition cursor-pointer relative"
+                >
+                  <Inbox className="w-3.5 h-3.5" /> Usulan Visitor
+                  {proposalsList.length > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                  )}
+                </button>
+
+                {/* Tombol Ganti Password Admin */}
+                <button
+                  onClick={() => setIsSettingsModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer"
+                >
+                  <Settings className="w-3.5 h-3.5" /> Ganti Password
+                </button>
+
+                {/* Tombol Logout Admin */}
+                <button
+                  onClick={() => {
+                    setIsAdminLoggedIn(false);
+                    alert("Admin berhasil logout.");
+                  }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-800/50 bg-red-950/40 text-xs font-semibold text-red-300 hover:bg-red-900/60 transition cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" /> Logout
@@ -259,15 +448,24 @@ export default function App() {
               <button className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition cursor-pointer">
                 ☕ Ngopi Mandiri ($5 - $10)
               </button>
-              <button className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-700/50 text-xs font-semibold text-indigo-300 transition cursor-pointer">
-                ✨ Usulkan Sinyal Ini
+              <button
+                onClick={() => setIsProposalModalOpen(true)}
+                className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-700/50 text-xs font-semibold text-indigo-300 transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Usulkan Sinyal Ini
               </button>
             </div>
           </div>
           {/* Progress Bar */}
           <div className="mt-4 pt-4 border-t border-slate-800/80">
             <div className="flex justify-between text-[11px] text-slate-400 mb-1.5">
-              <span>Kesiapan Server & Kuota Komunitas ({currentSignal.signalId})</span>
+              <span>
+                Kesiapan Server & Kuota Komunitas (
+                <strong className="text-white">
+                  {isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName}
+                </strong>
+                )
+              </span>
               <span className="text-emerald-400 font-bold">90% Ready</span>
             </div>
             <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
@@ -280,7 +478,11 @@ export default function App() {
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-400" /> Executive Summary & Institutional Recommendation ({currentSignal.signalId})
+              <Sparkles className="w-4 h-4 text-blue-400" /> Executive Summary & Institutional Recommendation (
+              <span className="text-blue-400 font-bold">
+                {isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName}
+              </span>
+              )
             </h3>
             <span className="px-2.5 py-0.5 text-[11px] font-bold uppercase rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               STATUS: APPROVED
@@ -368,7 +570,11 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                  Laporan Audit & Kurasi Sinyal ({currentSignal.signalId})
+                  Laporan Audit & Kurasi Sinyal (
+                  <span className="text-emerald-400">
+                    {isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName}
+                  </span>
+                  )
                 </h2>
               </div>
               <p className="text-xs text-slate-400 mt-1">
@@ -417,7 +623,7 @@ export default function App() {
                     </span>
                   </div>
                   <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-                    Sinyal <strong>{currentSignal.name}</strong> menggunakan model <strong>{currentSignal.strategyType}</strong>. Bebas dari manipulasi deposit darurat saat posisi floating minus. Modal awal ({currentSignal.initialDeposit}) telah berhasil ditarik berkali-kali lipat melalui siklus penarikan berkala (total WD: {currentSignal.totalWithdrawals}).
+                    Sinyal <strong>{currentSignal.realName}</strong> menggunakan model <strong>{currentSignal.strategyType}</strong>. Bebas dari manipulasi deposit darurat saat posisi floating minus. Modal awal ({currentSignal.initialDeposit}) telah berhasil ditarik berkali-kali lipat melalui siklus penarikan berkala (total WD: {currentSignal.totalWithdrawals}).
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="flex items-center gap-2.5 text-xs text-slate-300 bg-slate-900/90 p-3 rounded-lg border border-slate-800">
@@ -484,7 +690,7 @@ export default function App() {
             </div>
           )}
 
-          {/* VIEW MODE 2: INSTITUTIONAL & BOD VIEW (LENGKAP DENGAN 6 POIN AUDIT) */}
+          {/* VIEW MODE 2: INSTITUTIONAL & BOD VIEW (LENGKAP 6 POIN AUDIT) */}
           {assessmentMode === "institutional" && (
             <div className="space-y-6">
               {/* Executive Thesis & Rating */}
@@ -511,7 +717,7 @@ export default function App() {
                       <span className="text-sm md:text-base font-bold text-white">{currentSignal.sortinoRatio}</span>
                     </div>
                     <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block">Return of Capital</span>
+                      <span className="text-[10px] text-slate-400 block">Return on Capital</span>
                       <span className="text-sm md:text-base font-bold text-purple-400">459% ROC</span>
                     </div>
                   </div>
@@ -546,12 +752,12 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 6 POIN AUDIT FORENSIK INSTITUSIONAL */}
+              {/* 6 POIN AUDIT FORENSIK */}
               <div className="space-y-4">
                 <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-1">
                   <h4 className="text-xs font-bold text-blue-400">~ 1. Analisis Growth & Equity Curve Dynamics</h4>
                   <p className="text-xs text-slate-300">
-                    Pertumbuhan akumulatif sinyal <strong>{currentSignal.signalId}</strong> sebesar <strong>{currentSignal.growth}</strong> selama rekam jejak <strong>{currentSignal.activePeriod}</strong> membuktikan kurva ekuitas yang sangat konsisten. Didukung oleh <strong>Calmar Ratio {currentSignal.calmarRatio}</strong> dan <strong>Recovery Factor {currentSignal.recoveryFactor}</strong>, kurva ekuitas mencerminkan efisiensi perolehan profit tanpa eksposur risiko spekulatif ekstrem.
+                    Pertumbuhan akumulatif sinyal <strong>{currentSignal.realName}</strong> sebesar <strong>{currentSignal.growth}</strong> selama rekam jejak <strong>{currentSignal.activePeriod}</strong> membuktikan kurva ekuitas yang sangat konsisten. Didukung oleh <strong>Calmar Ratio {currentSignal.calmarRatio}</strong> dan <strong>Recovery Factor {currentSignal.recoveryFactor}</strong>, kurva ekuitas mencerminkan efisiensi perolehan profit tanpa eksposur risiko spekulatif ekstrem.
                   </p>
                 </div>
 
@@ -601,7 +807,7 @@ export default function App() {
                 <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-1">
                   <h4 className="text-xs font-bold text-emerald-400">~ 6. Kesimpulan CRO (Chief Risk Officer Final Verdict)</h4>
                   <p className="text-xs text-slate-300">
-                    Sinyal <strong>{currentSignal.signalId}</strong> berhasil melewati seluruh standar uji kuantitatif komite investasi institusional dari {currentSignal.followers} aktif beraset {currentSignal.totalCopierFunds}. Rekomendasi mutlak: <strong>APPROVED UNTUK ALOKASI DANA KELOLAAN</strong>.
+                    Sinyal <strong>{currentSignal.realName}</strong> berhasil melewati seluruh standar uji kuantitatif komite investasi institusional dari {currentSignal.followers} aktif beraset {currentSignal.totalCopierFunds}. Rekomendasi mutlak: <strong>APPROVED UNTUK ALOKASI DANA KELOLAAN</strong>.
                   </p>
                 </div>
               </div>
@@ -612,7 +818,11 @@ export default function App() {
         {/* ================= 6. STRUKTUR SALDO & CASH FLOW ================= */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <span className="text-emerald-400 font-black">$</span> Struktur Saldo & Arus Kas Akun ({currentSignal.signalId})
+            <span className="text-emerald-400 font-black">$</span> Struktur Saldo & Arus Kas Akun (
+            <span className="text-emerald-400">
+              {isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName}
+            </span>
+            )
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
             <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
@@ -641,7 +851,11 @@ export default function App() {
         {/* ================= 7. INFORMASI PROVIDER, AKSES, & SALDO COPIER ================= */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-blue-400" /> Informasi Provider, Akses, & Saldo Copier ({currentSignal.signalId})
+            <UserCheck className="w-4 h-4 text-blue-400" /> Informasi Provider, Akses, & Saldo Copier (
+            <span className="text-blue-400">
+              {isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName}
+            </span>
+            )
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 text-xs">
             <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
@@ -676,12 +890,12 @@ export default function App() {
 
           <div className="pt-2 flex justify-end">
             <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition cursor-pointer">
-              <Download className="w-4 h-4" /> Download Laporan PDF — {currentSignal.signalId}
+              <Download className="w-4 h-4" /> Download Laporan PDF — {isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName}
             </button>
           </div>
         </div>
 
-        {/* ================= 8. DAFTAR RIWAYAT SINYAL TERANALISIS (RESPONSIF KLIK) ================= */}
+        {/* ================= 8. DAFTAR RIWAYAT SINYAL TERANALISIS (DENGAN ACTION ADMIN) ================= */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
             <div>
@@ -689,7 +903,9 @@ export default function App() {
                 <Clock className="w-4 h-4 text-blue-400" /> Daftar Riwayat Sinyal Teranalisis (ALPHA ANALYZER Manager)
               </h3>
               <p className="text-[11px] text-slate-400">
-                Klik kartu sinyal di bawah ini untuk mengganti data analisis secara instan:
+                {isAdminLoggedIn
+                  ? "Admin Panel Aktif: Menampilkan nama asli sinyal MT4/MT5. Anda dapat mengarsipkan atau menghapus sinyal."
+                  : "Klik kartu sinyal di bawah ini untuk melihat detail analisisnya:"}
               </p>
             </div>
             <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
@@ -699,7 +915,7 @@ export default function App() {
                   historyTab === "active" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
                 }`}
               >
-                Aktif (3)
+                Aktif ({activeSignals.length})
               </button>
               <button
                 onClick={() => setHistoryTab("archive")}
@@ -707,131 +923,92 @@ export default function App() {
                   historyTab === "archive" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
                 }`}
               >
-                Arsip (0)
+                Arsip ({archivedSignals.length})
               </button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Card 1: MT5 Signal - 003 */}
-            <div
-              onClick={() => setSelectedSignalId("MT5 Signal - 003")}
-              className={`p-4 rounded-xl border transition cursor-pointer relative group ${
-                selectedSignalId === "MT5 Signal - 003"
-                  ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
-                  : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
+            {(historyTab === "active" ? activeSignals : archivedSignals).map((sig) => (
+              <div
+                key={sig.id}
+                onClick={() => setSelectedSignalId(sig.id)}
+                className={`p-4 rounded-xl border transition cursor-pointer relative group flex flex-col justify-between ${
+                  selectedSignalId === sig.id
+                    ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
+                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
+                }`}
+              >
                 <div>
-                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    MT5 Signal - 003
-                    <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                      15 Agu 2026 (Audit)
-                    </span>
-                  </h4>
-                  <span className="text-[11px] text-slate-400 block mt-0.5">Provider: Provider #003 (JP)</span>
-                </div>
-                <ChevronRight
-                  className={`w-4 h-4 transition ${
-                    selectedSignalId === "MT5 Signal - 003" ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
-                  }`}
-                />
-              </div>
-              <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
-                <div className="flex justify-between">
-                  <span className="text-emerald-400 font-bold">Growth: 3,283.95%</span>
-                  <span className="text-slate-400">76 Wks</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Win: 82.4%</span>
-                  <span className="text-amber-400">Max DD: 23.7%</span>
-                </div>
-              </div>
-              <div className="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
-                <FileText className="w-3 h-3" /> Total 7 File (.PNG, 1 file .CSV)
-              </div>
-            </div>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                        {/* Jika Admin Login: Tampilkan nama asli sinyal */}
+                        {isAdminLoggedIn ? sig.realName : sig.codeName}
+                        <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                          {sig.dateAudit}
+                        </span>
+                      </h4>
+                      <span className="text-[11px] text-slate-400 block mt-0.5 truncate max-w-[220px]">
+                        Provider: {sig.provider}
+                      </span>
+                    </div>
+                    <ChevronRight
+                      className={`w-4 h-4 transition ${
+                        selectedSignalId === sig.id ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
+                      }`}
+                    />
+                  </div>
 
-            {/* Card 2: MT5 Signal - 001 */}
-            <div
-              onClick={() => setSelectedSignalId("MT5 Signal - 001")}
-              className={`p-4 rounded-xl border transition cursor-pointer relative group ${
-                selectedSignalId === "MT5 Signal - 001"
-                  ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
-                  : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    MT5 Signal - 001
-                    <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                      07 Agu 2026
-                    </span>
-                  </h4>
-                  <span className="text-[11px] text-slate-500 block mt-0.5">Provider: Provider #001 (UA)</span>
+                  <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
+                    <div className="flex justify-between">
+                      <span className="text-emerald-400 font-bold">Growth: {sig.growth}</span>
+                      <span className="text-slate-400">{sig.activePeriod.split(" ")[0]} Wks</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Win: {sig.winRate}</span>
+                      <span className="text-amber-400">Max DD: {sig.maxEquityDD}</span>
+                    </div>
+                  </div>
                 </div>
-                <ChevronRight
-                  className={`w-4 h-4 transition ${
-                    selectedSignalId === "MT5 Signal - 001" ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
-                  }`}
-                />
-              </div>
-              <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
-                <div className="flex justify-between">
-                  <span className="text-emerald-400 font-bold">Growth: 2,341.33%</span>
-                  <span className="text-slate-400">63 Wks</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Win: 61.5%</span>
-                  <span className="text-amber-400">Max DD: 25.9%</span>
-                </div>
-              </div>
-              <div className="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
-                <FileText className="w-3 h-3" /> Total 6 File (.PNG / .CSV)
-              </div>
-            </div>
 
-            {/* Card 3: MT5 Signal - 002 */}
-            <div
-              onClick={() => setSelectedSignalId("MT5 Signal - 002")}
-              className={`p-4 rounded-xl border transition cursor-pointer relative group ${
-                selectedSignalId === "MT5 Signal - 002"
-                  ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
-                  : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                    MT5 Signal - 002
-                    <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                      06 Agu 2026
-                    </span>
-                  </h4>
-                  <span className="text-[11px] text-slate-500 block mt-0.5">Provider: Provider #002 (UA)</span>
+                <div className="mt-3 pt-2.5 border-t border-slate-900 flex items-center justify-between">
+                  <span className="text-[10px] text-slate-500 truncate max-w-[150px]">
+                    {sig.filesCount}
+                  </span>
+
+                  {/* KONTROL ADMIN UNTUK ARSIP DAN HAPUS */}
+                  {isAdminLoggedIn && (
+                    <div className="flex items-center gap-1">
+                      {sig.status === "active" ? (
+                        <button
+                          title="Arsipkan Sinyal"
+                          onClick={(e) => handleArchiveSignal(sig.id, e)}
+                          className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition"
+                        >
+                          <Archive className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <button
+                          title="Pulihkan Sinyal ke Aktif"
+                          onClick={(e) => handleRestoreSignal(sig.id, e)}
+                          className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        title="Hapus Sinyal Permanen"
+                        onClick={(e) => handleDeleteSignal(sig.id, e)}
+                        className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <ChevronRight
-                  className={`w-4 h-4 transition ${
-                    selectedSignalId === "MT5 Signal - 002" ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
-                  }`}
-                />
               </div>
-              <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
-                <div className="flex justify-between">
-                  <span className="text-emerald-400 font-bold">Growth: 2,991.11%</span>
-                  <span className="text-slate-400">58 Wks</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Win: 59.11%</span>
-                  <span className="text-amber-400">Max DD: 23.5%</span>
-                </div>
-              </div>
-              <div className="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Master Institutional (Multi EA)
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -841,7 +1018,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* ================= 9. MODAL POPUP ADMIN LOGIN ================= */}
+      {/* ================= 9. MODAL ADMIN LOGIN ================= */}
       {isAdminModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -863,7 +1040,7 @@ export default function App() {
 
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <p className="text-xs text-slate-300">
-                Masukkan kredensial admin untuk mengelola katalog sinyal dan audit parameter.
+                Gunakan kredensial default <strong>Username: admin</strong> dan <strong>Password: 151264</strong> (bisa diubah setelah login).
               </p>
 
               {loginError && (
@@ -873,12 +1050,12 @@ export default function App() {
               )}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">Username / ID Admin</label>
+                <label className="text-xs font-semibold text-slate-300">Username Admin</label>
                 <input
                   type="text"
                   placeholder="admin"
-                  value={adminUsername}
-                  onChange={(e) => setAdminUsername(e.target.value)}
+                  value={inputUsername}
+                  onChange={(e) => setInputUsername(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
                   required
                 />
@@ -889,8 +1066,8 @@ export default function App() {
                 <input
                   type="password"
                   placeholder="••••••••"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
+                  value={inputPassword}
+                  onChange={(e) => setInputPassword(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
                   required
                 />
@@ -899,10 +1076,7 @@ export default function App() {
               <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
                 <button
                   type="button"
-                  onClick={() => {
-                    setIsAdminModalOpen(false);
-                    setLoginError("");
-                  }}
+                  onClick={() => setIsAdminModalOpen(false)}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
                 >
                   Batal
@@ -911,7 +1085,7 @@ export default function App() {
                   type="submit"
                   className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer"
                 >
-                  Masuk Admin
+                  Masuk Mode Admin
                 </button>
               </div>
             </form>
@@ -919,7 +1093,247 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 10. MODAL POPUP UPLOAD FILE ================= */}
+      {/* ================= 10. MODAL PENGATURAN GANTI PASSWORD ADMIN ================= */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-purple-400" />
+                <h3 className="text-base font-bold text-white">Ganti Password Admin</h3>
+              </div>
+              <button
+                onClick={() => setIsSettingsModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              {settingsMessage && (
+                <div className={`p-2.5 rounded-lg text-xs ${
+                  settingsMessage.includes("✅")
+                    ? "bg-emerald-950/60 border border-emerald-800 text-emerald-300"
+                    : "bg-red-950/60 border border-red-800 text-red-300"
+                }`}>
+                  {settingsMessage}
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Password Lama</label>
+                <input
+                  type="password"
+                  placeholder="Masukkan password saat ini (Default: 151264)"
+                  value={oldPasswordInput}
+                  onChange={(e) => setOldPasswordInput(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Password Baru</label>
+                <input
+                  type="password"
+                  placeholder="Minimal 6 karakter"
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Konfirmasi Password Baru</label>
+                <input
+                  type="password"
+                  placeholder="Ketik ulang password baru"
+                  value={confirmPasswordInput}
+                  onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-600/30 transition cursor-pointer"
+                >
+                  Simpan Password Baru
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= 11. MODAL USULKAN SINYAL DARI VISITOR ================= */}
+      {isProposalModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-bold text-white">Usulkan Sinyal MQL5 Baru</h3>
+              </div>
+              <button
+                onClick={() => setIsProposalModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleVisitorSubmitProposal} className="space-y-4">
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Punya sinyal MQL5 jagoan yang ingin diaudit dan dimasukkan ke program <strong>Status Waktu Kopi</strong>? Kirimkan datanya di sini:
+              </p>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Nama Sinyal MT4 / MT5</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Gold Mastery Scalper Pro"
+                  value={proposalName}
+                  onChange={(e) => setProposalName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Tautan / URL MQL5 Signal</label>
+                <input
+                  type="url"
+                  placeholder="https://www.mql5.com/en/signals/..."
+                  value={proposalLink}
+                  onChange={(e) => setProposalLink(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Catatan Tambahan (Opsional)</label>
+                <textarea
+                  placeholder="Kelebihan, pair yang dipakai, atau akun rekomendasi..."
+                  value={proposalNote}
+                  onChange={(e) => setProposalNote(e.target.value)}
+                  rows="3"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsProposalModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" /> Kirim Usulan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= 12. MODAL ADMIN REVIEW USULAN VISITOR ================= */}
+      {isReviewProposalsModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Inbox className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-bold text-white">
+                  Review Antrean Usulan Sinyal Visitor ({proposalsList.length})
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsReviewProposalsModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              {proposalsList.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 text-xs">
+                  Belum ada antrean usulan sinyal baru dari visitor.
+                </div>
+              ) : (
+                proposalsList.map((prop) => (
+                  <div
+                    key={prop.id}
+                    className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-white">{prop.name}</h4>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
+                          {prop.submitter}
+                        </span>
+                      </div>
+                      <a
+                        href={prop.mql5Link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-blue-400 hover:underline block truncate max-w-sm"
+                      >
+                        {prop.mql5Link}
+                      </a>
+                      <p className="text-xs text-slate-400 italic">"{prop.note}"</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                      <button
+                        onClick={() => handleRejectProposal(prop.id)}
+                        className="px-3 py-1.5 rounded-lg border border-red-800/60 bg-red-950/40 text-xs font-semibold text-red-400 hover:bg-red-900/60 transition cursor-pointer"
+                      >
+                        Tolak
+                      </button>
+                      <button
+                        onClick={() => handleApproveProposal(prop)}
+                        className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md shadow-emerald-600/30 transition cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Setujui & Tambah
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setIsReviewProposalsModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 transition cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= 13. MODAL POPUP UPLOAD SCREENSHOT & CSV ================= */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
