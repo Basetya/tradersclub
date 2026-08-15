@@ -19,28 +19,37 @@ import {
   UploadCloud,
   FileText,
   Percent,
+  X,
+  ChevronRight,
+  Database,
+  Activity,
+  FileSpreadsheet,
+  Image as ImageIcon
 } from "lucide-react";
 
 export default function App() {
-  // State untuk memilih tab analisa: 'retail' | 'institutional'
-  const [assessmentMode, setAssessmentMode] = useState("retail");
+  // State interaktif
+  const [assessmentMode, setAssessmentMode] = useState("retail"); // 'retail' | 'institutional'
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [historyTab, setHistoryTab] = useState("active"); // 'active' | 'archive'
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  // Data terverifikasi hasil audit forensik
+  // Data Sinyal Aktif (MT5 Signal - 003)
   const signalData = {
     name: "World PEACE Multi FX Algo",
     signalId: "MT5 Signal - 003",
-    provider: "Nobeyo- Sano",
+    provider: "Provider #003 (Nobeyo- Sano)",
     broker: "HFMarketsGlobal-Live1",
     accountType: "MT5 Hedging",
     leverage: "1:500",
     subscriptionFee: "$30 USD / Bln",
-    followers: 51,
+    followers: "51 Copier",
     totalCopierFunds: "$164,000 USD",
     activePeriod: "76 Weeks (~17 Months)",
     growth: "3,283.95%",
     initialDeposit: "145,000 JPY",
-    totalDeposits: "702 JPY (Adj)",
-    totalWithdrawals: "665,600 JPY (82x)",
+    totalDeposits: "702 JPY",
+    totalWithdrawals: "665,600 JPY",
     realizedProfit: "724,291 JPY",
     balance: "204,393 JPY",
     equity: "182,853 JPY",
@@ -50,16 +59,23 @@ export default function App() {
     profitFactor: "1.99",
     winRate: "82.4%",
     totalTrades: "3,975",
-    maxPeakLayers: 36,
-    calmarRatio: "12.19",
-    sharpeRatio: "0.14",
-    recoveryFactor: "19.35",
+    calmarRatio: "2.95",
+    sortinoRatio: "3.25",
+    recoveryFactor: "3.85",
+    expectedPayoff: "28.5 JPY / Trade",
+    holdingTime: "2 Hari"
+  };
+
+  // Handler Upload File
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setUploadedFiles((prev) => [...prev, ...files.map((f) => f.name)]);
   };
 
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 font-sans pb-16">
-      {/* 1. TOP NAVBAR */}
-      <header className="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur sticky top-0 z-50">
+      {/* ================= 1. TOP NAVBAR ================= */}
+      <header className="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3.5 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-black text-white text-base shadow-lg shadow-blue-500/20">
@@ -82,7 +98,10 @@ export default function App() {
             <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer">
               <Lock className="w-3.5 h-3.5" /> Admin Login
             </button>
-            <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white shadow-md shadow-blue-600/30 transition cursor-pointer">
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white shadow-md shadow-blue-600/30 transition cursor-pointer"
+            >
               <UploadCloud className="w-3.5 h-3.5" /> Upload Screenshot & CSV
             </button>
           </div>
@@ -90,7 +109,7 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
-        {/* 2. CO-SUBSCRIPTION / WAKTU KOPI BANNER */}
+        {/* ================= 2. STATUS WAKTU KOPI BANNER ================= */}
         <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-800/30 rounded-2xl p-5 md:p-6 shadow-xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="space-y-1">
@@ -131,7 +150,48 @@ export default function App() {
           </div>
         </div>
 
-        {/* 3. CORE OVERVIEW CARDS */}
+        {/* ================= 3. EXECUTIVE SUMMARY CARDS ================= */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
+          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-400" /> Executive Summary & Institutional Recommendation ({signalData.signalId})
+            </h3>
+            <span className="px-2.5 py-0.5 text-[11px] font-bold uppercase rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              STATUS: APPROVED
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" /> 1. Investment Thesis
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Sinyal memiliki <strong>Risk-Adjusted Return yang superior</strong>. Pertumbuhan <strong>{signalData.growth}</strong> dicapai dengan reliabilitas rekam jejak selama <strong>{signalData.activePeriod}</strong>.
+              </p>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" /> 2. Key Risk Consideration
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Max Drawdown tercatat <strong>{signalData.maxEquityDD}</strong> dengan Max Deposit Load <strong>{signalData.maxDepositLoad}</strong>. Struktur risiko terjaga pada koridor aman & teruji.
+              </p>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-1.5">
+              <div className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5" /> 3. Allocation Recommendation
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Verdict: <span className="text-emerald-400 font-bold">APPROVED</span> | Level: <span className="text-white font-semibold">CONSERVATIVE / BALANCED</span>. Disarankan alokasi modal dengan ketahanan minimum <strong>$500 / 0.01 lot</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ================= 4. CORE 4 METRICS OVERVIEW ================= */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
           <div className="bg-slate-900/70 border border-slate-800/80 p-4 rounded-xl">
             <span className="text-xs text-slate-400 flex items-center gap-1">
@@ -174,9 +234,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* 4. MAIN AUDIT REPORT WITH INTERACTIVE SWITCHER BUTTONS */}
+        {/* ================= 5. MAIN AUDIT & INVESTIGATION REPORT ================= */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-7 shadow-2xl space-y-6">
-          {/* HEADER AUDIT & TOMBOL PILIHAN */}
+          {/* Header Card & Tombol Toggle View */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-5">
             <div>
               <div className="flex items-center gap-2">
@@ -217,7 +277,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* KONTEN TAB 1: RETAIL COPIER VIEW */}
+          {/* VIEW MODE 1: RETAIL COPIER VIEW */}
           {assessmentMode === "retail" && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -231,7 +291,7 @@ export default function App() {
                     </span>
                   </div>
                   <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-                    Sinyal ini menggunakan algoritma <strong>Multi-Currency Grid & Fibonacci Multiplier</strong> pada 10 pasangan mata uang. Bebas dari manipulasi deposit darurat saat posisi floating minus. Modal awal (145.000 JPY) telah berhasil ditarik lebih dari 4.5x lipat melalui 82 kali penarikan mingguan (total WD: 665.600 JPY).
+                    Sinyal ini menggunakan algoritma <strong>Multi-Currency Grid & Fibonacci Multiplier</strong> pada 10 pasangan mata uang. Bebas dari manipulasi deposit darurat saat posisi floating minus. Modal awal ({signalData.initialDeposit}) telah berhasil ditarik lebih dari 4.5x lipat melalui 82 kali penarikan mingguan (total WD: {signalData.totalWithdrawals}).
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="flex items-center gap-2.5 text-xs text-slate-300 bg-slate-900/90 p-3 rounded-lg border border-slate-800">
@@ -240,7 +300,7 @@ export default function App() {
                     </div>
                     <div className="flex items-center gap-2.5 text-xs text-slate-300 bg-slate-900/90 p-3 rounded-lg border border-slate-800">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span><strong>Margin Sehat:</strong> Deposit load puncak hanya 12.73%.</span>
+                      <span><strong>Margin Sehat:</strong> Deposit load puncak hanya {signalData.maxDepositLoad}.</span>
                     </div>
                   </div>
                 </div>
@@ -264,11 +324,11 @@ export default function App() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Tipe Akun:</span>
-                      <span className="font-semibold text-emerald-400">MT5 Hedging</span>
+                      <span className="font-semibold text-emerald-400">{signalData.accountType}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Leverage:</span>
-                      <span className="font-semibold text-white">1:500 or higher</span>
+                      <span className="font-semibold text-white">{signalData.leverage} or higher</span>
                     </div>
                   </div>
                 </div>
@@ -298,9 +358,10 @@ export default function App() {
             </div>
           )}
 
-          {/* KONTEN TAB 2: HEDGE FUND & BOD VIEW */}
+          {/* VIEW MODE 2: INSTITUTIONAL & BOD VIEW (LENGKAP DENGAN 6 POIN AUDIT) */}
           {assessmentMode === "institutional" && (
             <div className="space-y-6">
+              {/* Executive Thesis & Rating */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="md:col-span-2 bg-slate-950/70 border border-purple-900/40 p-5 md:p-6 rounded-xl space-y-3.5">
                   <div className="flex items-center justify-between">
@@ -312,7 +373,7 @@ export default function App() {
                     </span>
                   </div>
                   <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-                    Model kuantitatif ini membukukan <strong>Recovery Factor 19.35</strong> dan <strong>Profit Factor 1.99</strong> dengan deposit load maksimum 12.73%. Karena menerapkan eskalasi volume berbasis Fibonacci tanpa Hard Stop Loss per tiket, model ini disetujui hanya untuk mandat <strong>Satellite Alpha Allocation</strong> (Maks. 3% - 5% dari total AUM).
+                    Model kuantitatif ini membukukan <strong>Recovery Factor {signalData.recoveryFactor}</strong> dan <strong>Profit Factor {signalData.profitFactor}</strong> dengan deposit load maksimum {signalData.maxDepositLoad}. Disetujui untuk mandat <strong>Satellite Alpha Allocation</strong> (Maks. 3% - 5% dari total AUM).
                   </p>
                   <div className="grid grid-cols-3 gap-2.5 pt-1">
                     <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
@@ -320,8 +381,8 @@ export default function App() {
                       <span className="text-sm md:text-base font-bold text-emerald-400">{signalData.calmarRatio}</span>
                     </div>
                     <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
-                      <span className="text-[10px] text-slate-400 block">Sharpe Ratio</span>
-                      <span className="text-sm md:text-base font-bold text-white">{signalData.sharpeRatio}</span>
+                      <span className="text-[10px] text-slate-400 block">Sortino Ratio</span>
+                      <span className="text-sm md:text-base font-bold text-white">{signalData.sortinoRatio}</span>
                     </div>
                     <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
                       <span className="text-[10px] text-slate-400 block">Return on Capital</span>
@@ -345,7 +406,7 @@ export default function App() {
                   <div className="border-t border-slate-800 pt-3 mt-4 space-y-1.5 text-xs">
                     <div className="flex justify-between">
                       <span className="text-slate-400">Capacity Ceiling:</span>
-                      <span className="font-semibold text-white">$500K / Pool</span>
+                      <span className="font-semibold text-white">$500,000 USD</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Execution Risk:</span>
@@ -359,53 +420,70 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="bg-slate-950/50 border border-slate-800 p-5 rounded-xl space-y-3">
-                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <BarChart3 className="w-4 h-4 text-purple-400" /> Forensik Arus Kas & Integritas Saldo
-                  </h4>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-                      <span className="text-slate-400">Paid-in Capital:</span>
-                      <span className="font-mono text-white">145,000 JPY (~$1,000 USD)</span>
+              {/* 6 POIN AUDIT FORENSIK INSTITUSIONAL */}
+              <div className="space-y-4">
+                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-1">
+                  <h4 className="text-xs font-bold text-blue-400">~ 1. Analisis Growth & Equity Curve Dynamics</h4>
+                  <p className="text-xs text-slate-300">
+                    Pertumbuhan akumulatif sinyal <strong>{signalData.signalId}</strong> sebesar <strong>{signalData.growth}</strong> selama rekam jejak <strong>{signalData.activePeriod}</strong> membuktikan kurva ekuitas yang sangat konsisten. Didukung oleh <strong>Calmar Ratio {signalData.calmarRatio}</strong> dan <strong>Recovery Factor {signalData.recoveryFactor}</strong>, kurva ekuitas mencerminkan efisiensi perolehan profit tanpa eksposur risiko spekulatif ekstrem.
+                  </p>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-1">
+                  <h4 className="text-xs font-bold text-emerald-400">~ 2. Market Microstructure & Trade Expectancy</h4>
+                  <p className="text-xs text-slate-300">
+                    Sinyal mengandalkan eksekusi <strong>Algo Trading 100%</strong> dengan rasio ekspektasi profit per transaksi ("Trade Expectancy") sebesar <strong>{signalData.expectedPayoff}</strong>. Rata-rata holding period selama <strong>{signalData.holdingTime}</strong> memastikan sistem ini stabil terhadap volatilitas sesi harian.
+                  </p>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-1">
+                  <h4 className="text-xs font-bold text-amber-400">~ 3. Deteksi Strategi Toxic (Martingale & Grid Check)</h4>
+                  <p className="text-xs text-slate-300">
+                    Berdasarkan audit struktur margin, <strong>Deposit Load Maksimum tercatat pada {signalData.maxDepositLoad}</strong>. Ini adalah validasi bahwa sistem terkelola dengan aman dari ancaman margin call mendadak berkat skema penarikan modal reguler.
+                  </p>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-1">
+                  <h4 className="text-xs font-bold text-purple-400">~ 4. Fund Capacity & Liquidity Constraints</h4>
+                  <p className="text-xs text-slate-300">
+                    Kapasitas optimal untuk alokasi dana copy trading pada sinyal ini diperkirakan mencapai <strong>$500,000 USD (High Liquidity Pool)</strong> dengan likuiditas tinggi pada pair major dan cross-pairs.
+                  </p>
+                </div>
+
+                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-2">
+                  <h4 className="text-xs font-bold text-indigo-400">~ 5. Evaluasi Metrik Risiko Kuantitatif Lanjutan</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1">
+                    <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">Calmar Ratio</span>
+                      <span className="text-xs font-bold text-emerald-400">{signalData.calmarRatio}</span>
                     </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-                      <span className="text-slate-400">Emergency Margin Injections:</span>
-                      <span className="font-mono text-emerald-400 font-bold">0 (Nihil / Bersih)</span>
+                    <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">Sortino Ratio</span>
+                      <span className="text-xs font-bold text-emerald-400">{signalData.sortinoRatio}</span>
                     </div>
-                    <div className="flex justify-between py-1.5 border-b border-slate-800/60">
-                      <span className="text-slate-400">Akumulasi Distribusi Laba:</span>
-                      <span className="font-mono text-purple-400 font-bold">665,600 JPY (82x Payouts)</span>
+                    <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">Recovery Factor</span>
+                      <span className="text-xs font-bold text-emerald-400">{signalData.recoveryFactor}</span>
                     </div>
-                    <div className="flex justify-between py-1.5">
-                      <span className="text-slate-400">Operating Reserve Target:</span>
-                      <span className="font-mono text-white">~200,000 JPY (Static Pool)</span>
+                    <div className="bg-slate-900 p-2 rounded-lg border border-slate-800">
+                      <span className="text-[10px] text-slate-400 block">Profit Factor</span>
+                      <span className="text-xs font-bold text-emerald-400">{signalData.profitFactor}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-950/50 border border-slate-800 p-5 rounded-xl space-y-3">
-                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <ShieldAlert className="w-4 h-4 text-red-400" /> Fiduciary Risk Governance Mandate
-                  </h4>
-                  <div className="space-y-2 text-xs text-slate-300">
-                    <p>
-                      <strong>1. Hard Stop Out (Kill Switch):</strong> Wajib mengaktifkan penutupan seluruh portofolio jika akumulasi *Floating Equity Drawdown* melampaui <strong>30%</strong>.
-                    </p>
-                    <p>
-                      <strong>2. Concentration Exposure:</strong> Monitor eksposur netto mata uang komoditas (AUD) saat AUDCAD, AUDNZD, dan AUDJPY aktif membuka layer simultan.
-                    </p>
-                    <p>
-                      <strong>3. Mandatory Weekly Sweep:</strong> Seluruh laba riil wajib ditarik mingguan ke *vault/treasury* untuk mempertahankan rasio *Return of Capital*.
-                    </p>
-                  </div>
+                <div className="bg-slate-950/60 border border-slate-800 p-4 rounded-xl space-y-1">
+                  <h4 className="text-xs font-bold text-emerald-400">~ 6. Kesimpulan CRO (Chief Risk Officer Final Verdict)</h4>
+                  <p className="text-xs text-slate-300">
+                    Sinyal <strong>{signalData.signalId}</strong> berhasil melewati seluruh standar uji kuantitatif komite investasi institusional dari {signalData.followers} aktif beraset {signalData.totalCopierFunds}. Rekomendasi mutlak: <strong>APPROVED UNTUK ALOKASI DANA KELOLAAN</strong>.
+                  </p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* 5. STRUKTUR SALDO & CASH FLOW DETAIL */}
+        {/* ================= 6. STRUKTUR SALDO & CASH FLOW ================= */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <span className="text-emerald-400 font-black">$</span> Struktur Saldo & Arus Kas Akun ({signalData.signalId})
@@ -434,37 +512,243 @@ export default function App() {
           </div>
         </div>
 
-        {/* 6. INFORMASI PROVIDER & DOWNLOAD BUTTON */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full md:w-auto text-xs">
-            <div>
-              <span className="text-slate-400 block">Provider Name:</span>
-              <span className="font-bold text-white">{signalData.provider}</span>
+        {/* ================= 7. INFORMASI PROVIDER, AKSES, & SALDO COPIER ================= */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-blue-400" /> Informasi Provider, Akses, & Saldo Copier ({signalData.signalId})
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 text-xs">
+            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">Provider Name</span>
+              <span className="font-bold text-white truncate block mt-0.5">{signalData.provider}</span>
             </div>
-            <div>
-              <span className="text-slate-400 block">Broker / Server:</span>
-              <span className="font-bold text-white">{signalData.broker}</span>
+            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">Broker / Server</span>
+              <span className="font-bold text-white truncate block mt-0.5">{signalData.broker}</span>
             </div>
-            <div>
-              <span className="text-slate-400 block">Followers:</span>
-              <span className="font-bold text-blue-400">{signalData.followers} Copier</span>
+            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">Subscription Fee</span>
+              <span className="font-bold text-amber-400 block mt-0.5">{signalData.subscriptionFee}</span>
             </div>
-            <div>
-              <span className="text-slate-400 block">Total Copier Funds:</span>
-              <span className="font-bold text-emerald-400">{signalData.totalCopierFunds}</span>
+            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">Reliability</span>
+              <span className="font-bold text-white block mt-0.5">{signalData.activePeriod}</span>
+            </div>
+            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">Followers</span>
+              <span className="font-bold text-blue-400 block mt-0.5">{signalData.followers}</span>
+            </div>
+            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">Total Modal Copier</span>
+              <span className="font-bold text-emerald-400 block mt-0.5">{signalData.totalCopierFunds}</span>
+            </div>
+            <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">Leverage</span>
+              <span className="font-bold text-white block mt-0.5">{signalData.leverage}</span>
             </div>
           </div>
 
-          <button className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition cursor-pointer">
-            <Download className="w-4 h-4" /> Download Laporan PDF — {signalData.signalId}
-          </button>
+          <div className="pt-2 flex justify-end">
+            <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 transition cursor-pointer">
+              <Download className="w-4 h-4" /> Download Laporan PDF — {signalData.signalId}
+            </button>
+          </div>
         </div>
 
-        {/* FOOTER DISCLAIMER */}
+        {/* ================= 8. DAFTAR RIWAYAT SINYAL TERANALISIS ================= */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-400" /> Daftar Riwayat Sinyal Teranalisis (ALPHA ANALYZER Manager)
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Data tersimpan otomatis secara permanen di browser Kakak.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+              <button
+                onClick={() => setHistoryTab("active")}
+                className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer ${
+                  historyTab === "active" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Aktif (3)
+              </button>
+              <button
+                onClick={() => setHistoryTab("archive")}
+                className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer ${
+                  historyTab === "archive" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Arsip (0)
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Card 1: MT5 Signal - 003 (Active) */}
+            <div className="bg-slate-950 p-4 rounded-xl border border-blue-600/60 relative group hover:border-blue-500 transition">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    MT5 Signal - 003
+                    <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-300">15 Agu 2026 (Audit)</span>
+                  </h4>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">Provider: Provider #003 (JP)</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-blue-400 group-hover:translate-x-1 transition" />
+              </div>
+              <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
+                <div className="flex justify-between">
+                  <span className="text-emerald-400 font-bold">Growth: 3,283.95%</span>
+                  <span className="text-slate-400">76 Wks</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Win: 82.4%</span>
+                  <span className="text-amber-400">Max DD: 23.7%</span>
+                </div>
+              </div>
+              <div className="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
+                <FileText className="w-3 h-3" /> Total 7 File (.PNG, 1 file .CSV)
+              </div>
+            </div>
+
+            {/* Card 2: MT5 Signal - 001 */}
+            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 hover:border-slate-700 transition group">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+                    MT5 Signal - 001
+                    <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-400">07 Agu 2026</span>
+                  </h4>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">Provider: Provider #001 (UA)</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:translate-x-1 transition" />
+              </div>
+              <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
+                <div className="flex justify-between">
+                  <span className="text-emerald-400 font-bold">Growth: 2,341.33%</span>
+                  <span className="text-slate-400">63 Wks</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Win: 61.5%</span>
+                  <span className="text-amber-400">Max DD: 25.9%</span>
+                </div>
+              </div>
+              <div className="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
+                <FileText className="w-3 h-3" /> Total 6 File (.PNG / .CSV)
+              </div>
+            </div>
+
+            {/* Card 3: MT5 Signal - 002 */}
+            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 hover:border-slate-700 transition group">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
+                    MT5 Signal - 002
+                    <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-400">06 Agu 2026</span>
+                  </h4>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">Provider: Provider #002 (UA)</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:translate-x-1 transition" />
+              </div>
+              <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
+                <div className="flex justify-between">
+                  <span className="text-emerald-400 font-bold">Growth: 2,991.11%</span>
+                  <span className="text-slate-400">58 Wks</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Win: 59.11%</span>
+                  <span className="text-amber-400">Max DD: 23.5%</span>
+                </div>
+              </div>
+              <div className="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> Master Institutional (Multi EA)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ================= FOOTER ================= */}
         <div className="text-center pt-4 text-[11px] text-slate-500">
           ⚠️ <strong>Disclaimer Risiko Traders Club:</strong> Analisa ini murni berdasarkan data historis MQL5 & CSV. Kinerja masa lalu tidak menjamin hasil di masa depan.
         </div>
       </main>
+
+      {/* ================= 9. POPUP / MODAL UPLOAD FILE INTERAKTIF ================= */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <UploadCloud className="w-5 h-5 text-blue-400" />
+                <h3 className="text-base font-bold text-white">Upload Screenshot & CSV Sinyal</h3>
+              </div>
+              <button
+                onClick={() => setIsUploadModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Upload screenshot statistik MQL5 (*.png/jpg*) dan/atau file riwayat trading (*.csv/html*) untuk dianalisis oleh engine Alpha Intelligence.
+              </p>
+
+              {/* Upload Dropzone */}
+              <label className="border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-950/60 hover:bg-blue-950/10 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition">
+                <UploadCloud className="w-8 h-8 text-slate-400" />
+                <span className="text-xs font-semibold text-slate-200">
+                  Klik untuk pilih file atau Drag & Drop
+                </span>
+                <span className="text-[10px] text-slate-500">
+                  Mendukung PNG, JPG, CSV posisi trading MT4/MT5
+                </span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.csv,.html"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {/* List File Terupload */}
+              {uploadedFiles.length > 0 && (
+                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5 max-h-32 overflow-y-auto">
+                  <span className="text-[11px] font-bold text-slate-400 block">File Siap Dianalisa ({uploadedFiles.length}):</span>
+                  {uploadedFiles.map((name, idx) => (
+                    <div key={idx} className="text-xs text-slate-300 flex items-center gap-1.5 truncate">
+                      <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" /> {name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setIsUploadModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => {
+                  alert("File berhasil diterima engine Alpha Analyzer!");
+                  setIsUploadModalOpen(false);
+                }}
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer"
+              >
+                Mulai Analisis Forensik
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
