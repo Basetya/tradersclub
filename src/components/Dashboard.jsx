@@ -2,7 +2,7 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle
 } from 'lucide-react';
 
 // URL GOOGLE APPS SCRIPT WEBHOOK INGESTION
@@ -141,6 +141,7 @@ export default function Dashboard() {
   const [isDragging, setIsDragging] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [fileDetailsText, setFileDetailsText] = useState("");
+  const [stagedFiles, setStagedFiles] = useState([]);
   const [uploadReportNotification, setUploadReportNotification] = useState(null);
 
   // Lead Generation & Package Selection States
@@ -300,14 +301,35 @@ export default function Dashboard() {
     }
   };
 
-  // ROBUST CSV & SCREENSHOT PARSING ENGINE
-  const handleFileUpload = (e) => {
+  // 1. PENAMPUNGAN FILE (STAGING - TIDAK LANGSUNG PROSES)
+  const handleAddFilesToStaging = (e) => {
     const rawFiles = e.target.files || (e.dataTransfer && e.dataTransfer.files);
     if (!rawFiles || rawFiles.length === 0) return;
-    const files = Array.from(rawFiles);
+    const incomingFiles = Array.from(rawFiles);
+
+    setStagedFiles(prev => {
+      const existingNames = new Set(prev.map(f => `${f.name}_${f.size}`));
+      const uniqueIncoming = incomingFiles.filter(f => !existingNames.has(`${f.name}_${f.size}`));
+      return [...prev, ...uniqueIncoming];
+    });
+
+    if (e.target) e.target.value = '';
+  };
+
+  const removeStagedFile = (idxToRemove) => {
+    setStagedFiles(prev => prev.filter((_, idx) => idx !== idxToRemove));
+  };
+
+  const clearAllStagedFiles = () => {
+    setStagedFiles([]);
+  };
+
+  // 2. EKSEKUSI ANALISIS SAAT TOMBOL "MULAI ANALISIS" DIKLIK
+  const handleExecuteAnalysis = () => {
+    if (stagedFiles.length === 0) return;
 
     const extCounts = {};
-    files.forEach(f => {
+    stagedFiles.forEach(f => {
       const ext = f.name.split('.').pop().toLowerCase();
       extCounts[ext] = (extCounts[ext] || 0) + 1;
     });
@@ -316,15 +338,15 @@ export default function Dashboard() {
       .map(([ext, count]) => `${count} file .${ext.toUpperCase()}`)
       .join(", ");
 
-    const fullFileSummary = `Total ${files.length} File (${extSummaryText})`;
+    const fullFileSummary = `Total ${stagedFiles.length} File (${extSummaryText})`;
     setFileDetailsText(fullFileSummary);
     setIsAiProcessing(true);
 
-    const csvFile = files.find(f => f.name.toLowerCase().endsWith('.csv'));
+    const csvFile = stagedFiles.find(f => f.name.toLowerCase().endsWith('.csv'));
 
     const processData = (parsedMetrics = null) => {
       try {
-        const allNamesStr = files.map(f => f.name.toLowerCase()).join(" ");
+        const allNamesStr = stagedFiles.map(f => f.name.toLowerCase()).join(" ");
         const isFXS1Signal = allNamesStr.includes("2603") || allNamesStr.includes("2607") || allNamesStr.includes("2382520") || allNamesStr.includes("fxs1");
         const targetSignalName = isFXS1Signal ? "FXS1" : (csvFile ? csvFile.name.replace(/\.[^/.]+$/, "") : "Multi EA Trading");
         const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit)";
@@ -398,7 +420,6 @@ export default function Dashboard() {
             batchReadiness: 85
           };
         } else if (parsedMetrics) {
-          // Dynamic calculation from real parsed CSV
           newOrUpdatedSignalData = {
             id: existingSignal ? existingSignal.id : `SIG_${Date.now()}`,
             indexName: existingSignal ? existingSignal.indexName : `MT5 Signal - 00${analysesList.length + 1}`,
@@ -544,8 +565,8 @@ export default function Dashboard() {
       } finally {
         setIsAiProcessing(false);
         setShowUploader(false);
+        setStagedFiles([]);
         setActiveTab('summary');
-        if (e.target) e.target.value = '';
       }
     };
 
@@ -878,7 +899,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* UPLOADER ZONE */}
+      {/* UPLOADER ZONE: STAGING AREA + TOMBOL ANALISA EKSPLISIT */}
       {showUploader && (
         <section className="no-print bg-white rounded-xl shadow-sm border border-indigo-200 p-6 animate-fadeIn space-y-4">
           <div className="flex items-center justify-between border-b pb-3">
@@ -886,6 +907,14 @@ export default function Dashboard() {
               <Sparkles className="text-indigo-600" size={20} />
               <h2 className="text-sm font-bold text-slate-800">Smart Institutional Intake Gateway</h2>
             </div>
+            {stagedFiles.length > 0 && !isAiProcessing && (
+              <button 
+                onClick={clearAllStagedFiles} 
+                className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1"
+              >
+                <Trash2 size={13} /> <span>Kosongkan Pilihan ({stagedFiles.length})</span>
+              </button>
+            )}
           </div>
 
           {isAiProcessing ? (
@@ -898,18 +927,70 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            <div 
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileUpload(e); }}
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}
-            >
-              <input type="file" multiple accept="image/*,.csv" onChange={handleFileUpload} className="hidden" id="file-upload-input" />
-              <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center">
-                <UploadCloud size={32} className="text-indigo-600 mb-3" />
-                <p className="text-sm font-bold text-slate-800">Pilih / Tarik Banyak File Sekaligus (Screenshot MQL5 & History CSV)</p>
-                <p className="text-xs text-slate-500 mt-1">Sistem melakukan audit kuantitatif mendalam standar institusi fund manager.</p>
-              </label>
+            <div className="space-y-4">
+              {/* AREA DROP FILE (MENAMPUNG BERKAS SECARA FLEKSIBEL) */}
+              <div 
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleAddFilesToStaging(e); }}
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}
+              >
+                <input type="file" multiple accept="image/*,.csv" onChange={handleAddFilesToStaging} className="hidden" id="file-upload-input" />
+                <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center w-full">
+                  <UploadCloud size={30} className="text-indigo-600 mb-2" />
+                  <p className="text-sm font-bold text-slate-800">
+                    {stagedFiles.length === 0 ? 'Pilih / Tarik Banyak Berkas Sekaligus (Screenshot & CSV)' : '+ Tambah Berkas Lainnya ke Antrean'}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">Kakak bisa memasukkan screenshot dan CSV secara bertahap sebelum diproses.</p>
+                </label>
+              </div>
+
+              {/* DAFTAR BERKAS YANG SUDAH MASUK ANTREAN (STAGING LIST) */}
+              {stagedFiles.length > 0 && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                  <div className="flex justify-between items-center border-b pb-2">
+                    <span className="text-xs font-bold text-slate-700">
+                      Berkas Terkumpul Siap Dianalisis ({stagedFiles.length} File):
+                    </span>
+                    <span className="text-[11px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                      Menunggu Perintah Analisis
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+                    {stagedFiles.map((file, idx) => {
+                      const isCsv = file.name.toLowerCase().endsWith('.csv');
+                      return (
+                        <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200 text-xs shadow-2xs">
+                          <div className="flex items-center space-x-2 truncate pr-2">
+                            {isCsv ? <FileSpreadsheet size={15} className="text-emerald-600 flex-shrink-0" /> : <FileText size={15} className="text-indigo-600 flex-shrink-0" />}
+                            <span className="truncate text-slate-800 font-medium text-[11px]">{file.name}</span>
+                          </div>
+                          <button 
+                            type="button" 
+                            onClick={() => removeStagedFile(idx)} 
+                            className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* TOMBOL EKSEKUSI UTAMA (ANALISA) */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleExecuteAnalysis}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all group"
+                    >
+                      <PlayCircle size={17} className="group-hover:scale-110 transition-transform" />
+                      <span className="uppercase tracking-wide">Mulai Analisis & Audit Kuantitatif ({stagedFiles.length} Berkas)</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -988,7 +1069,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* INSTITUTIONAL EFFICIENCY AUDIT SECTION (EFFICIENCY COMPARISON CARDS) */}
+          {/* INSTITUTIONAL EFFICIENCY AUDIT SECTION */}
           <section className="no-print bg-slate-900 text-white rounded-xl p-6 border border-slate-800 shadow-xl space-y-6">
             <div className="text-center space-y-1.5 border-b border-slate-800 pb-4">
               <span className="bg-amber-500/20 text-amber-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-amber-500/30">
