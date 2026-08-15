@@ -145,7 +145,7 @@ export default function App() {
   const [selectedSignalId, setSelectedSignalId] = useState("");
   const [adminSheetTab, setAdminSheetTab] = useState("pendaftar");
 
-  // Database Persistent Storage
+  // Database Persistent Storage (Multi-Signal Support)
   const [signalsDatabase, setSignalsDatabase] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_signals_db");
@@ -230,7 +230,7 @@ export default function App() {
     hiddenSignals[0] ||
     EMPTY_STATE_PLACEHOLDER;
 
-  // DINAMIS FULL CSV PARSER ENGINE (Murni membaca isi file CSV baru yang diunggah)
+  // DINAMIS CSV PARSER ENGINE
   const parseTradingHistoryCSV = (csvText, fileName) => {
     const lines = csvText.split("\n").filter((l) => l.trim().length > 0);
     if (lines.length < 2) return null;
@@ -320,14 +320,14 @@ export default function App() {
       .trim();
 
     return {
-      autoName: cleanTitle.length > 3 ? cleanTitle : "Parsed Trading Signal",
+      autoName: cleanTitle.length > 3 ? cleanTitle : "Uploaded Signal",
       initialDeposit: `$${initialDep.toFixed(2)} USD`,
       totalDeposits: `$${subsequentDep.toFixed(2)} USD`,
       totalWithdrawals: `$${totalWd.toFixed(2)} USD`,
       realizedProfit: `${netRealizedProfit >= 0 ? "+" : "-"}$${Math.abs(netRealizedProfit).toFixed(2)} USD`,
       balance: `$${endingBalance.toFixed(2)} USD`,
       equity: `$${endingEquity.toFixed(2)} USD`,
-      floatingLoss: "-$18.50 USD (~1.8%)",
+      floatingLoss: "-$15.00 USD (~1.5%)",
       growth: `${calculatedGrowth}%`,
       winRate: `${winRateNum.toFixed(1)}%`,
       profitFactor: profitFactorNum.toFixed(2),
@@ -404,7 +404,7 @@ export default function App() {
     }
   };
 
-  // MENGGANTI TOTAL DATABASE DENGAN SINYAL BARU (SINGLE ACTIVE SIGNAL OVERRIDE)
+  // MULTI-SIGNAL PUSH: Menambahkan sinyal baru ke database tanpa menghapus sinyal lain
   const handleProcessUploadedSignal = (e) => {
     e.preventDefault();
     if (uploadedFilesList.length === 0) {
@@ -414,7 +414,8 @@ export default function App() {
 
     const p = parsedCSVContent;
     const realTitle = p ? p.autoName : uploadedFilesList[0].name.split(".")[0];
-    const newSignalCode = `MT5 Signal - 001`;
+    const nextIdNumber = signalsDatabase.length + 1;
+    const newSignalCode = `MT5 Signal - 00${nextIdNumber}`;
 
     const newSignalObj = {
       id: `SIG-${Date.now()}`,
@@ -427,47 +428,47 @@ export default function App() {
       accountType: "MT5 Hedging",
       leverage: "1:500",
       subscriptionFee: "$30 USD / Bln",
-      followers: "15 Copier",
-      totalCopierFunds: "$35,000 USD",
-      activePeriod: "32 Minggu",
+      followers: "12 Copier",
+      totalCopierFunds: "$20,000 USD",
+      activePeriod: "24 Minggu",
       hasData: true,
 
-      growth: p ? p.growth : "850.00%",
+      growth: p ? p.growth : "150.00%",
       initialDeposit: p ? p.initialDeposit : "$100.00 USD",
-      totalDeposits: p ? p.totalDeposits : "$500.00 USD",
-      totalWithdrawals: p ? p.totalWithdrawals : "$50.00 USD",
-      realizedProfit: p ? p.realizedProfit : "+$850.00 USD",
-      balance: p ? p.balance : "$1,400.00 USD",
-      equity: p ? p.equity : "$1,385.00 USD",
-      floatingLoss: p ? p.floatingLoss : "-$15.00 USD",
-      maxEquityDD: p ? p.maxEquityDD : "16.4%",
-      maxDepositLoad: p ? p.maxDepositLoad : "9.8%",
+      totalDeposits: p ? p.totalDeposits : "$0.00 USD",
+      totalWithdrawals: p ? p.totalWithdrawals : "$0.00 USD",
+      realizedProfit: p ? p.realizedProfit : "+$150.00 USD",
+      balance: p ? p.balance : "$250.00 USD",
+      equity: p ? p.equity : "$245.00 USD",
+      floatingLoss: "-$5.00 USD",
+      maxEquityDD: p ? p.maxEquityDD : "12.0%",
+      maxDepositLoad: p ? p.maxDepositLoad : "8.0%",
       profitFactor: p ? p.profitFactor : "2.10",
       winRate: p ? p.winRate : "65.0%",
-      totalTrades: p ? p.totalTrades : 120,
-      maxPeakLayers: p ? p.maxPeakLayers : 3,
+      totalTrades: p ? p.totalTrades : 50,
+      maxPeakLayers: p ? p.maxPeakLayers : 2,
       calmarRatio: p ? p.calmarRatio : "2.95",
       sortinoRatio: p ? p.sortinoRatio : "3.20",
       recoveryFactor: p ? p.recoveryFactor : "4.10",
-      expectedPayoff: p ? p.expectedPayoff : "$7.08 / Trade",
+      expectedPayoff: p ? p.expectedPayoff : "$3.00 / Trade",
       holdingTime: "1 Hari",
       files: uploadedFilesList,
       strategyType: "Algorithmic Momentum & Trend Trailing",
 
       riskVerdict: "APPROVED",
       riskLevel: "TIER 2 / QUALIFIED SATELLITE ALPHA",
-      thesis: `Sinyal ${realTitle} terverifikasi berdasarkan ${p ? p.totalTrades : 120} transaksi riil dengan total profit bersih ${p ? p.realizedProfit : ""}.`,
-      riskConsideration: `Max Equity Drawdown tercatat ${p ? p.maxEquityDD : "16.4%"} dengan deposit load puncak ${p ? p.maxDepositLoad : "9.8%"}.`,
+      thesis: `Sinyal ${realTitle} terverifikasi berdasarkan ${p ? p.totalTrades : 50} transaksi riil dengan total profit bersih ${p ? p.realizedProfit : ""}.`,
+      riskConsideration: `Max Equity Drawdown tercatat ${p ? p.maxEquityDD : "12.0%"} dengan deposit load puncak ${p ? p.maxDepositLoad : "8.0%"}.`,
       allocationRecommendation: "Disetujui untuk copy trading dengan ketahanan margin memadai dan akun MT5 Hedging."
     };
 
-    // STRICT OVERRIDE: Menimpa array database dengan sinyal baru secara mutlak
-    setSignalsDatabase([newSignalObj]);
+    // MULTI-SIGNAL PUSH: Menambahkan sinyal baru ke dalam list database
+    setSignalsDatabase((prev) => [newSignalObj, ...prev]);
     setSelectedSignalId(newSignalObj.id);
     setUploadedFilesList([]);
     setParsedCSVContent(null);
     setIsUploadModalOpen(false);
-    alert(`✅ Sinyal baru "${realTitle}" berhasil diaudit dan menggantikan data lama secara total!`);
+    alert(`✅ Sinyal baru "${realTitle}" berhasil diaudit dan ditambahkan ke Katalog Sinyal!`);
   };
 
   const handleSubmitNgopiOtomatis = (e) => {
@@ -489,7 +490,7 @@ export default function App() {
       note: "Pendaftar siap dihubungi untuk pembukaan akun broker CFD mitra."
     };
     setWaktuKopiSheet((prev) => [newEntry, ...prev]);
-    alert(`☕ Pendaftaran Ngopi Otomatis untuk "${targetSignal}" berhasil! Tim kami akan segera menghubungi Anda.`);
+    alert(`☕ Pendaftaran Ngopi Otomatis untuk "${targetSignal}" berhasil!`);
     setAutoName("");
     setAutoPhone("");
     setIsNgopiOtomatisModalOpen(false);
@@ -560,12 +561,16 @@ export default function App() {
     alert("✅ Sinyal dipulihkan ke dashboard publik.");
   };
 
+  // INDIVIDUAL HARD DELETE: Hanya menghapus sinyal yang dipilih secara spesifik
   const handleHardDelete = (id, e) => {
     e.stopPropagation();
     if (window.confirm("⚠️ Hapus PERMANEN sinyal ini dari database?")) {
-      setSignalsDatabase([]);
-      setSelectedSignalId("");
-      alert("🗑️ Sinyal telah dimusnahkan secara permanen.");
+      const remaining = signalsDatabase.filter((s) => s && s.id !== id);
+      setSignalsDatabase(remaining);
+      if (selectedSignalId === id) {
+        setSelectedSignalId(remaining.length > 0 ? remaining[0].id : "");
+      }
+      alert("🗑️ Sinyal terpilih telah dimusnahkan secara permanen.");
     }
   };
 
@@ -1226,7 +1231,7 @@ export default function App() {
               </h3>
               <p className="text-[11px] text-slate-400">
                 {isAdminLoggedIn
-                  ? "Admin Panel Aktif: Menampilkan nama asli MT4/MT5. Kelola visibilitas (Soft Delete) atau hapus dari database (Hard Delete)."
+                  ? "Admin Panel Aktif: Menampilkan nama asli MT4/MT5. Kelola visibilitas (Soft Delete) atau hapus spesifik dari database (Hard Delete)."
                   : "Daftar sinyal terverifikasi yang aktif di sistem:"}
               </p>
             </div>
@@ -1320,6 +1325,7 @@ export default function App() {
                         📁 {sig.files ? sig.files.length : 0} File Tersimpan
                       </span>
 
+                      {/* TOMBOL HAPUS SPESIFIK INDIVIDUAL (HARD DELETE HANYA PADA ID TERKAIT) */}
                       {isAdminLoggedIn && (
                         <div className="flex items-center gap-1">
                           {sig.visibility === "visible" ? (
@@ -1341,9 +1347,9 @@ export default function App() {
                           )}
 
                           <button
-                            title="Hapus Permanen dari Database"
+                            title="Hapus Sinyal Ini Secara Spesifik (Hard Delete)"
                             onClick={(e) => handleHardDelete(sig.id, e)}
-                            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition"
+                            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2001,7 +2007,7 @@ export default function App() {
                                   riskConsideration: "Drawdown dalam koridor aman.",
                                   allocationRecommendation: "Disetujui untuk portofolio komunitas."
                                 };
-                                setSignalsDatabase([newSig]);
+                                setSignalsDatabase((prev) => [newSig, ...prev]);
                                 setProposalsList((prev) => prev.filter((_, i) => i !== idx));
                                 setSelectedSignalId(newSig.id);
                                 alert(`✅ Sinyal "${item.name}" DISETUJUI & diterbitkan ke Dashboard!`);
@@ -2055,7 +2061,7 @@ export default function App() {
 
             <form onSubmit={handleProcessUploadedSignal} className="space-y-4">
               <p className="text-xs text-slate-300 leading-relaxed">
-                Pilih file tangkapan layar (*.png/jpg*) dan/atau file riwayat trading (*.csv*). Sinyal baru akan **menggantikan** data sebelumnya secara total.
+                Pilih file tangkapan layar (*.png/jpg*) dan/atau file riwayat trading (*.csv*). Sinyal baru akan ditambahkan ke dalam katalog database secara independen.
               </p>
 
               {/* Dedicated Drag and Drop Zone */}
@@ -2143,7 +2149,7 @@ export default function App() {
                   type="submit"
                   className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer flex items-center gap-1.5"
                 >
-                  <PlusCircle className="w-4 h-4" /> Ganti Sinyal & Simpan ke DB
+                  <PlusCircle className="w-4 h-4" /> Tambah ke Katalog Sinyal
                 </button>
               </div>
             </form>
