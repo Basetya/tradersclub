@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   ShieldAlert,
   ShieldCheck,
@@ -25,22 +25,25 @@ import {
   LogOut,
   User,
   Trash2,
-  Archive,
+  EyeOff,
+  Eye,
   RotateCcw,
   Send,
   Settings,
   Check,
   Inbox,
   PlusCircle,
-  RefreshCw
+  Database,
+  Image as ImageIcon,
+  HardDrive
 } from "lucide-react";
 
-// Fallback data aman untuk mencegah blank screen jika seluruh sinyal terhapus
-const EMPTY_FALLBACK_SIGNAL = {
+// Placeholder aman jika belum ada data di database
+const EMPTY_DATABASE_FALLBACK = {
   id: "EMPTY",
   codeName: "Belum Ada Sinyal",
-  realName: "Belum Ada Data Sinyal Teranalisis",
-  status: "active",
+  realName: "Belum Ada Data Teranalisis",
+  visibility: "hidden",
   dateAudit: "N/A",
   provider: "N/A",
   broker: "N/A",
@@ -69,8 +72,8 @@ const EMPTY_FALLBACK_SIGNAL = {
   recoveryFactor: "0.00",
   expectedPayoff: "0",
   holdingTime: "0 Hari",
-  filesCount: "0 File",
-  strategyType: "Belum Ada Strategi"
+  files: [],
+  strategyType: "Upload data untuk memulai analisis"
 };
 
 export default function App() {
@@ -79,7 +82,9 @@ export default function App() {
 
   // State Autentikasi Admin
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("151264"); // Default password
+  const [adminPassword, setAdminPassword] = useState(() => {
+    return localStorage.getItem("tcs_admin_pwd") || "151264";
+  });
   const [inputUsername, setInputUsername] = useState("");
   const [inputPassword, setInputPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -102,170 +107,99 @@ export default function App() {
   const [proposalLink, setProposalLink] = useState("");
   const [proposalNote, setProposalNote] = useState("");
 
-  // State Upload Modal
+  // State Upload Modal (Upload Gambar & CSV)
   const [customSignalName, setCustomSignalName] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploadedFilesList, setUploadedFilesList] = useState([]); // { name, type, data }
 
-  // State Navigasi Katalog Sinyal
-  const [historyTab, setHistoryTab] = useState("active"); // 'active' | 'archive'
-  const [selectedSignalId, setSelectedSignalId] = useState("SIG-003");
+  // State Navigasi Tab Katalog Sinyal: 'visible' | 'hidden_vault' | 'proposals'
+  const [catalogTab, setCatalogTab] = useState("visible");
+  const [selectedSignalId, setSelectedSignalId] = useState("");
 
-  // Data Awal Bawaan
-  const initialDefaultSignals = [
-    {
-      id: "SIG-003",
-      codeName: "MT5 Signal - 003",
-      realName: "World PEACE Multi FX Algo",
-      status: "active",
-      dateAudit: "15 Agu 2026 (Audit)",
-      provider: "Provider #003 (Nobeyo- Sano JP)",
-      broker: "HFMarketsGlobal-Live1",
-      accountType: "MT5 Hedging",
-      leverage: "1:500",
-      subscriptionFee: "$30 USD / Bln",
-      followers: "51 Copier",
-      totalCopierFunds: "$164,000 USD",
-      activePeriod: "76 Weeks (~17 Months)",
-      growth: "3,283.95%",
-      initialDeposit: "145,000 JPY",
-      totalDeposits: "702 JPY",
-      totalWithdrawals: "665,600 JPY",
-      realizedProfit: "724,291 JPY",
-      balance: "204,393 JPY",
-      equity: "182,853 JPY",
-      floatingLoss: "-21,540 JPY (~10.5%)",
-      maxEquityDD: "23.7%",
-      maxDepositLoad: "12.7%",
-      profitFactor: "1.99",
-      winRate: "82.4%",
-      totalTrades: "3,975",
-      maxPeakLayers: 36,
-      calmarRatio: "2.95",
-      sortinoRatio: "3.25",
-      recoveryFactor: "3.85",
-      expectedPayoff: "28.5 JPY / Trade",
-      holdingTime: "2 Hari",
-      filesCount: "Total 7 File (.PNG, 1 file .CSV)",
-      strategyType: "Multi-Currency Grid & Fibonacci Multiplier (10 Pairs)"
-    },
-    {
-      id: "SIG-001",
-      codeName: "MT5 Signal - 001",
-      realName: "Titanium Alpha Trend Scalper",
-      status: "active",
-      dateAudit: "07 Agu 2026",
-      provider: "Provider #001 (AlphaTech UA)",
-      broker: "ICMarkets-SC-Live",
-      accountType: "MT5 Hedging",
-      leverage: "1:500",
-      subscriptionFee: "$40 USD / Bln",
-      followers: "38 Copier",
-      totalCopierFunds: "$112,000 USD",
-      activePeriod: "63 Weeks (~14 Months)",
-      growth: "2,341.33%",
-      initialDeposit: "$1,000 USD",
-      totalDeposits: "$0 USD",
-      totalWithdrawals: "$18,500 USD",
-      realizedProfit: "$23,413 USD",
-      balance: "$5,913 USD",
-      equity: "$5,820 USD",
-      floatingLoss: "-$93 USD (~1.6%)",
-      maxEquityDD: "25.9%",
-      maxDepositLoad: "14.2%",
-      profitFactor: "2.15",
-      winRate: "61.5%",
-      totalTrades: "2,140",
-      maxPeakLayers: 8,
-      calmarRatio: "2.40",
-      sortinoRatio: "2.85",
-      recoveryFactor: "4.10",
-      expectedPayoff: "$10.94 USD / Trade",
-      holdingTime: "14 Jam",
-      filesCount: "Total 6 File (.PNG / .CSV)",
-      strategyType: "Intraday Momentum & Tight Trailing Stop"
-    },
-    {
-      id: "SIG-002",
-      codeName: "MT5 Signal - 002",
-      realName: "Apex Multi-EA Institutional Portfolio",
-      status: "active",
-      dateAudit: "06 Agu 2026",
-      provider: "Provider #002 (QuantEdge UA)",
-      broker: "RoboForex-ProLive",
-      accountType: "MT5 Hedging",
-      leverage: "1:300",
-      subscriptionFee: "$50 USD / Bln",
-      followers: "64 Copier",
-      totalCopierFunds: "$245,000 USD",
-      activePeriod: "58 Weeks (~13 Months)",
-      growth: "2,991.11%",
-      initialDeposit: "$2,000 USD",
-      totalDeposits: "$500 USD",
-      totalWithdrawals: "$42,000 USD",
-      realizedProfit: "$59,822 USD",
-      balance: "$20,322 USD",
-      equity: "$19,950 USD",
-      floatingLoss: "-$372 USD (~1.8%)",
-      maxEquityDD: "23.5%",
-      maxDepositLoad: "11.5%",
-      profitFactor: "2.38",
-      winRate: "59.11%",
-      totalTrades: "4,820",
-      maxPeakLayers: 18,
-      calmarRatio: "3.10",
-      sortinoRatio: "3.45",
-      recoveryFactor: "4.65",
-      expectedPayoff: "$12.41 USD / Trade",
-      holdingTime: "1.5 Hari",
-      filesCount: "Master Institutional (Multi EA)",
-      strategyType: "Portfolio Multi-Strategy (Breakout + Mean Reversion)"
+  // DATABASE UTAMA: Tersimpan di Browser Database (localStorage) - Default: KOSONG MURNI
+  const [signalsDatabase, setSignalsDatabase] = useState(() => {
+    try {
+      const saved = localStorage.getItem("tcs_signals_db");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
     }
-  ];
-
-  // Database Sinyal Utama
-  const [signalsList, setSignalsList] = useState(initialDefaultSignals);
+  });
 
   // Antrean Usulan Sinyal dari Visitor
-  const [proposalsList, setProposalsList] = useState([
-    {
-      id: "PROP-101",
-      name: "Quant Golden Cross EA",
-      mql5Link: "https://www.mql5.com/en/signals/2389100",
-      submitter: "Visitor #842",
-      note: "Sinyal emas konsisten drawdown < 15%, mohon diaudit kak!",
-      submittedAt: "15 Agu 2026"
+  const [proposalsList, setProposalsList] = useState(() => {
+    try {
+      const saved = localStorage.getItem("tcs_proposals_db");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
     }
-  ]);
+  });
 
-  // Filter Sinyal
-  const activeSignals = signalsList.filter((s) => s.status === "active");
-  const archivedSignals = signalsList.filter((s) => s.status === "archived");
+  // Sync Database ke Local Storage secara otomatis
+  useEffect(() => {
+    localStorage.setItem("tcs_signals_db", JSON.stringify(signalsDatabase));
+  }, [signalsDatabase]);
 
-  // Sinyal Terpilih (Crash-Proof Guard)
+  useEffect(() => {
+    localStorage.setItem("tcs_proposals_db", JSON.stringify(proposalsList));
+  }, [proposalsList]);
+
+  useEffect(() => {
+    localStorage.setItem("tcs_admin_pwd", adminPassword);
+  }, [adminPassword]);
+
+  // Filter Sinyal Berdasarkan Status Visibilitas
+  const visibleSignals = signalsDatabase.filter((s) => s.visibility === "visible");
+  const hiddenSignals = signalsDatabase.filter((s) => s.visibility === "hidden");
+
+  // Sinyal yang Sedang Dipilih di Layar
   const currentSignal =
-    signalsList.find((s) => s.id === selectedSignalId) ||
-    activeSignals[0] ||
-    archivedSignals[0] ||
-    EMPTY_FALLBACK_SIGNAL;
+    signalsDatabase.find((s) => s.id === selectedSignalId) ||
+    visibleSignals[0] ||
+    hiddenSignals[0] ||
+    EMPTY_DATABASE_FALLBACK;
 
-  // Handler Upload File Aman
+  // Handler Upload File Gambar & CSV ke Database
   const handleFileUpload = (e) => {
     if (e.target && e.target.files) {
       const files = Array.from(e.target.files);
-      setUploadedFiles((prev) => [...prev, ...files.map((f) => f.name)]);
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+          setUploadedFilesList((prev) => [
+            ...prev,
+            {
+              name: file.name,
+              type: file.type.includes("image") ? "image" : "csv",
+              size: (file.size / 1024).toFixed(1) + " KB",
+              data: uploadEvent.target.result // Base64 data gambar / konten CSV
+            }
+          ]);
+        };
+        if (file.type.includes("image")) {
+          reader.readAsDataURL(file);
+        } else {
+          reader.readAsText(file);
+        }
+      });
     }
   };
 
-  // Handler Submit Upload
+  // Handler Submit Form Upload -> Simpan ke Database
   const handleProcessUploadedSignal = (e) => {
     e.preventDefault();
-    const newSignalTitle = customSignalName.trim() || `Uploaded Signal #${signalsList.length + 1}`;
+    if (uploadedFilesList.length === 0 && !customSignalName.trim()) {
+      alert("Silakan pilih file gambar/CSV atau isi nama sinyal terlebih dahulu.");
+      return;
+    }
+
+    const signalTitle = customSignalName.trim() || `Sinyal Teranalisis #${signalsDatabase.length + 1}`;
     const newSignalObj = {
-      id: `SIG-${Date.now().toString().slice(-4)}`,
-      codeName: `MT5 Signal - 00${signalsList.length + 1}`,
-      realName: newSignalTitle,
-      status: "active",
-      dateAudit: "Baru Diupload",
+      id: `SIG-${Date.now()}`,
+      codeName: `MT5 Signal - 00${signalsDatabase.length + 1}`,
+      realName: signalTitle,
+      visibility: "visible", // Default: tampil di publik
+      dateAudit: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
       provider: "Provider (Uploaded File)",
       broker: "Live MT4/MT5 Broker",
       accountType: "MT5 Hedging",
@@ -293,16 +227,47 @@ export default function App() {
       recoveryFactor: "4.20",
       expectedPayoff: "$14.5 USD / Trade",
       holdingTime: "1 Hari",
-      filesCount: `Total ${uploadedFiles.length > 0 ? uploadedFiles.length : 1} File Terupload`,
-      strategyType: "Automated Algorithmic Strategy (Uploaded)"
+      files: uploadedFilesList, // File gambar & CSV tersimpan utuh di object database
+      strategyType: "Automated Algorithmic Strategy (Uploaded from CSV/Images)"
     };
 
-    setSignalsList((prev) => [newSignalObj, ...prev]);
+    setSignalsDatabase((prev) => [newSignalObj, ...prev]);
     setSelectedSignalId(newSignalObj.id);
-    setUploadedFiles([]);
+    setUploadedFilesList([]);
     setCustomSignalName("");
     setIsUploadModalOpen(false);
-    alert(`✅ Sinyal "${newSignalTitle}" berhasil dianalisa dan ditambahkan ke dashboard!`);
+    alert(`✅ Data Sinyal "${signalTitle}" dan seluruh lampiran file berhasil disimpan ke Database!`);
+  };
+
+  // OPSI 1: Hapus dari Tampilan Saja (Soft Delete / Hide)
+  const handleHideFromView = (id, e) => {
+    e.stopPropagation();
+    setSignalsDatabase((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, visibility: "hidden" } : s))
+    );
+    alert("👁️ Sinyal disembunyikan dari tampilan publik, namun data & file tetap tersimpan di Database Vault Admin.");
+  };
+
+  // OPSI 1 REVERSE: Pulihkan kembali ke tampilan publik
+  const handleRestoreToView = (id, e) => {
+    e.stopPropagation();
+    setSignalsDatabase((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, visibility: "visible" } : s))
+    );
+    alert("✅ Sinyal dikembalikan dan sekarang aktif tampil di dashboard publik.");
+  };
+
+  // OPSI 2: Hapus Permanen dari Tampilan & Database (Hard Delete)
+  const handleHardDelete = (id, e) => {
+    e.stopPropagation();
+    if (window.confirm("⚠️ PERINGATAN ADMIN: Apakah Anda yakin ingin menghapus data ini secara PERMANEN dari Tampilan dan Database? Tindakan ini tidak bisa dibatalkan.")) {
+      const remaining = signalsDatabase.filter((s) => s.id !== id);
+      setSignalsDatabase(remaining);
+      if (selectedSignalId === id) {
+        setSelectedSignalId(remaining.length > 0 ? remaining[0].id : "");
+      }
+      alert("🗑️ Sinyal dan seluruh file lampirannya telah dimusnahkan secara permanen dari Database.");
+    }
   };
 
   // Handler Login Admin
@@ -314,17 +279,17 @@ export default function App() {
       setInputUsername("");
       setInputPassword("");
       setLoginError("");
-      alert("✅ Login Admin Berhasil! Mode Admin Aktif: Menampilkan nama asli sinyal.");
+      alert("✅ Mode Admin Aktif: Seluruh kontrol database, nama asli sinyal, dan fitur kelola visibilitas terbuka.");
     } else {
-      setLoginError("Kredensial salah! Gunakan username: admin dan password Anda.");
+      setLoginError("Kredensial admin salah! (Default Password: 151264)");
     }
   };
 
-  // Handler Ganti Password
+  // Handler Ganti Password Admin
   const handleChangePassword = (e) => {
     e.preventDefault();
     if (oldPasswordInput !== adminPassword) {
-      setSettingsMessage("❌ Password lama tidak sesuai!");
+      setSettingsMessage("❌ Password lama salah!");
       return;
     }
     if (newPasswordInput.length < 6) {
@@ -332,11 +297,11 @@ export default function App() {
       return;
     }
     if (newPasswordInput !== confirmPasswordInput) {
-      setSettingsMessage("❌ Konfirmasi password baru tidak cocok!");
+      setSettingsMessage("❌ Konfirmasi password tidak cocok!");
       return;
     }
     setAdminPassword(newPasswordInput);
-    setSettingsMessage("✅ Password admin berhasil diperbarui!");
+    setSettingsMessage("✅ Password admin berhasil diganti!");
     setTimeout(() => {
       setIsSettingsModalOpen(false);
       setSettingsMessage("");
@@ -346,45 +311,7 @@ export default function App() {
     }, 1200);
   };
 
-  // Handler Arsip Sinyal
-  const handleArchiveSignal = (id, e) => {
-    e.stopPropagation();
-    setSignalsList((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status: "archived" } : s))
-    );
-    alert("Sinyal telah dipindahkan ke tab Arsip.");
-  };
-
-  // Handler Restore Sinyal
-  const handleRestoreSignal = (id, e) => {
-    e.stopPropagation();
-    setSignalsList((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status: "active" } : s))
-    );
-    alert("Sinyal dipulihkan ke tab Aktif.");
-  };
-
-  // Handler Hapus Sinyal
-  const handleDeleteSignal = (id, e) => {
-    e.stopPropagation();
-    if (window.confirm("Apakah Admin yakin ingin MENGHAPUS sinyal ini secara permanen?")) {
-      const remaining = signalsList.filter((s) => s.id !== id);
-      setSignalsList(remaining);
-      if (selectedSignalId === id) {
-        setSelectedSignalId(remaining.length > 0 ? remaining[0].id : "EMPTY");
-      }
-      alert("Sinyal berhasil dihapus.");
-    }
-  };
-
-  // Handler Reset Data
-  const handleResetDefaultSignals = () => {
-    setSignalsList(initialDefaultSignals);
-    setSelectedSignalId("SIG-003");
-    alert("✅ Data sinyal default berhasil dipulihkan!");
-  };
-
-  // Handler Submit Usulan Visitor
+  // Handler Submit Usulan Sinyal Visitor
   const handleVisitorSubmitProposal = (e) => {
     e.preventDefault();
     if (!proposalName || !proposalLink) {
@@ -392,30 +319,30 @@ export default function App() {
       return;
     }
     const newProp = {
-      id: `PROP-${Date.now().toString().slice(-3)}`,
+      id: `PROP-${Date.now()}`,
       name: proposalName,
       mql5Link: proposalLink,
-      submitter: "Komunitas Visitor",
-      note: proposalNote || "Diusulkan via formulir web Traders Club",
-      submittedAt: "Baru saja"
+      submitter: "Visitor Komunitas",
+      note: proposalNote || "Diusulkan via portal Traders Club",
+      submittedAt: new Date().toLocaleDateString("id-ID")
     };
     setProposalsList((prev) => [newProp, ...prev]);
-    alert("✨ Terima kasih! Usulan sinyal Anda telah dikirimkan ke Admin untuk diverifikasi & diaudit.");
+    alert("✨ Terima kasih! Usulan Anda telah masuk ke database peninjauan Admin.");
     setProposalName("");
     setProposalLink("");
     setProposalNote("");
     setIsProposalModalOpen(false);
   };
 
-  // Handler Approve Usulan Admin
+  // Handler Approve Usulan oleh Admin
   const handleApproveProposal = (prop) => {
     const newSignal = {
-      id: `SIG-${Date.now().toString().slice(-3)}`,
-      codeName: `MT5 Signal - 00${signalsList.length + 1}`,
+      id: `SIG-${Date.now()}`,
+      codeName: `MT5 Signal - 00${signalsDatabase.length + 1}`,
       realName: prop.name,
-      status: "active",
-      dateAudit: "Baru Diaudit",
-      provider: "Provider Terverifikasi",
+      visibility: "visible",
+      dateAudit: new Date().toLocaleDateString("id-ID"),
+      provider: "Provider Terverifikasi MQL5",
       broker: "Live Broker ECN",
       accountType: "MT5 Hedging",
       leverage: "1:500",
@@ -442,20 +369,13 @@ export default function App() {
       recoveryFactor: "4.50",
       expectedPayoff: "$14.8 USD / Trade",
       holdingTime: "1 Hari",
-      filesCount: "Audit Komunitas MQL5",
+      files: [],
       strategyType: "Community Approved Algorithmic Strategy"
     };
-    setSignalsList((prev) => [newSignal, ...prev]);
+    setSignalsDatabase((prev) => [newSignal, ...prev]);
     setProposalsList((prev) => prev.filter((p) => p.id !== prop.id));
     setSelectedSignalId(newSignal.id);
-    alert(`✅ Usulan "${prop.name}" DISETUJUI & otomatis ditambahkan ke Katalog Sinyal Aktif!`);
-  };
-
-  // Handler Reject Usulan Admin
-  const handleRejectProposal = (propId) => {
-    if (window.confirm("Tolak usulan sinyal ini?")) {
-      setProposalsList((prev) => prev.filter((p) => p.id !== propId));
-    }
+    alert(`✅ Sinyal "${prop.name}" DISETUJUI & diterbitkan ke Dashboard!`);
   };
 
   return (
@@ -475,12 +395,12 @@ export default function App() {
                     ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
                     : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                 }`}>
-                  {isAdminLoggedIn ? "ADMIN MODE ACTIVE" : "LIVE SYSTEM"}
+                  {isAdminLoggedIn ? "ADMIN DATABASE MODE" : "LIVE SYSTEM"}
                 </span>
               </div>
               <p className="text-[10px] text-slate-400">
                 {isAdminLoggedIn
-                  ? "Admin Panel: Menampilkan Nama Asli Sinyal MT4/MT5 & Manajemen Katalog"
+                  ? "Admin Panel: Akses Penuh Database Vault, Soft Delete & Hard Delete"
                   : "Traders Club Executive Signal Intelligence"}
               </p>
             </div>
@@ -493,10 +413,7 @@ export default function App() {
                   onClick={() => setIsReviewProposalsModalOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-700/50 bg-amber-950/40 text-xs font-semibold text-amber-300 hover:bg-amber-900/60 transition cursor-pointer relative"
                 >
-                  <Inbox className="w-3.5 h-3.5" /> Usulan Visitor
-                  {proposalsList.length > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                  )}
+                  <Inbox className="w-3.5 h-3.5" /> Usulan ({proposalsList.length})
                 </button>
 
                 <button
@@ -536,20 +453,23 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
-        {/* Banner Kosong jika seluruh data dihapus */}
-        {signalsList.length === 0 && (
-          <div className="bg-amber-950/40 border border-amber-800/60 p-4 rounded-xl flex items-center justify-between gap-4">
+        {/* Banner Jika Database Bersih / Belum Ada Data */}
+        {signalsDatabase.length === 0 && (
+          <div className="bg-blue-950/30 border border-blue-800/40 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
-              <div className="text-xs text-amber-200">
-                <strong>Semua data sinyal telah dihapus.</strong> Dashboard menampilkan placeholder aman. Anda dapat mengupload sinyal baru atau mereset ke data default bawaan.
+              <Database className="w-6 h-6 text-blue-400 shrink-0" />
+              <div>
+                <h4 className="text-sm font-bold text-white">Database Masih Bersih (Zero Data Initialized)</h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Belum ada data sinyal di sistem. Klik tombol <strong>Upload Screenshot & CSV</strong> untuk memasukkan file histori trading Anda ke database.
+                </p>
               </div>
             </div>
             <button
-              onClick={handleResetDefaultSignals}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs shrink-0 cursor-pointer shadow"
+              onClick={() => setIsUploadModalOpen(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shrink-0 cursor-pointer shadow-lg shadow-blue-600/30"
             >
-              <RefreshCw className="w-3.5 h-3.5" /> Pulihkan Sinyal Bawaan
+              + Upload Sinyal Pertama
             </button>
           </div>
         )}
@@ -1021,46 +941,57 @@ export default function App() {
           </div>
         </div>
 
-        {/* ================= 8. DAFTAR RIWAYAT SINYAL TERANALISIS ================= */}
+        {/* ================= 8. DAFTAR RIWAYAT SINYAL & MASTER DATABASE VAULT ================= */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-400" /> Daftar Riwayat Sinyal Teranalisis (ALPHA ANALYZER Manager)
+                <Clock className="w-4 h-4 text-blue-400" /> Database Sinyal Teranalisis (ALPHA ANALYZER Manager)
               </h3>
               <p className="text-[11px] text-slate-400">
                 {isAdminLoggedIn
-                  ? "Admin Panel Aktif: Menampilkan nama asli sinyal MT4/MT5. Anda dapat mengarsipkan atau menghapus sinyal."
-                  : "Klik kartu sinyal di bawah ini untuk melihat detail analisisnya:"}
+                  ? "Admin Panel Aktif: Kelola tampilan publik (Soft Delete) atau bersihkan database permanen (Hard Delete)."
+                  : "Daftar sinyal terverifikasi yang aktif di sistem:"}
               </p>
             </div>
+
+            {/* TAB FILTER KATALOG & VAULT DATABASE */}
             <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
               <button
-                onClick={() => setHistoryTab("active")}
+                onClick={() => setCatalogTab("visible")}
                 className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer ${
-                  historyTab === "active" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
+                  catalogTab === "visible" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
                 }`}
               >
-                Aktif ({activeSignals.length})
+                Tampil di Publik ({visibleSignals.length})
               </button>
-              <button
-                onClick={() => setHistoryTab("archive")}
-                className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer ${
-                  historyTab === "archive" ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Arsip ({archivedSignals.length})
-              </button>
+
+              {isAdminLoggedIn && (
+                <button
+                  onClick={() => setCatalogTab("hidden_vault")}
+                  className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer flex items-center gap-1 ${
+                    catalogTab === "hidden_vault" ? "bg-purple-950 text-purple-200 border border-purple-800" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <HardDrive className="w-3.5 h-3.5 text-purple-400" /> Database Vault ({hiddenSignals.length})
+                </button>
+              )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {(historyTab === "active" ? activeSignals : archivedSignals).length === 0 ? (
-              <div className="col-span-3 p-8 text-center bg-slate-950/40 rounded-xl border border-slate-800 text-xs text-slate-500">
-                Tidak ada sinyal di tab {historyTab === "active" ? "Aktif" : "Arsip"}.
+            {(catalogTab === "visible" ? visibleSignals : hiddenSignals).length === 0 ? (
+              <div className="col-span-3 p-8 text-center bg-slate-950/40 rounded-xl border border-slate-800 text-xs text-slate-500 space-y-2">
+                <div>Tidak ada data sinyal di tab {catalogTab === "visible" ? "Tampil di Publik" : "Database Vault"}.</div>
+                <button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="text-xs text-blue-400 hover:underline font-semibold"
+                >
+                  + Upload data sinyal baru sekarang
+                </button>
               </div>
             ) : (
-              (historyTab === "active" ? activeSignals : archivedSignals).map((sig) => (
+              (catalogTab === "visible" ? visibleSignals : hiddenSignals).map((sig) => (
                 <div
                   key={sig.id}
                   onClick={() => setSelectedSignalId(sig.id)}
@@ -1105,33 +1036,34 @@ export default function App() {
                   </div>
 
                   <div className="mt-3 pt-2.5 border-t border-slate-900 flex items-center justify-between">
-                    <span className="text-[10px] text-slate-500 truncate max-w-[150px]">
-                      {sig.filesCount}
+                    <span className="text-[10px] text-slate-500 truncate max-w-[130px]">
+                      📁 {sig.files ? sig.files.length : 0} File Tersimpan
                     </span>
 
-                    {/* KONTROL ADMIN UNTUK ARSIP DAN HAPUS */}
+                    {/* DUA OPSI PENGHAPUSAN ADMIN: SOFT DELETE & HARD DELETE */}
                     {isAdminLoggedIn && (
                       <div className="flex items-center gap-1">
-                        {sig.status === "active" ? (
+                        {sig.visibility === "visible" ? (
                           <button
-                            title="Arsipkan Sinyal"
-                            onClick={(e) => handleArchiveSignal(sig.id, e)}
+                            title="Opsi 1: Sembunyikan dari Tampilan (Data Tetap di Database)"
+                            onClick={(e) => handleHideFromView(sig.id, e)}
                             className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition"
                           >
-                            <Archive className="w-3.5 h-3.5" />
+                            <EyeOff className="w-3.5 h-3.5" />
                           </button>
                         ) : (
                           <button
-                            title="Pulihkan Sinyal ke Aktif"
-                            onClick={(e) => handleRestoreSignal(sig.id, e)}
+                            title="Pulihkan: Tampilkan Kembali di Publik"
+                            onClick={(e) => handleRestoreToView(sig.id, e)}
                             className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
+                            <Eye className="w-3.5 h-3.5" />
                           </button>
                         )}
+
                         <button
-                          title="Hapus Sinyal Permanen"
-                          onClick={(e) => handleDeleteSignal(sig.id, e)}
+                          title="Opsi 2: Hapus Permanen dari Tampilan & Database"
+                          onClick={(e) => handleHardDelete(sig.id, e)}
                           className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1173,7 +1105,7 @@ export default function App() {
 
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <p className="text-xs text-slate-300">
-                Gunakan kredensial default <strong>Username: admin</strong> dan <strong>Password: 151264</strong> (bisa diubah setelah login).
+                Gunakan kredensial default <strong>Username: admin</strong> dan <strong>Password: 151264</strong>.
               </p>
 
               {loginError && (
@@ -1226,7 +1158,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 10. MODAL PENGATURAN GANTI PASSWORD ADMIN ================= */}
+      {/* ================= 10. MODAL GANTI PASSWORD ADMIN ================= */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1437,7 +1369,11 @@ export default function App() {
 
                     <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                       <button
-                        onClick={() => handleRejectProposal(prop.id)}
+                        onClick={() => {
+                          if (window.confirm("Tolak usulan sinyal ini?")) {
+                            setProposalsList((prev) => prev.filter((p) => p.id !== prop.id));
+                          }
+                        }}
                         className="px-3 py-1.5 rounded-lg border border-red-800/60 bg-red-950/40 text-xs font-semibold text-red-400 hover:bg-red-900/60 transition cursor-pointer"
                       >
                         Tolak
@@ -1446,7 +1382,7 @@ export default function App() {
                         onClick={() => handleApproveProposal(prop)}
                         className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md shadow-emerald-600/30 transition cursor-pointer flex items-center gap-1.5"
                       >
-                        <Check className="w-3.5 h-3.5" /> Setujui & Tambah
+                        <Check className="w-3.5 h-3.5" /> Setujui & Simpan ke DB
                       </button>
                     </div>
                   </div>
@@ -1466,19 +1402,19 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 13. MODAL POPUP UPLOAD SCREENSHOT & CSV ================= */}
+      {/* ================= 13. MODAL POPUP UPLOAD SCREENSHOT & CSV KE DATABASE ================= */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-blue-400" />
-                <h3 className="text-base font-bold text-white">Upload Screenshot & CSV Sinyal</h3>
+                <h3 className="text-base font-bold text-white">Upload Sinyal Baru ke Database</h3>
               </div>
               <button
                 onClick={() => {
                   setIsUploadModalOpen(false);
-                  setUploadedFiles([]);
+                  setUploadedFilesList([]);
                   setCustomSignalName("");
                 }}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
@@ -1489,13 +1425,14 @@ export default function App() {
 
             <form onSubmit={handleProcessUploadedSignal} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">Nama Sinyal / EA (Opsional)</label>
+                <label className="text-xs font-semibold text-slate-300">Nama Sinyal / EA</label>
                 <input
                   type="text"
                   placeholder="Contoh: World Peace Strategy 02"
                   value={customSignalName}
                   onChange={(e) => setCustomSignalName(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                  required
                 />
               </div>
 
@@ -1503,10 +1440,10 @@ export default function App() {
               <label className="border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-950/60 hover:bg-blue-950/10 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition">
                 <UploadCloud className="w-8 h-8 text-slate-400" />
                 <span className="text-xs font-semibold text-slate-200">
-                  Klik untuk pilih file atau Drag & Drop
+                  Pilih Screenshot (PNG/JPG) & CSV Histori
                 </span>
                 <span className="text-[10px] text-slate-500">
-                  Mendukung file PNG, JPG, CSV histori transaksi MT4/MT5
+                  Seluruh file akan langsung disimpan permanen ke database sistem
                 </span>
                 <input
                   type="file"
@@ -1517,15 +1454,23 @@ export default function App() {
                 />
               </label>
 
-              {/* List File Terupload */}
-              {uploadedFiles.length > 0 && (
+              {/* List File Terupload yang akan disimpan */}
+              {uploadedFilesList.length > 0 && (
                 <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5 max-h-32 overflow-y-auto">
                   <span className="text-[11px] font-bold text-emerald-400 block">
-                    File Terpilih ({uploadedFiles.length}):
+                    File Siap Disimpan ke DB ({uploadedFilesList.length}):
                   </span>
-                  {uploadedFiles.map((name, idx) => (
-                    <div key={idx} className="text-xs text-slate-300 flex items-center gap-1.5 truncate">
-                      <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" /> {name}
+                  {uploadedFilesList.map((file, idx) => (
+                    <div key={idx} className="text-xs text-slate-300 flex items-center justify-between gap-1.5">
+                      <span className="flex items-center gap-1.5 truncate">
+                        {file.type === "image" ? (
+                          <ImageIcon className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                        ) : (
+                          <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                        )}
+                        {file.name}
+                      </span>
+                      <span className="text-[10px] text-slate-500 shrink-0">{file.size}</span>
                     </div>
                   ))}
                 </div>
@@ -1536,7 +1481,7 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     setIsUploadModalOpen(false);
-                    setUploadedFiles([]);
+                    setUploadedFilesList([]);
                     setCustomSignalName("");
                   }}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
@@ -1547,7 +1492,7 @@ export default function App() {
                   type="submit"
                   className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer flex items-center gap-1.5"
                 >
-                  <PlusCircle className="w-4 h-4" /> Proses & Tambah ke Dashboard
+                  <PlusCircle className="w-4 h-4" /> Simpan & Tampilkan
                 </button>
               </div>
             </form>
