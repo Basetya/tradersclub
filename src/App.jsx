@@ -25,3 +25,47 @@ export default function App() {
     </div>
   );
 }
+
+import React, { useState } from 'react';
+import SignalAuditReport from './SignalAuditReport';
+
+function App() {
+  const [currentPage, setCurrentPage] = useState('audit'); // 'home' atau 'audit'
+
+  return (
+    <div className="bg-slate-950 min-h-screen text-slate-100">
+      {/* Menu Navigasi Sederhana */}
+      <header className="border-b border-slate-800 p-4 flex gap-4 max-w-7xl mx-auto">
+        <button
+          onClick={() => setCurrentPage('home')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+            currentPage === 'home' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          Home Dashboard
+        </button>
+        <button
+          onClick={() => setCurrentPage('audit')}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+            currentPage === 'audit' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          Signal Audit Report
+        </button>
+      </header>
+
+      {/* Konten Halaman */}
+      <main>
+        {currentPage === 'audit' ? (
+          <SignalAuditReport />
+        ) : (
+          <div className="p-8 text-center text-slate-400">
+            Halaman Dashboard Utama Anda
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+export default App;
