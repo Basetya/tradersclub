@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import {
   ShieldAlert,
   ShieldCheck,
@@ -113,11 +113,15 @@ export default function App() {
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [isAdminSheetModalOpen, setIsAdminSheetModalOpen] = useState(false);
 
-  // State Form Pendaftaran Ngopi Otomatis (Tanpa Broker & Akun)
+  // Ref Input File
+  const fileInputRef = useRef(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+  // State Form Pendaftaran Ngopi Otomatis
   const [autoName, setAutoName] = useState("");
   const [autoPhone, setAutoPhone] = useState("");
 
-  // State Form Pendaftaran Ngopi Mandiri (Tanpa Broker & Akun)
+  // State Form Pendaftaran Ngopi Mandiri
   const [mandiriName, setMandiriName] = useState("");
   const [mandiriPhone, setMandiriPhone] = useState("");
   const [mandiriFee, setMandiriFee] = useState("$5/bulan");
@@ -141,7 +145,7 @@ export default function App() {
   // State Navigasi Katalog
   const [catalogTab, setCatalogTab] = useState("visible");
   const [selectedSignalId, setSelectedSignalId] = useState("");
-  const [adminSheetTab, setAdminSheetTab] = useState("pendaftar"); // 'pendaftar' | 'usulan'
+  const [adminSheetTab, setAdminSheetTab] = useState("pendaftar");
 
   // Database Persistent Storage (LocalStorage)
   const [signalsDatabase, setSignalsDatabase] = useState(() => {
@@ -155,7 +159,6 @@ export default function App() {
     }
   });
 
-  // Sheet Pendaftar Waktu Kopi
   const [waktuKopiSheet, setWaktuKopiSheet] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_waktukopi_sheet");
@@ -167,7 +170,6 @@ export default function App() {
     }
   });
 
-  // Sheet Usulan Sinyal
   const [proposalsList, setProposalsList] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_proposals_db");
@@ -178,6 +180,19 @@ export default function App() {
       return [];
     }
   });
+
+  // PREVENT GLOBAL BROWSER DEFAULT DROP (Mencegah browser membuka gambar di tab baru)
+  useEffect(() => {
+    const preventGlobalDrop = (e) => {
+      e.preventDefault();
+    };
+    window.addEventListener("dragover", preventGlobalDrop, false);
+    window.addEventListener("drop", preventGlobalDrop, false);
+    return () => {
+      window.removeEventListener("dragover", preventGlobalDrop, false);
+      window.removeEventListener("drop", preventGlobalDrop, false);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -220,7 +235,7 @@ export default function App() {
     hiddenSignals[0] ||
     EMPTY_STATE_PLACEHOLDER;
 
-  // ENGINE AUDIT FORENSIK POSISI CSV (Clean State Isolation)
+  // ENGINE AUDIT FORENSIK POSISI CSV
   const parseTradingHistoryCSV = (csvText, fileName) => {
     const lines = csvText.split("\n").filter((l) => l.trim().length > 0);
     if (lines.length < 2) return null;
@@ -322,44 +337,71 @@ export default function App() {
     };
   };
 
+  // Helper Pemrosesan File Tunggal / Banyak (Click & Drag-Drop)
+  const processFilesBatch = (files) => {
+    if (!files || files.length === 0) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      const isImg = file.type.includes("image") || /\.(png|jpe?g|webp|gif)$/i.test(file.name);
+
+      reader.onload = (uploadEvent) => {
+        const content = uploadEvent.target.result;
+        setUploadedFilesList((prev) => [
+          ...prev,
+          {
+            name: file.name,
+            type: isImg ? "image" : "csv",
+            size: (file.size / 1024).toFixed(1) + " KB",
+            data: content
+          }
+        ]);
+
+        if (!isImg && (file.name.endsWith(".csv") || file.name.endsWith(".txt"))) {
+          const parsed = parseTradingHistoryCSV(content, file.name);
+          if (parsed) setParsedCSVContent(parsed);
+        }
+      };
+
+      if (isImg) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
+    });
+  };
+
   const handleFileUpload = (e) => {
     if (e.target && e.target.files) {
-      const files = Array.from(e.target.files);
-      files.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (uploadEvent) => {
-          const content = uploadEvent.target.result;
-          const isImg = file.type.includes("image");
+      processFilesBatch(e.target.files);
+    }
+  };
 
-          setUploadedFilesList((prev) => [
-            ...prev,
-            {
-              name: file.name,
-              type: isImg ? "image" : "csv",
-              size: (file.size / 1024).toFixed(1) + " KB",
-              data: content
-            }
-          ]);
+  // Drag and Drop Event Handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  };
 
-          if (!isImg && (file.name.endsWith(".csv") || file.name.endsWith(".txt"))) {
-            const parsed = parseTradingHistoryCSV(content, file.name);
-            if (parsed) setParsedCSVContent(parsed);
-          }
-        };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
 
-        if (file.type.includes("image")) {
-          reader.readAsDataURL(file);
-        } else {
-          reader.readAsText(file);
-        }
-      });
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFilesBatch(e.dataTransfer.files);
     }
   };
 
   const handleProcessUploadedSignal = (e) => {
     e.preventDefault();
     if (uploadedFilesList.length === 0) {
-      alert("Pilih minimal satu file screenshot atau CSV histori trading.");
+      alert("Pilih atau geser (drag & drop) minimal satu file screenshot atau CSV histori trading.");
       return;
     }
 
@@ -417,10 +459,9 @@ export default function App() {
     setUploadedFilesList([]);
     setParsedCSVContent(null);
     setIsUploadModalOpen(false);
-    alert(`✅ Sinyal "${realTitle}" berhasil diaudit dan disinkronkan presisi dengan data MQL5!`);
+    alert(`✅ Sinyal "${realTitle}" berhasil diaudit dan disimpan ke database!`);
   };
 
-  // Handler Pendaftaran Ngopi Otomatis (20:80 Profit Sharing)
   const handleSubmitNgopiOtomatis = (e) => {
     e.preventDefault();
     if (!autoName || !autoPhone) {
@@ -446,7 +487,6 @@ export default function App() {
     setIsNgopiOtomatisModalOpen(false);
   };
 
-  // Handler Pendaftaran Ngopi Mandiri (Investor Password - Bebas Broker)
   const handleSubmitNgopiMandiri = (e) => {
     e.preventDefault();
     if (!mandiriName || !mandiriPhone) {
@@ -472,7 +512,6 @@ export default function App() {
     setIsNgopiMandiriModalOpen(false);
   };
 
-  // Handler Usulan Sinyal Visitor
   const handleVisitorSubmitProposal = (e) => {
     e.preventDefault();
     if (!proposalName || !proposalLink) {
@@ -636,7 +675,12 @@ export default function App() {
             )}
 
             <button
-              onClick={() => setIsUploadModalOpen(true)}
+              onClick={() => {
+                setUploadedFilesList([]);
+                setParsedCSVContent(null);
+                setIsDraggingOver(false);
+                setIsUploadModalOpen(true);
+              }}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white shadow-md shadow-blue-600/30 transition cursor-pointer"
             >
               <UploadCloud className="w-3.5 h-3.5" /> Upload Screenshot & CSV
@@ -659,7 +703,12 @@ export default function App() {
               </div>
             </div>
             <button
-              onClick={() => setIsUploadModalOpen(true)}
+              onClick={() => {
+                setUploadedFilesList([]);
+                setParsedCSVContent(null);
+                setIsDraggingOver(false);
+                setIsUploadModalOpen(true);
+              }}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shrink-0 cursor-pointer shadow-lg shadow-blue-600/30"
             >
               + Upload Sinyal Pertama
@@ -1205,7 +1254,12 @@ export default function App() {
               <div className="col-span-3 p-8 text-center bg-slate-950/40 rounded-xl border border-slate-800 text-xs text-slate-500 space-y-2">
                 <div>Tidak ada data sinyal di tab {catalogTab === "visible" ? "Tampil di Publik" : "Database Vault"}.</div>
                 <button
-                  onClick={() => setIsUploadModalOpen(true)}
+                  onClick={() => {
+                    setUploadedFilesList([]);
+                    setParsedCSVContent(null);
+                    setIsDraggingOver(false);
+                    setIsUploadModalOpen(true);
+                  }}
                   className="text-xs text-blue-400 hover:underline font-semibold"
                 >
                   + Upload file data sinyal baru
@@ -1463,7 +1517,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 11. MODAL FORM NGOPI OTOMATIS (PROFIT SHARING 20:80) ================= */}
+      {/* ================= 11. MODAL FORM NGOPI OTOMATIS ================= */}
       {isNgopiOtomatisModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1537,7 +1591,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 12. MODAL FORM NGOPI MANDIRI ($5 - $10 / BLN) ================= */}
+      {/* ================= 12. MODAL FORM NGOPI MANDIRI ================= */}
       {isNgopiMandiriModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1642,7 +1696,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 13. MODAL USULKAN SINYAL DARI VISITOR ($5 - $10) ================= */}
+      {/* ================= 13. MODAL USULKAN SINYAL DARI VISITOR ================= */}
       {isProposalModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1750,7 +1804,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 14. MODAL ADMIN SHEET DATA (PENDAFTAR & USULAN) ================= */}
+      {/* ================= 14. MODAL ADMIN SHEET DATA ================= */}
       {isAdminSheetModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1975,7 +2029,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 15. MODAL UPLOAD SCREENSHOT & CSV KE DATABASE ================= */}
+      {/* ================= 15. MODAL UPLOAD DENGAN DRAG & DROP ANDAL ================= */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1989,6 +2043,7 @@ export default function App() {
                   setIsUploadModalOpen(false);
                   setUploadedFilesList([]);
                   setParsedCSVContent(null);
+                  setIsDraggingOver(false);
                 }}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
               >
@@ -2001,27 +2056,41 @@ export default function App() {
                 Pilih file tangkapan layar (*.png/jpg*) dan/atau file riwayat trading (*.csv*). Engine kuantitatif akan mengekstrak metrik transaksi dan nama asli sinyal secara otomatis.
               </p>
 
-              {/* Upload Dropzone */}
-              <label className="border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-950/60 hover:bg-blue-950/10 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition">
-                <UploadCloud className="w-8 h-8 text-slate-400" />
-                <span className="text-xs font-semibold text-slate-200">
-                  Pilih Screenshot (PNG/JPG) & CSV Histori
-                </span>
-                <span className="text-[10px] text-slate-500">
-                  Seluruh file akan langsung diproses dan disimpan permanen ke database sistem
-                </span>
+              {/* Dedicated Drag and Drop Zone dengan Event Handler PreventDefault Penuh */}
+              <div
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-2.5 cursor-pointer transition select-none ${
+                  isDraggingOver
+                    ? "border-blue-400 bg-blue-950/60 ring-2 ring-blue-500/50 scale-[1.02]"
+                    : "border-slate-700 hover:border-blue-500 bg-slate-950/60 hover:bg-blue-950/10"
+                }`}
+              >
+                <UploadCloud className={`w-10 h-10 ${isDraggingOver ? "text-blue-400 animate-bounce" : "text-slate-400"}`} />
+                <div className="text-center">
+                  <span className="text-xs font-bold text-slate-200 block">
+                    {isDraggingOver ? "Lepaskan File Disini (Drop Now)" : "Tarik & Lepas File Disini (Drag & Drop) atau Klik"}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-1">
+                    Mendukung tangkapan layar PNG/JPG & berkas posisi trading CSV
+                  </span>
+                </div>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   multiple
                   accept="image/*,.csv,.html,.txt"
                   onChange={handleFileUpload}
                   className="hidden"
                 />
-              </label>
+              </div>
 
               {/* List File Terupload */}
               {uploadedFilesList.length > 0 && (
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5 max-h-36 overflow-y-auto">
+                <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-1.5 max-h-36 overflow-y-auto">
                   <span className="text-[11px] font-bold text-emerald-400 block">
                     File Terpilih ({uploadedFilesList.length}):
                   </span>
@@ -2062,6 +2131,7 @@ export default function App() {
                     setIsUploadModalOpen(false);
                     setUploadedFilesList([]);
                     setParsedCSVContent(null);
+                    setIsDraggingOver(false);
                   }}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
                 >
