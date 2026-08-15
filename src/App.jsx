@@ -40,10 +40,11 @@ import {
   Activity,
   FileSpreadsheet,
   Users,
-  Bell
+  Info,
+  Key
 } from "lucide-react";
 
-// Placeholder objektif saat database kosong (Zero Residual Contamination)
+// Placeholder objektif saat database kosong
 const EMPTY_STATE_PLACEHOLDER = {
   id: "EMPTY",
   codeName: "Belum Ada Sinyal",
@@ -112,18 +113,14 @@ export default function App() {
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [isAdminSheetModalOpen, setIsAdminSheetModalOpen] = useState(false);
 
-  // State Form Pendaftaran Ngopi Otomatis
+  // State Form Pendaftaran Ngopi Otomatis (Tanpa Broker & Akun)
   const [autoName, setAutoName] = useState("");
   const [autoPhone, setAutoPhone] = useState("");
-  const [autoBroker, setAutoBroker] = useState("");
-  const [autoAccountNumber, setAutoAccountNumber] = useState("");
 
-  // State Form Pendaftaran Ngopi Mandiri
+  // State Form Pendaftaran Ngopi Mandiri (Tanpa Broker & Akun)
   const [mandiriName, setMandiriName] = useState("");
   const [mandiriPhone, setMandiriPhone] = useState("");
   const [mandiriFee, setMandiriFee] = useState("$5/bulan");
-  const [mandiriBroker, setMandiriBroker] = useState("");
-  const [mandiriAccountNumber, setMandiriAccountNumber] = useState("");
 
   // State Form Usulan Sinyal Visitor
   const [proposalName, setProposalName] = useState("");
@@ -158,7 +155,7 @@ export default function App() {
     }
   });
 
-  // Sheet Pendaftar Waktu Kopi (Otomatis & Mandiri)
+  // Sheet Pendaftar Waktu Kopi
   const [waktuKopiSheet, setWaktuKopiSheet] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_waktukopi_sheet");
@@ -278,7 +275,6 @@ export default function App() {
       }
     }
 
-    // Rekonsiliasi Saldo & Pertumbuhan MQL5
     const initialDep = 10.0;
     const subsequentDep = 613.0;
     const totalWd = 100.0;
@@ -371,7 +367,6 @@ export default function App() {
     const realTitle = parsedCSVContent ? parsedCSVContent.autoName : "Multi EA Trading";
     const newSignalCode = `MT5 Signal - 00${nextIdNumber}`;
 
-    // Fresh Isolated Signal Object
     const newSignalObj = {
       id: `SIG-${Date.now()}`,
       codeName: newSignalCode,
@@ -425,41 +420,37 @@ export default function App() {
     alert(`✅ Sinyal "${realTitle}" berhasil diaudit dan disinkronkan presisi dengan data MQL5!`);
   };
 
-  // Handler Pendaftaran Ngopi Otomatis
+  // Handler Pendaftaran Ngopi Otomatis (20:80 Profit Sharing)
   const handleSubmitNgopiOtomatis = (e) => {
     e.preventDefault();
-    if (!autoName || !autoPhone || !autoAccountNumber) {
-      alert("Mohon lengkapi seluruh formulir pendaftaran.");
+    if (!autoName || !autoPhone) {
+      alert("Mohon lengkapi nama dan kontak WhatsApp Anda.");
       return;
     }
     const targetSignal = isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName;
     const newEntry = {
       id: `REG-AUTO-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString("id-ID"),
-      type: "Ngopi Otomatis (0% Depan)",
-      feeOption: "10% Profit Share",
+      type: "Ngopi Otomatis",
+      scheme: "Profit Sharing 20 : 80",
       signalTarget: targetSignal,
       signalId: currentSignal.id,
       name: autoName,
       phone: autoPhone,
-      broker: autoBroker || "Broker Pilihan",
-      accountNumber: autoAccountNumber,
-      status: "Baru (Pending Approval)"
+      note: "Pendaftar siap dihubungi untuk pembukaan akun broker CFD mitra."
     };
     setWaktuKopiSheet((prev) => [newEntry, ...prev]);
-    alert(`☕ Pendaftaran Ngopi Otomatis untuk "${targetSignal}" berhasil! Data tersimpan di database sistem.`);
+    alert(`☕ Pendaftaran Ngopi Otomatis untuk "${targetSignal}" berhasil! Tim kami akan segera menghubungi Anda.`);
     setAutoName("");
     setAutoPhone("");
-    setAutoBroker("");
-    setAutoAccountNumber("");
     setIsNgopiOtomatisModalOpen(false);
   };
 
-  // Handler Pendaftaran Ngopi Mandiri
+  // Handler Pendaftaran Ngopi Mandiri (Investor Password - Bebas Broker)
   const handleSubmitNgopiMandiri = (e) => {
     e.preventDefault();
-    if (!mandiriName || !mandiriPhone || !mandiriAccountNumber) {
-      alert("Mohon lengkapi seluruh formulir pendaftaran.");
+    if (!mandiriName || !mandiriPhone) {
+      alert("Mohon lengkapi nama dan kontak WhatsApp Anda.");
       return;
     }
     const targetSignal = isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName;
@@ -467,21 +458,17 @@ export default function App() {
       id: `REG-MAN-${Date.now().toString().slice(-4)}`,
       timestamp: new Date().toLocaleString("id-ID"),
       type: "Ngopi Mandiri",
-      feeOption: mandiriFee,
+      scheme: `Investor Password (${mandiriFee})`,
       signalTarget: targetSignal,
       signalId: currentSignal.id,
       name: mandiriName,
       phone: mandiriPhone,
-      broker: mandiriBroker || "Broker Pilihan",
-      accountNumber: mandiriAccountNumber,
-      status: "Baru (Pending Approval)"
+      note: "Investor Password akan dikirimkan ke WhatsApp pendaftar (Broker bebas, belum termasuk VPS)."
     };
     setWaktuKopiSheet((prev) => [newEntry, ...prev]);
-    alert(`☕ Pendaftaran Ngopi Mandiri (${mandiriFee}) untuk "${targetSignal}" berhasil! Data tersimpan di database sistem.`);
+    alert(`☕ Pendaftaran Ngopi Mandiri (${mandiriFee}) untuk "${targetSignal}" berhasil! Detail Investor Password akan dikirim via WhatsApp.`);
     setMandiriName("");
     setMandiriPhone("");
-    setMandiriBroker("");
-    setMandiriAccountNumber("");
     setIsNgopiMandiriModalOpen(false);
   };
 
@@ -546,10 +533,35 @@ export default function App() {
       setInputUsername("");
       setInputPassword("");
       setLoginError("");
-      alert("✅ Mode Admin Aktif!");
+      alert("✅ Mode Admin Aktif: Nama asli sinyal MT4/MT5 ditampilkan.");
     } else {
       setLoginError("Kredensial admin salah! (Default Password: 151264!)");
     }
+  };
+
+  const handleChangePassword = (e) => {
+    e.preventDefault();
+    if (oldPasswordInput !== adminPassword) {
+      setSettingsMessage("❌ Password lama salah!");
+      return;
+    }
+    if (newPasswordInput.length < 6) {
+      setSettingsMessage("❌ Password baru minimal 6 karakter!");
+      return;
+    }
+    if (newPasswordInput !== confirmPasswordInput) {
+      setSettingsMessage("❌ Konfirmasi password tidak cocok!");
+      return;
+    }
+    setAdminPassword(newPasswordInput);
+    setSettingsMessage("✅ Password admin berhasil diperbarui!");
+    setTimeout(() => {
+      setIsSettingsModalOpen(false);
+      setSettingsMessage("");
+      setOldPasswordInput("");
+      setNewPasswordInput("");
+      setConfirmPasswordInput("");
+    }, 1200);
   };
 
   const totalAdminNotifications = waktuKopiSheet.length + proposalsList.length;
@@ -585,7 +597,6 @@ export default function App() {
           <div className="flex items-center gap-2.5">
             {isAdminLoggedIn ? (
               <div className="flex items-center gap-2">
-                {/* Tombol Sheet Data & Notifikasi Admin */}
                 <button
                   onClick={() => setIsAdminSheetModalOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-700/50 bg-amber-950/40 text-xs font-semibold text-amber-300 hover:bg-amber-900/60 transition cursor-pointer relative"
@@ -674,7 +685,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* TIGA TOMBOL INTERAKTIF WAKTU KOPI */}
             <div className="flex flex-wrap gap-2.5 w-full md:w-auto">
               <button
                 onClick={() => setIsNgopiOtomatisModalOpen(true)}
@@ -1453,7 +1463,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 11. MODAL FORM NGOPI OTOMATIS (0% DEPAN) ================= */}
+      {/* ================= 11. MODAL FORM NGOPI OTOMATIS (PROFIT SHARING 20:80) ================= */}
       {isNgopiOtomatisModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1471,19 +1481,23 @@ export default function App() {
             </div>
 
             <form onSubmit={handleSubmitNgopiOtomatis} className="space-y-4">
-              <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-800/40 text-xs text-amber-200">
-                <span>Target Sinyal Terpilih: </span>
-                <strong className="text-white block mt-0.5">
-                  {currentSignal.hasData ? (isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName) : "Belum Ada Sinyal Terpilih"}
-                </strong>
-                <span className="text-[10px] text-slate-400 block mt-1">Skema: 10% Profit Share (Biaya sewa awal 0%)</span>
+              <div className="p-3.5 rounded-xl bg-amber-950/30 border border-amber-800/40 text-xs text-amber-200 space-y-2">
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Target Sinyal Terpilih:</span>
+                  <strong className="text-white text-sm block">
+                    {currentSignal.hasData ? (isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName) : "Belum Ada Sinyal Terpilih"}
+                  </strong>
+                </div>
+                <div className="pt-2 border-t border-amber-800/40 text-slate-300 text-[11px] leading-relaxed">
+                  💡 <strong>Informasi Prosedur:</strong> Pendaftar akan dihubungi dan diundang untuk copy trading di akun broker CFD mitra berdasarkan skema <strong>Profit Sharing 20 : 80</strong> (20% untuk Provider Sinyal / Sistem : 80% Laba Bersih untuk Investor/Follower).
+                </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-300">Nama Lengkap</label>
                 <input
                   type="text"
-                  placeholder="Nama sesuai KTP / Akun Trading"
+                  placeholder="Nama sesuai KTP / Identitas"
                   value={autoName}
                   onChange={(e) => setAutoName(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
@@ -1492,39 +1506,15 @@ export default function App() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">Nomor WhatsApp / Email</label>
+                <label className="text-xs font-semibold text-slate-300">Nomor WhatsApp Aktif</label>
                 <input
                   type="text"
-                  placeholder="0812xxxxxxxx atau email@domain.com"
+                  placeholder="0812xxxxxxxx atau +62812xxxxxxxx"
                   value={autoPhone}
                   onChange={(e) => setAutoPhone(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
                   required
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Broker Pilihan</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Alpari / ICMarkets"
-                    value={autoBroker}
-                    onChange={(e) => setAutoBroker(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-300">No. Akun MT5</label>
-                  <input
-                    type="text"
-                    placeholder="Nomor Akun Trading"
-                    value={autoAccountNumber}
-                    onChange={(e) => setAutoAccountNumber(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
-                    required
-                  />
-                </div>
               </div>
 
               <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
@@ -1547,7 +1537,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 12. MODAL FORM NGOPI MANDIRI ($5 - $10) ================= */}
+      {/* ================= 12. MODAL FORM NGOPI MANDIRI ($5 - $10 / BLN) ================= */}
       {isNgopiMandiriModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
@@ -1565,11 +1555,16 @@ export default function App() {
             </div>
 
             <form onSubmit={handleSubmitNgopiMandiri} className="space-y-4">
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300">
-                <span>Target Sinyal Terpilih: </span>
-                <strong className="text-white block mt-0.5">
-                  {currentSignal.hasData ? (isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName) : "Belum Ada Sinyal Terpilih"}
-                </strong>
+              <div className="p-3.5 rounded-xl bg-blue-950/30 border border-blue-800/40 text-xs text-blue-200 space-y-2">
+                <div>
+                  <span className="text-slate-400 block text-[11px]">Target Sinyal Terpilih:</span>
+                  <strong className="text-white text-sm block">
+                    {currentSignal.hasData ? (isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName) : "Belum Ada Sinyal Terpilih"}
+                  </strong>
+                </div>
+                <div className="pt-2 border-t border-blue-800/40 text-slate-300 text-[11px] leading-relaxed">
+                  🔑 <strong>Informasi Layanan:</strong> Pendaftar akan diberikan <strong>Investor Password</strong> yang dapat digunakan untuk copy trading ke akun trading follower (<strong>bebas menggunakan broker apa saja</strong>, belum termasuk biaya VPS).
+                </div>
               </div>
 
               {/* OPSI PILIHAN BIAYA SEWA */}
@@ -1581,7 +1576,7 @@ export default function App() {
                     onClick={() => setMandiriFee("$5/bulan")}
                     className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
                       mandiriFee === "$5/bulan"
-                        ? "border-blue-500 bg-blue-950/40 text-blue-300 shadow-md shadow-blue-500/20"
+                        ? "border-blue-500 bg-blue-950/50 text-blue-300 shadow-md shadow-blue-500/20"
                         : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
                     }`}
                   >
@@ -1593,7 +1588,7 @@ export default function App() {
                     onClick={() => setMandiriFee("$10/bulan")}
                     className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
                       mandiriFee === "$10/bulan"
-                        ? "border-blue-500 bg-blue-950/40 text-blue-300 shadow-md shadow-blue-500/20"
+                        ? "border-blue-500 bg-blue-950/50 text-blue-300 shadow-md shadow-blue-500/20"
                         : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
                     }`}
                   >
@@ -1607,7 +1602,7 @@ export default function App() {
                 <label className="text-xs font-semibold text-slate-300">Nama Lengkap</label>
                 <input
                   type="text"
-                  placeholder="Nama sesuai akun trading"
+                  placeholder="Nama pendaftar"
                   value={mandiriName}
                   onChange={(e) => setMandiriName(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
@@ -1627,30 +1622,6 @@ export default function App() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Broker</label>
-                  <input
-                    type="text"
-                    placeholder="Contoh: Alpari"
-                    value={mandiriBroker}
-                    onChange={(e) => setMandiriBroker(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-300">No. Akun MT5</label>
-                  <input
-                    type="text"
-                    placeholder="Nomor Akun"
-                    value={mandiriAccountNumber}
-                    onChange={(e) => setMandiriAccountNumber(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
-                    required
-                  />
-                </div>
-              </div>
-
               <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
                 <button
                   type="button"
@@ -1663,7 +1634,7 @@ export default function App() {
                   type="submit"
                   className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer flex items-center gap-1.5"
                 >
-                  <Check className="w-3.5 h-3.5" /> Daftar Ngopi Mandiri
+                  <Check className="w-3.5 h-3.5" /> Konfirmasi Pendaftaran Mandiri
                 </button>
               </div>
             </form>
@@ -1702,7 +1673,7 @@ export default function App() {
                     onClick={() => setProposalFee("$5/bulan")}
                     className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
                       proposalFee === "$5/bulan"
-                        ? "border-indigo-500 bg-indigo-950/40 text-indigo-300 shadow-md shadow-indigo-500/20"
+                        ? "border-indigo-500 bg-indigo-950/50 text-indigo-300 shadow-md shadow-indigo-500/20"
                         : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
                     }`}
                   >
@@ -1714,7 +1685,7 @@ export default function App() {
                     onClick={() => setProposalFee("$10/bulan")}
                     className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
                       proposalFee === "$10/bulan"
-                        ? "border-indigo-500 bg-indigo-950/40 text-indigo-300 shadow-md shadow-indigo-500/20"
+                        ? "border-indigo-500 bg-indigo-950/50 text-indigo-300 shadow-md shadow-indigo-500/20"
                         : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
                     }`}
                   >
@@ -1835,10 +1806,10 @@ export default function App() {
                       <tr>
                         <th className="p-3">Waktu</th>
                         <th className="p-3">Tipe Paket</th>
+                        <th className="p-3">Skema / Biaya</th>
                         <th className="p-3">Sinyal Target</th>
                         <th className="p-3">Nama Pendaftar</th>
-                        <th className="p-3">Kontak WA</th>
-                        <th className="p-3">Akun & Broker</th>
+                        <th className="p-3">Kontak WhatsApp</th>
                         <th className="p-3 text-right">Aksi</th>
                       </tr>
                     </thead>
@@ -1852,13 +1823,13 @@ export default function App() {
                                 ? "bg-amber-500/10 text-amber-300 border border-amber-500/30"
                                 : "bg-blue-500/10 text-blue-300 border border-blue-500/30"
                             }`}>
-                              {item.type} ({item.feeOption})
+                              {item.type}
                             </span>
                           </td>
+                          <td className="p-3 font-semibold text-slate-200">{item.scheme}</td>
                           <td className="p-3 font-semibold text-white">{item.signalTarget}</td>
                           <td className="p-3">{item.name}</td>
                           <td className="p-3 font-mono text-emerald-400">{item.phone}</td>
-                          <td className="p-3 font-mono text-slate-400">{item.accountNumber} ({item.broker})</td>
                           <td className="p-3 text-right">
                             <button
                               onClick={() => {
