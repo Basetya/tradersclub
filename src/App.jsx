@@ -27,7 +27,6 @@ import {
   Trash2,
   EyeOff,
   Eye,
-  RotateCcw,
   Send,
   Settings,
   Check,
@@ -38,7 +37,7 @@ import {
   HardDrive
 } from "lucide-react";
 
-// Placeholder aman jika belum ada data di database
+// Placeholder aman saat database benar-benar kosong
 const EMPTY_DATABASE_FALLBACK = {
   id: "EMPTY",
   codeName: "Belum Ada Sinyal",
@@ -73,17 +72,17 @@ const EMPTY_DATABASE_FALLBACK = {
   expectedPayoff: "0",
   holdingTime: "0 Hari",
   files: [],
-  strategyType: "Upload data untuk memulai analisis"
+  strategyType: "Silakan upload screenshot & CSV untuk memulai analisa"
 };
 
 export default function App() {
   // Mode Analisis: 'retail' | 'institutional'
   const [assessmentMode, setAssessmentMode] = useState("retail");
 
-  // State Autentikasi Admin
+  // State Autentikasi Admin (Default: 151264!)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminPassword, setAdminPassword] = useState(() => {
-    return localStorage.getItem("tcs_admin_pwd") || "151264";
+    return localStorage.getItem("tcs_admin_pwd") || "151264!";
   });
   const [inputUsername, setInputUsername] = useState("");
   const [inputPassword, setInputPassword] = useState("");
@@ -109,13 +108,13 @@ export default function App() {
 
   // State Upload Modal (Upload Gambar & CSV)
   const [customSignalName, setCustomSignalName] = useState("");
-  const [uploadedFilesList, setUploadedFilesList] = useState([]); // { name, type, data }
+  const [uploadedFilesList, setUploadedFilesList] = useState([]);
 
-  // State Navigasi Tab Katalog Sinyal: 'visible' | 'hidden_vault' | 'proposals'
+  // State Navigasi Tab Katalog Sinyal: 'visible' | 'hidden_vault'
   const [catalogTab, setCatalogTab] = useState("visible");
   const [selectedSignalId, setSelectedSignalId] = useState("");
 
-  // DATABASE UTAMA: Tersimpan di Browser Database (localStorage) - Default: KOSONG MURNI
+  // DATABASE UTAMA: Murni Kosong (Zero Initial Data)
   const [signalsDatabase, setSignalsDatabase] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_signals_db");
@@ -125,7 +124,7 @@ export default function App() {
     }
   });
 
-  // Antrean Usulan Sinyal dari Visitor
+  // Antrean Usulan Sinyal dari Visitor (Tersimpan di DB Browser)
   const [proposalsList, setProposalsList] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_proposals_db");
@@ -135,7 +134,7 @@ export default function App() {
     }
   });
 
-  // Sync Database ke Local Storage secara otomatis
+  // Sinkronisasi Real-Time ke LocalStorage
   useEffect(() => {
     localStorage.setItem("tcs_signals_db", JSON.stringify(signalsDatabase));
   }, [signalsDatabase]);
@@ -152,14 +151,14 @@ export default function App() {
   const visibleSignals = signalsDatabase.filter((s) => s.visibility === "visible");
   const hiddenSignals = signalsDatabase.filter((s) => s.visibility === "hidden");
 
-  // Sinyal yang Sedang Dipilih di Layar
+  // Sinyal yang Sedang Ditampilkan (Crash-Proof Guard)
   const currentSignal =
     signalsDatabase.find((s) => s.id === selectedSignalId) ||
     visibleSignals[0] ||
     hiddenSignals[0] ||
     EMPTY_DATABASE_FALLBACK;
 
-  // Handler Upload File Gambar & CSV ke Database
+  // Handler Upload File (Gambar Base64 & Text CSV)
   const handleFileUpload = (e) => {
     if (e.target && e.target.files) {
       const files = Array.from(e.target.files);
@@ -172,7 +171,7 @@ export default function App() {
               name: file.name,
               type: file.type.includes("image") ? "image" : "csv",
               size: (file.size / 1024).toFixed(1) + " KB",
-              data: uploadEvent.target.result // Base64 data gambar / konten CSV
+              data: uploadEvent.target.result
             }
           ]);
         };
@@ -185,11 +184,11 @@ export default function App() {
     }
   };
 
-  // Handler Submit Form Upload -> Simpan ke Database
+  // Handler Submit Upload -> Masuk ke Database
   const handleProcessUploadedSignal = (e) => {
     e.preventDefault();
     if (uploadedFilesList.length === 0 && !customSignalName.trim()) {
-      alert("Silakan pilih file gambar/CSV atau isi nama sinyal terlebih dahulu.");
+      alert("Silakan pilih file gambar/CSV atau isi nama sinyal.");
       return;
     }
 
@@ -198,7 +197,7 @@ export default function App() {
       id: `SIG-${Date.now()}`,
       codeName: `MT5 Signal - 00${signalsDatabase.length + 1}`,
       realName: signalTitle,
-      visibility: "visible", // Default: tampil di publik
+      visibility: "visible", // Langsung tampil di dashboard
       dateAudit: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }),
       provider: "Provider (Uploaded File)",
       broker: "Live MT4/MT5 Broker",
@@ -227,7 +226,7 @@ export default function App() {
       recoveryFactor: "4.20",
       expectedPayoff: "$14.5 USD / Trade",
       holdingTime: "1 Hari",
-      files: uploadedFilesList, // File gambar & CSV tersimpan utuh di object database
+      files: uploadedFilesList,
       strategyType: "Automated Algorithmic Strategy (Uploaded from CSV/Images)"
     };
 
@@ -236,37 +235,37 @@ export default function App() {
     setUploadedFilesList([]);
     setCustomSignalName("");
     setIsUploadModalOpen(false);
-    alert(`✅ Data Sinyal "${signalTitle}" dan seluruh lampiran file berhasil disimpan ke Database!`);
+    alert(`✅ Data Sinyal "${signalTitle}" dan seluruh filenya berhasil disimpan ke Database!`);
   };
 
-  // OPSI 1: Hapus dari Tampilan Saja (Soft Delete / Hide)
+  // OPSI 1: Soft Delete (Sembunyikan dari Tampilan Publik, Tetap di Database Vault)
   const handleHideFromView = (id, e) => {
     e.stopPropagation();
     setSignalsDatabase((prev) =>
       prev.map((s) => (s.id === id ? { ...s, visibility: "hidden" } : s))
     );
-    alert("👁️ Sinyal disembunyikan dari tampilan publik, namun data & file tetap tersimpan di Database Vault Admin.");
+    alert("👁️ Sinyal disembunyikan dari tampilan publik. Anda dapat memulihkannya kapan saja di tab 'Database Vault'.");
   };
 
-  // OPSI 1 REVERSE: Pulihkan kembali ke tampilan publik
+  // OPSI 1 REVERSE: Pulihkan Sinyal dari Database Vault ke Tampilan Publik
   const handleRestoreToView = (id, e) => {
     e.stopPropagation();
     setSignalsDatabase((prev) =>
       prev.map((s) => (s.id === id ? { ...s, visibility: "visible" } : s))
     );
-    alert("✅ Sinyal dikembalikan dan sekarang aktif tampil di dashboard publik.");
+    alert("✅ Sinyal dipulihkan dan sekarang kembali aktif di dashboard publik.");
   };
 
-  // OPSI 2: Hapus Permanen dari Tampilan & Database (Hard Delete)
+  // OPSI 2: Hard Delete (Hapus Permanen dari Tampilan & Database)
   const handleHardDelete = (id, e) => {
     e.stopPropagation();
-    if (window.confirm("⚠️ PERINGATAN ADMIN: Apakah Anda yakin ingin menghapus data ini secara PERMANEN dari Tampilan dan Database? Tindakan ini tidak bisa dibatalkan.")) {
+    if (window.confirm("⚠️ PERINGATAN ADMIN: Hapus PERMANEN sinyal ini beserta seluruh data & file dari database? Tindakan ini tidak bisa dibatalkan.")) {
       const remaining = signalsDatabase.filter((s) => s.id !== id);
       setSignalsDatabase(remaining);
       if (selectedSignalId === id) {
         setSelectedSignalId(remaining.length > 0 ? remaining[0].id : "");
       }
-      alert("🗑️ Sinyal dan seluruh file lampirannya telah dimusnahkan secara permanen dari Database.");
+      alert("🗑️ Sinyal telah dimusnahkan secara permanen dari database.");
     }
   };
 
@@ -279,9 +278,9 @@ export default function App() {
       setInputUsername("");
       setInputPassword("");
       setLoginError("");
-      alert("✅ Mode Admin Aktif: Seluruh kontrol database, nama asli sinyal, dan fitur kelola visibilitas terbuka.");
+      alert("✅ Mode Admin Aktif!");
     } else {
-      setLoginError("Kredensial admin salah! (Default Password: 151264)");
+      setLoginError("Kredensial admin salah! (Default Password: 151264!)");
     }
   };
 
@@ -289,7 +288,7 @@ export default function App() {
   const handleChangePassword = (e) => {
     e.preventDefault();
     if (oldPasswordInput !== adminPassword) {
-      setSettingsMessage("❌ Password lama salah!");
+      setSettingsMessage("❌ Password lama tidak sesuai!");
       return;
     }
     if (newPasswordInput.length < 6) {
@@ -301,7 +300,7 @@ export default function App() {
       return;
     }
     setAdminPassword(newPasswordInput);
-    setSettingsMessage("✅ Password admin berhasil diganti!");
+    setSettingsMessage("✅ Password admin berhasil diperbarui!");
     setTimeout(() => {
       setIsSettingsModalOpen(false);
       setSettingsMessage("");
@@ -327,7 +326,7 @@ export default function App() {
       submittedAt: new Date().toLocaleDateString("id-ID")
     };
     setProposalsList((prev) => [newProp, ...prev]);
-    alert("✨ Terima kasih! Usulan Anda telah masuk ke database peninjauan Admin.");
+    alert("✨ Usulan sinyal Anda berhasil dikirim ke Admin!");
     setProposalName("");
     setProposalLink("");
     setProposalNote("");
@@ -400,7 +399,7 @@ export default function App() {
               </div>
               <p className="text-[10px] text-slate-400">
                 {isAdminLoggedIn
-                  ? "Admin Panel: Akses Penuh Database Vault, Soft Delete & Hard Delete"
+                  ? "Admin Panel: Akses Database Vault, Soft Delete & Hard Delete"
                   : "Traders Club Executive Signal Intelligence"}
               </p>
             </div>
@@ -453,15 +452,15 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
-        {/* Banner Jika Database Bersih / Belum Ada Data */}
+        {/* Banner Jika Database Kosong */}
         {signalsDatabase.length === 0 && (
           <div className="bg-blue-950/30 border border-blue-800/40 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Database className="w-6 h-6 text-blue-400 shrink-0" />
               <div>
-                <h4 className="text-sm font-bold text-white">Database Masih Bersih (Zero Data Initialized)</h4>
+                <h4 className="text-sm font-bold text-white">Database Bersih (Zero Initial Data)</h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Belum ada data sinyal di sistem. Klik tombol <strong>Upload Screenshot & CSV</strong> untuk memasukkan file histori trading Anda ke database.
+                  Belum ada sinyal di database. Klik tombol <strong>Upload Screenshot & CSV</strong> untuk memasukkan data trading baru.
                 </p>
               </div>
             </div>
@@ -950,7 +949,7 @@ export default function App() {
               </h3>
               <p className="text-[11px] text-slate-400">
                 {isAdminLoggedIn
-                  ? "Admin Panel Aktif: Kelola tampilan publik (Soft Delete) atau bersihkan database permanen (Hard Delete)."
+                  ? "Admin Panel Aktif: Kelola tampilan publik (Soft Delete) atau hapus permanen dari Database (Hard Delete)."
                   : "Daftar sinyal terverifikasi yang aktif di sistem:"}
               </p>
             </div>
@@ -1045,7 +1044,7 @@ export default function App() {
                       <div className="flex items-center gap-1">
                         {sig.visibility === "visible" ? (
                           <button
-                            title="Opsi 1: Sembunyikan dari Tampilan (Data Tetap di Database)"
+                            title="Opsi 1: Sembunyikan dari Tampilan (Data Tetap di Database Vault)"
                             onClick={(e) => handleHideFromView(sig.id, e)}
                             className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition"
                           >
@@ -1105,7 +1104,7 @@ export default function App() {
 
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <p className="text-xs text-slate-300">
-                Gunakan kredensial default <strong>Username: admin</strong> dan <strong>Password: 151264</strong>.
+                Gunakan kredensial default <strong>Username: admin</strong> dan <strong>Password: 151264!</strong>.
               </p>
 
               {loginError && (
@@ -1190,7 +1189,7 @@ export default function App() {
                 <label className="text-xs font-semibold text-slate-300">Password Lama</label>
                 <input
                   type="password"
-                  placeholder="Masukkan password saat ini (Default: 151264)"
+                  placeholder="Masukkan password saat ini (Default: 151264!)"
                   value={oldPasswordInput}
                   onChange={(e) => setOldPasswordInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
@@ -1443,7 +1442,7 @@ export default function App() {
                   Pilih Screenshot (PNG/JPG) & CSV Histori
                 </span>
                 <span className="text-[10px] text-slate-500">
-                  Seluruh file akan langsung disimpan permanen ke database sistem
+                  Seluruh file akan langsung disimpan permanen ke database browser
                 </span>
                 <input
                   type="file"
@@ -1454,7 +1453,7 @@ export default function App() {
                 />
               </label>
 
-              {/* List File Terupload yang akan disimpan */}
+              {/* List File Terupload */}
               {uploadedFilesList.length > 0 && (
                 <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5 max-h-32 overflow-y-auto">
                   <span className="text-[11px] font-bold text-emerald-400 block">
