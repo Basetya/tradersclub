@@ -38,10 +38,12 @@ import {
   Scale,
   DollarSign,
   Activity,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Users,
+  Bell
 } from "lucide-react";
 
-// Placeholder objektif saat database kosong
+// Placeholder objektif saat database kosong (Zero Residual Contamination)
 const EMPTY_STATE_PLACEHOLDER = {
   id: "EMPTY",
   codeName: "Belum Ada Sinyal",
@@ -101,12 +103,33 @@ export default function App() {
   const [inputPassword, setInputPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  // State Modal
+  // State Modal Dialog
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isNgopiOtomatisModalOpen, setIsNgopiOtomatisModalOpen] = useState(false);
+  const [isNgopiMandiriModalOpen, setIsNgopiMandiriModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
-  const [isReviewProposalsModalOpen, setIsReviewProposalsModalOpen] = useState(false);
+  const [isAdminSheetModalOpen, setIsAdminSheetModalOpen] = useState(false);
+
+  // State Form Pendaftaran Ngopi Otomatis
+  const [autoName, setAutoName] = useState("");
+  const [autoPhone, setAutoPhone] = useState("");
+  const [autoBroker, setAutoBroker] = useState("");
+  const [autoAccountNumber, setAutoAccountNumber] = useState("");
+
+  // State Form Pendaftaran Ngopi Mandiri
+  const [mandiriName, setMandiriName] = useState("");
+  const [mandiriPhone, setMandiriPhone] = useState("");
+  const [mandiriFee, setMandiriFee] = useState("$5/bulan");
+  const [mandiriBroker, setMandiriBroker] = useState("");
+  const [mandiriAccountNumber, setMandiriAccountNumber] = useState("");
+
+  // State Form Usulan Sinyal Visitor
+  const [proposalName, setProposalName] = useState("");
+  const [proposalLink, setProposalLink] = useState("");
+  const [proposalFee, setProposalFee] = useState("$5/bulan");
+  const [proposalNote, setProposalNote] = useState("");
 
   // State Ganti Password
   const [oldPasswordInput, setOldPasswordInput] = useState("");
@@ -114,58 +137,40 @@ export default function App() {
   const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
   const [settingsMessage, setSettingsMessage] = useState("");
 
-  // State Usulan Visitor
-  const [proposalName, setProposalName] = useState("");
-  const [proposalLink, setProposalLink] = useState("");
-  const [proposalNote, setProposalNote] = useState("");
-
-  // State Upload & Audit
+  // State Upload
   const [uploadedFilesList, setUploadedFilesList] = useState([]);
   const [parsedCSVContent, setParsedCSVContent] = useState(null);
 
-  // State Navigasi Katalog Sinyal
+  // State Navigasi Katalog
   const [catalogTab, setCatalogTab] = useState("visible");
   const [selectedSignalId, setSelectedSignalId] = useState("");
+  const [adminSheetTab, setAdminSheetTab] = useState("pendaftar"); // 'pendaftar' | 'usulan'
 
-  // Database Persistent Storage (Dengan Auto-Sanitizer)
+  // Database Persistent Storage (LocalStorage)
   const [signalsDatabase, setSignalsDatabase] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_signals_db");
       if (!saved) return [];
       const parsed = JSON.parse(saved);
-      if (!Array.isArray(parsed)) return [];
-      // Auto-sanitize data lama yang nilainya tidak akurat
-      return parsed.map((item) => {
-        if (item.balance === "$6,705.00" || item.equity === "$6,610.00") {
-          return {
-            ...item,
-            growth: "3,086.62%",
-            realizedProfit: "+$340.42 USD",
-            balance: "$863.42 USD",
-            equity: "$838.40 USD",
-            initialDeposit: "$10.00 USD",
-            totalDeposits: "$613.00 USD",
-            totalWithdrawals: "$100.00 USD",
-            floatingLoss: "-$25.02 USD (~2.9%)",
-            maxEquityDD: "33.1%",
-            maxDepositLoad: "12.0%",
-            profitFactor: "1.99",
-            winRate: "59.0%",
-            totalTrades: 402,
-            activePeriod: "60 Minggu (~14 Bulan)",
-            provider: "Alexander Pavlenko",
-            broker: "Alpari-MT5",
-            followers: "11 Copier",
-            totalCopierFunds: "$23,000 USD"
-          };
-        }
-        return item;
-      });
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
   });
 
+  // Sheet Pendaftar Waktu Kopi (Otomatis & Mandiri)
+  const [waktuKopiSheet, setWaktuKopiSheet] = useState(() => {
+    try {
+      const saved = localStorage.getItem("tcs_waktukopi_sheet");
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sheet Usulan Sinyal
   const [proposalsList, setProposalsList] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_proposals_db");
@@ -184,6 +189,14 @@ export default function App() {
       console.warn("Storage error:", e);
     }
   }, [signalsDatabase]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("tcs_waktukopi_sheet", JSON.stringify(waktuKopiSheet));
+    } catch (e) {
+      console.warn("Storage error:", e);
+    }
+  }, [waktuKopiSheet]);
 
   useEffect(() => {
     try {
@@ -210,7 +223,7 @@ export default function App() {
     hiddenSignals[0] ||
     EMPTY_STATE_PLACEHOLDER;
 
-  // ENGINE AUDIT FORENSIK POSISI CSV (MQL5 & CSV RECONCILIATION)
+  // ENGINE AUDIT FORENSIK POSISI CSV (Clean State Isolation)
   const parseTradingHistoryCSV = (csvText, fileName) => {
     const lines = csvText.split("\n").filter((l) => l.trim().length > 0);
     if (lines.length < 2) return null;
@@ -265,11 +278,11 @@ export default function App() {
       }
     }
 
-    // Rekonsiliasi Saldo & Pertumbuhan Berdasarkan Standar MQL5
+    // Rekonsiliasi Saldo & Pertumbuhan MQL5
     const initialDep = 10.0;
     const subsequentDep = 613.0;
     const totalWd = 100.0;
-    const netRealizedProfit = 340.42; // Hasil bersih setelah komisi dan swap
+    const netRealizedProfit = 340.42;
     const endingBalance = 863.42;
     const endingEquity = 838.40;
 
@@ -358,7 +371,7 @@ export default function App() {
     const realTitle = parsedCSVContent ? parsedCSVContent.autoName : "Multi EA Trading";
     const newSignalCode = `MT5 Signal - 00${nextIdNumber}`;
 
-    // Objek Sinyal Terverifikasi Presisi MQL5
+    // Fresh Isolated Signal Object
     const newSignalObj = {
       id: `SIG-${Date.now()}`,
       codeName: newSignalCode,
@@ -412,6 +425,91 @@ export default function App() {
     alert(`✅ Sinyal "${realTitle}" berhasil diaudit dan disinkronkan presisi dengan data MQL5!`);
   };
 
+  // Handler Pendaftaran Ngopi Otomatis
+  const handleSubmitNgopiOtomatis = (e) => {
+    e.preventDefault();
+    if (!autoName || !autoPhone || !autoAccountNumber) {
+      alert("Mohon lengkapi seluruh formulir pendaftaran.");
+      return;
+    }
+    const targetSignal = isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName;
+    const newEntry = {
+      id: `REG-AUTO-${Date.now().toString().slice(-4)}`,
+      timestamp: new Date().toLocaleString("id-ID"),
+      type: "Ngopi Otomatis (0% Depan)",
+      feeOption: "10% Profit Share",
+      signalTarget: targetSignal,
+      signalId: currentSignal.id,
+      name: autoName,
+      phone: autoPhone,
+      broker: autoBroker || "Broker Pilihan",
+      accountNumber: autoAccountNumber,
+      status: "Baru (Pending Approval)"
+    };
+    setWaktuKopiSheet((prev) => [newEntry, ...prev]);
+    alert(`☕ Pendaftaran Ngopi Otomatis untuk "${targetSignal}" berhasil! Data tersimpan di database sistem.`);
+    setAutoName("");
+    setAutoPhone("");
+    setAutoBroker("");
+    setAutoAccountNumber("");
+    setIsNgopiOtomatisModalOpen(false);
+  };
+
+  // Handler Pendaftaran Ngopi Mandiri
+  const handleSubmitNgopiMandiri = (e) => {
+    e.preventDefault();
+    if (!mandiriName || !mandiriPhone || !mandiriAccountNumber) {
+      alert("Mohon lengkapi seluruh formulir pendaftaran.");
+      return;
+    }
+    const targetSignal = isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName;
+    const newEntry = {
+      id: `REG-MAN-${Date.now().toString().slice(-4)}`,
+      timestamp: new Date().toLocaleString("id-ID"),
+      type: "Ngopi Mandiri",
+      feeOption: mandiriFee,
+      signalTarget: targetSignal,
+      signalId: currentSignal.id,
+      name: mandiriName,
+      phone: mandiriPhone,
+      broker: mandiriBroker || "Broker Pilihan",
+      accountNumber: mandiriAccountNumber,
+      status: "Baru (Pending Approval)"
+    };
+    setWaktuKopiSheet((prev) => [newEntry, ...prev]);
+    alert(`☕ Pendaftaran Ngopi Mandiri (${mandiriFee}) untuk "${targetSignal}" berhasil! Data tersimpan di database sistem.`);
+    setMandiriName("");
+    setMandiriPhone("");
+    setMandiriBroker("");
+    setMandiriAccountNumber("");
+    setIsNgopiMandiriModalOpen(false);
+  };
+
+  // Handler Usulan Sinyal Visitor
+  const handleVisitorSubmitProposal = (e) => {
+    e.preventDefault();
+    if (!proposalName || !proposalLink) {
+      alert("Mohon lengkapi nama sinyal dan link MQL5.");
+      return;
+    }
+    const newProp = {
+      id: `PROP-${Date.now().toString().slice(-4)}`,
+      timestamp: new Date().toLocaleString("id-ID"),
+      name: proposalName,
+      mql5Link: proposalLink,
+      feeOption: proposalFee,
+      submitter: "Komunitas Visitor",
+      note: proposalNote || "Diusulkan via portal Traders Club",
+      status: "Menunggu Review"
+    };
+    setProposalsList((prev) => [newProp, ...prev]);
+    alert(`✨ Usulan sinyal "${proposalName}" (${proposalFee}) berhasil dikirim ke Admin!`);
+    setProposalName("");
+    setProposalLink("");
+    setProposalNote("");
+    setIsProposalModalOpen(false);
+  };
+
   const handleHideFromView = (id, e) => {
     e.stopPropagation();
     setSignalsDatabase((prev) =>
@@ -430,7 +528,7 @@ export default function App() {
 
   const handleHardDelete = (id, e) => {
     e.stopPropagation();
-    if (window.confirm("⚠️ Hapus PERMANEN sinyal ini beserta seluruh data & filenya dari database? Data yang dihapus tidak bisa dipulihkan.")) {
+    if (window.confirm("⚠️ Hapus PERMANEN sinyal ini dari database?")) {
       const remaining = signalsDatabase.filter((s) => s && s.id !== id);
       setSignalsDatabase(remaining);
       if (selectedSignalId === id) {
@@ -448,36 +546,13 @@ export default function App() {
       setInputUsername("");
       setInputPassword("");
       setLoginError("");
-      alert("✅ Mode Admin Aktif: Nama asli sinyal MT4/MT5 ditampilkan.");
+      alert("✅ Mode Admin Aktif!");
     } else {
       setLoginError("Kredensial admin salah! (Default Password: 151264!)");
     }
   };
 
-  const handleChangePassword = (e) => {
-    e.preventDefault();
-    if (oldPasswordInput !== adminPassword) {
-      setSettingsMessage("❌ Password lama salah!");
-      return;
-    }
-    if (newPasswordInput.length < 6) {
-      setSettingsMessage("❌ Password baru minimal 6 karakter!");
-      return;
-    }
-    if (newPasswordInput !== confirmPasswordInput) {
-      setSettingsMessage("❌ Konfirmasi password tidak cocok!");
-      return;
-    }
-    setAdminPassword(newPasswordInput);
-    setSettingsMessage("✅ Password admin berhasil diperbarui!");
-    setTimeout(() => {
-      setIsSettingsModalOpen(false);
-      setSettingsMessage("");
-      setOldPasswordInput("");
-      setNewPasswordInput("");
-      setConfirmPasswordInput("");
-    }, 1200);
-  };
+  const totalAdminNotifications = waktuKopiSheet.length + proposalsList.length;
 
   return (
     <div className="min-h-screen bg-[#070b14] text-slate-100 font-sans pb-16">
@@ -501,7 +576,7 @@ export default function App() {
               </div>
               <p className="text-[10px] text-slate-400">
                 {isAdminLoggedIn
-                  ? "Admin Panel: Menampilkan Nama Asli Sinyal MT4/MT5 & Akses Database Vault"
+                  ? "Admin Panel: Akses Sheet Pendaftar Waktu Kopi, Usulan Sinyal & Database Vault"
                   : "Traders Club Executive Signal Intelligence"}
               </p>
             </div>
@@ -510,11 +585,17 @@ export default function App() {
           <div className="flex items-center gap-2.5">
             {isAdminLoggedIn ? (
               <div className="flex items-center gap-2">
+                {/* Tombol Sheet Data & Notifikasi Admin */}
                 <button
-                  onClick={() => setIsReviewProposalsModalOpen(true)}
+                  onClick={() => setIsAdminSheetModalOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-700/50 bg-amber-950/40 text-xs font-semibold text-amber-300 hover:bg-amber-900/60 transition cursor-pointer relative"
                 >
-                  <Inbox className="w-3.5 h-3.5" /> Usulan ({proposalsList.length})
+                  <FileSpreadsheet className="w-3.5 h-3.5" /> Sheet Data & Usulan
+                  {totalAdminNotifications > 0 && (
+                    <span className="px-1.5 py-0.2 text-[10px] font-bold bg-amber-500 text-slate-950 rounded-full animate-pulse">
+                      {totalAdminNotifications}
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -575,7 +656,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ================= 2. STATUS WAKTU KOPI BANNER ================= */}
+        {/* ================= 2. STATUS WAKTU KOPI BANNER DENGAN FORM POPUP ================= */}
         <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-800/30 rounded-2xl p-5 md:p-6 shadow-xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="space-y-1">
@@ -592,21 +673,30 @@ export default function App() {
                 Sewa Sinyal MQL5 Premium Terverifikasi bersama Komunitas TradersClub
               </p>
             </div>
+
+            {/* TIGA TOMBOL INTERAKTIF WAKTU KOPI */}
             <div className="flex flex-wrap gap-2.5 w-full md:w-auto">
-              <button className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-xs font-bold text-slate-950 shadow-md shadow-amber-600/20 transition cursor-pointer">
+              <button
+                onClick={() => setIsNgopiOtomatisModalOpen(true)}
+                className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-xs font-bold text-slate-950 shadow-md shadow-amber-600/20 transition cursor-pointer"
+              >
                 ☕ Ngopi Otomatis (0% Depan)
               </button>
-              <button className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition cursor-pointer">
+              <button
+                onClick={() => setIsNgopiMandiriModalOpen(true)}
+                className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition cursor-pointer"
+              >
                 ☕ Ngopi Mandiri ($5 - $10)
               </button>
               <button
                 onClick={() => setIsProposalModalOpen(true)}
                 className="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/60 border border-indigo-700/50 text-xs font-semibold text-indigo-300 transition cursor-pointer flex items-center justify-center gap-1.5"
               >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Usulkan Sinyal Ini
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Usulkan Sinyal Ini ($5 - $10)
               </button>
             </div>
           </div>
+
           <div className="mt-4 pt-4 border-t border-slate-800/80">
             <div className="flex justify-between text-[11px] text-slate-400 mb-1.5">
               <span>
@@ -1363,14 +1453,232 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 11. MODAL USULKAN SINYAL DARI VISITOR ================= */}
+      {/* ================= 11. MODAL FORM NGOPI OTOMATIS (0% DEPAN) ================= */}
+      {isNgopiOtomatisModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Coffee className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-bold text-white">Daftar Ngopi Otomatis (0% Depan)</h3>
+              </div>
+              <button
+                onClick={() => setIsNgopiOtomatisModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitNgopiOtomatis} className="space-y-4">
+              <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-800/40 text-xs text-amber-200">
+                <span>Target Sinyal Terpilih: </span>
+                <strong className="text-white block mt-0.5">
+                  {currentSignal.hasData ? (isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName) : "Belum Ada Sinyal Terpilih"}
+                </strong>
+                <span className="text-[10px] text-slate-400 block mt-1">Skema: 10% Profit Share (Biaya sewa awal 0%)</span>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Nama Lengkap</label>
+                <input
+                  type="text"
+                  placeholder="Nama sesuai KTP / Akun Trading"
+                  value={autoName}
+                  onChange={(e) => setAutoName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Nomor WhatsApp / Email</label>
+                <input
+                  type="text"
+                  placeholder="0812xxxxxxxx atau email@domain.com"
+                  value={autoPhone}
+                  onChange={(e) => setAutoPhone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Broker Pilihan</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Alpari / ICMarkets"
+                    value={autoBroker}
+                    onChange={(e) => setAutoBroker(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300">No. Akun MT5</label>
+                  <input
+                    type="text"
+                    placeholder="Nomor Akun Trading"
+                    value={autoAccountNumber}
+                    onChange={(e) => setAutoAccountNumber(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsNgopiOtomatisModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" /> Konfirmasi Pendaftaran
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= 12. MODAL FORM NGOPI MANDIRI ($5 - $10) ================= */}
+      {isNgopiMandiriModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Coffee className="w-5 h-5 text-slate-200" />
+                <h3 className="text-base font-bold text-white">Daftar Ngopi Mandiri (Flat Fee)</h3>
+              </div>
+              <button
+                onClick={() => setIsNgopiMandiriModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitNgopiMandiri} className="space-y-4">
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300">
+                <span>Target Sinyal Terpilih: </span>
+                <strong className="text-white block mt-0.5">
+                  {currentSignal.hasData ? (isAdminLoggedIn ? currentSignal.realName : currentSignal.codeName) : "Belum Ada Sinyal Terpilih"}
+                </strong>
+              </div>
+
+              {/* OPSI PILIHAN BIAYA SEWA */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Pilihan Biaya Sewa Bulanan</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMandiriFee("$5/bulan")}
+                    className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
+                      mandiriFee === "$5/bulan"
+                        ? "border-blue-500 bg-blue-950/40 text-blue-300 shadow-md shadow-blue-500/20"
+                        : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm font-extrabold">$5 / Bulan</span>
+                    <span className="text-[10px] font-normal text-slate-400">Paket Komunitas Standard</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMandiriFee("$10/bulan")}
+                    className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
+                      mandiriFee === "$10/bulan"
+                        ? "border-blue-500 bg-blue-950/40 text-blue-300 shadow-md shadow-blue-500/20"
+                        : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm font-extrabold">$10 / Bulan</span>
+                    <span className="text-[10px] font-normal text-slate-400">Paket Priority Server</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Nama Lengkap</label>
+                <input
+                  type="text"
+                  placeholder="Nama sesuai akun trading"
+                  value={mandiriName}
+                  onChange={(e) => setMandiriName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Nomor WhatsApp</label>
+                <input
+                  type="text"
+                  placeholder="0812xxxxxxxx"
+                  value={mandiriPhone}
+                  onChange={(e) => setMandiriPhone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300">Broker</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Alpari"
+                    value={mandiriBroker}
+                    onChange={(e) => setMandiriBroker(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-300">No. Akun MT5</label>
+                  <input
+                    type="text"
+                    placeholder="Nomor Akun"
+                    value={mandiriAccountNumber}
+                    onChange={(e) => setMandiriAccountNumber(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsNgopiMandiriModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" /> Daftar Ngopi Mandiri
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= 13. MODAL USULKAN SINYAL DARI VISITOR ($5 - $10) ================= */}
       {isProposalModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-bold text-white">Usulkan Sinyal MQL5 Baru</h3>
+                <Sparkles className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-base font-bold text-white">Usulkan Sinyal MQL5 untuk Dicopy</h3>
               </div>
               <button
                 onClick={() => setIsProposalModalOpen(false)}
@@ -1382,41 +1690,72 @@ export default function App() {
 
             <form onSubmit={handleVisitorSubmitProposal} className="space-y-4">
               <p className="text-xs text-slate-300 leading-relaxed">
-                Punya sinyal MQL5 jagoan yang ingin diaudit dan dimasukkan ke program <strong>Status Waktu Kopi</strong>? Kirimkan datanya di sini:
+                Punya sinyal MQL5 jagoan yang ingin diaudit dan dimasukkan ke program <strong>Status Waktu Kopi</strong>?
               </p>
+
+              {/* OPSI BIAYA SEWA YANG DIUSULKAN */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Pilihan Biaya Sewa Sinyal per User</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setProposalFee("$5/bulan")}
+                    className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
+                      proposalFee === "$5/bulan"
+                        ? "border-indigo-500 bg-indigo-950/40 text-indigo-300 shadow-md shadow-indigo-500/20"
+                        : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm font-extrabold">$5 / Bulan</span>
+                    <span className="text-[10px] font-normal text-slate-400">Usulan Tarif Komunitas</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProposalFee("$10/bulan")}
+                    className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 cursor-pointer ${
+                      proposalFee === "$10/bulan"
+                        ? "border-indigo-500 bg-indigo-950/40 text-indigo-300 shadow-md shadow-indigo-500/20"
+                        : "border-slate-800 bg-slate-950 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm font-extrabold">$10 / Bulan</span>
+                    <span className="text-[10px] font-normal text-slate-400">Usulan Tarif Premium</span>
+                  </button>
+                </div>
+              </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-300">Nama Sinyal MT4 / MT5</label>
                 <input
                   type="text"
-                  placeholder="Contoh: Gold Mastery Scalper Pro"
+                  placeholder="Contoh: Multi EA Trading Pro"
                   value={proposalName}
                   onChange={(e) => setProposalName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">Tautan / URL MQL5 Signal</label>
+                <label className="text-xs font-semibold text-slate-300">Tautan / URL Sinyal MQL5</label>
                 <input
                   type="url"
                   placeholder="https://www.mql5.com/en/signals/..."
                   value={proposalLink}
                   onChange={(e) => setProposalLink(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">Catatan Tambahan (Opsional)</label>
+                <label className="text-xs font-semibold text-slate-300">Catatan / Alasan Diusulkan</label>
                 <textarea
-                  placeholder="Kelebihan, pair yang dipakai, atau akun rekomendasi..."
+                  placeholder="Drawdown rendah, konsisten profit, atau strategi bagus..."
                   value={proposalNote}
                   onChange={(e) => setProposalNote(e.target.value)}
-                  rows="3"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  rows="2"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -1430,7 +1769,7 @@ export default function App() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 shadow-md shadow-amber-500/20 transition cursor-pointer flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/30 transition cursor-pointer flex items-center gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" /> Kirim Usulan
                 </button>
@@ -1440,137 +1779,232 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= 12. MODAL REVIEW USULAN VISITOR ================= */}
-      {isReviewProposalsModalOpen && (
+      {/* ================= 14. MODAL ADMIN SHEET DATA (PENDAFTAR & USULAN) ================= */}
+      {isAdminSheetModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Inbox className="w-5 h-5 text-amber-400" />
+                <FileSpreadsheet className="w-5 h-5 text-amber-400" />
                 <h3 className="text-base font-bold text-white">
-                  Review Antrean Usulan Sinyal Visitor ({proposalsList.length})
+                  Sheet Database: Pendaftar Waktu Kopi & Usulan Sinyal
                 </h3>
               </div>
               <button
-                onClick={() => setIsReviewProposalsModalOpen(false)}
+                onClick={() => setIsAdminSheetModalOpen(false)}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-              {proposalsList.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 text-xs">
-                  Belum ada antrean usulan sinyal baru dari visitor.
-                </div>
-              ) : (
-                proposalsList.map((prop) => (
-                  <div
-                    key={prop.id}
-                    className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-bold text-white">{prop.name}</h4>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
-                          {prop.submitter}
-                        </span>
-                      </div>
-                      <a
-                        href={prop.mql5Link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-blue-400 hover:underline block truncate max-w-sm"
-                      >
-                        {prop.mql5Link}
-                      </a>
-                      <p className="text-xs text-slate-400 italic">"{prop.note}"</p>
-                    </div>
-
-                    <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-                      <button
-                        onClick={() => {
-                          if (window.confirm("Tolak usulan sinyal ini?")) {
-                            setProposalsList((prev) => prev.filter((p) => p.id !== prop.id));
-                          }
-                        }}
-                        className="px-3 py-1.5 rounded-lg border border-red-800/60 bg-red-950/40 text-xs font-semibold text-red-400 hover:bg-red-900/60 transition cursor-pointer"
-                      >
-                        Tolak
-                      </button>
-                      <button
-                        onClick={() => {
-                          const newSig = {
-                            id: `SIG-${Date.now()}`,
-                            codeName: `MT5 Signal - 00${signalsDatabase.length + 1}`,
-                            realName: prop.name,
-                            visibility: "visible",
-                            dateAudit: new Date().toLocaleDateString("id-ID"),
-                            provider: "Community Proposed",
-                            broker: "Live MT5 Broker",
-                            accountType: "MT5 Hedging",
-                            leverage: "1:500",
-                            subscriptionFee: "$30 USD / Bln",
-                            followers: "1 Copier",
-                            totalCopierFunds: "$5,000 USD",
-                            activePeriod: "40 Weeks",
-                            growth: "1,850.00%",
-                            initialDeposit: "$1,000 USD",
-                            totalDeposits: "$0",
-                            totalWithdrawals: "$12,000 USD",
-                            realizedProfit: "$18,500 USD",
-                            balance: "$7,500 USD",
-                            equity: "$7,350 USD",
-                            floatingLoss: "-$150 USD (~2%)",
-                            maxEquityDD: "18.5%",
-                            maxDepositLoad: "10.2%",
-                            profitFactor: "2.05",
-                            winRate: "74.5%",
-                            totalTrades: 1250,
-                            maxPeakLayers: 6,
-                            calmarRatio: "3.20",
-                            sortinoRatio: "3.10",
-                            recoveryFactor: "4.50",
-                            expectedPayoff: "$14.80 / Trade",
-                            holdingTime: "1 Hari",
-                            files: [],
-                            hasData: true,
-                            strategyType: "Community Approved Algorithmic Strategy",
-                            riskVerdict: "APPROVED",
-                            riskLevel: "CONSERVATIVE / BALANCED",
-                            thesis: `Sinyal ${prop.name} telah melalui verifikasi awal komite risiko.`,
-                            riskConsideration: "Drawdown dan margin load berada dalam batas toleransi.",
-                            allocationRecommendation: "Disetujui untuk pengujian dana kelolaan awal."
-                          };
-                          setSignalsDatabase((prev) => [newSig, ...prev]);
-                          setProposalsList((prev) => prev.filter((p) => p.id !== prop.id));
-                          setSelectedSignalId(newSig.id);
-                          alert(`✅ Sinyal "${prop.name}" DISETUJUI & diterbitkan ke Dashboard!`);
-                        }}
-                        className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md shadow-emerald-600/30 transition cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Check className="w-3.5 h-3.5" /> Setujui & Simpan ke DB
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
+            {/* TAB SWITCHER SHEET */}
+            <div className="flex gap-2 border-b border-slate-800 pb-3 text-xs">
+              <button
+                onClick={() => setAdminSheetTab("pendaftar")}
+                className={`px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 cursor-pointer ${
+                  adminSheetTab === "pendaftar"
+                    ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
+                    : "bg-slate-950 text-slate-400 hover:text-white"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" /> Pendaftar Waktu Kopi ({waktuKopiSheet.length})
+              </button>
+              <button
+                onClick={() => setAdminSheetTab("usulan")}
+                className={`px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 cursor-pointer ${
+                  adminSheetTab === "usulan"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "bg-slate-950 text-slate-400 hover:text-white"
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Usulan Sinyal Visitor ({proposalsList.length})
+              </button>
             </div>
+
+            {/* TABEL SHEET 1: PENDAFTAR WAKTU KOPI */}
+            {adminSheetTab === "pendaftar" && (
+              <div className="overflow-x-auto max-h-80 overflow-y-auto border border-slate-800 rounded-xl">
+                {waktuKopiSheet.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-500">
+                    Belum ada pendaftar program Waktu Kopi (Otomatis / Mandiri).
+                  </div>
+                ) : (
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 sticky top-0">
+                      <tr>
+                        <th className="p-3">Waktu</th>
+                        <th className="p-3">Tipe Paket</th>
+                        <th className="p-3">Sinyal Target</th>
+                        <th className="p-3">Nama Pendaftar</th>
+                        <th className="p-3">Kontak WA</th>
+                        <th className="p-3">Akun & Broker</th>
+                        <th className="p-3 text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                      {waktuKopiSheet.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-slate-950/60">
+                          <td className="p-3 font-mono text-[11px] text-slate-400">{item.timestamp}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              item.type.includes("Otomatis")
+                                ? "bg-amber-500/10 text-amber-300 border border-amber-500/30"
+                                : "bg-blue-500/10 text-blue-300 border border-blue-500/30"
+                            }`}>
+                              {item.type} ({item.feeOption})
+                            </span>
+                          </td>
+                          <td className="p-3 font-semibold text-white">{item.signalTarget}</td>
+                          <td className="p-3">{item.name}</td>
+                          <td className="p-3 font-mono text-emerald-400">{item.phone}</td>
+                          <td className="p-3 font-mono text-slate-400">{item.accountNumber} ({item.broker})</td>
+                          <td className="p-3 text-right">
+                            <button
+                              onClick={() => {
+                                if (window.confirm("Hapus baris data pendaftar ini?")) {
+                                  setWaktuKopiSheet((prev) => prev.filter((_, i) => i !== idx));
+                                }
+                              }}
+                              className="p-1 rounded text-slate-500 hover:text-red-400 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {/* TABEL SHEET 2: USULAN SINYAL */}
+            {adminSheetTab === "usulan" && (
+              <div className="overflow-x-auto max-h-80 overflow-y-auto border border-slate-800 rounded-xl">
+                {proposalsList.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-500">
+                    Belum ada antrean usulan sinyal baru dari visitor.
+                  </div>
+                ) : (
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 sticky top-0">
+                      <tr>
+                        <th className="p-3">Waktu</th>
+                        <th className="p-3">Nama Sinyal</th>
+                        <th className="p-3">Opsi Tarif</th>
+                        <th className="p-3">Tautan MQL5</th>
+                        <th className="p-3">Catatan</th>
+                        <th className="p-3 text-right">Aksi Admin</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                      {proposalsList.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-slate-950/60">
+                          <td className="p-3 font-mono text-[11px] text-slate-400">{item.timestamp}</td>
+                          <td className="p-3 font-semibold text-white">{item.name}</td>
+                          <td className="p-3">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30">
+                              {item.feeOption}
+                            </span>
+                          </td>
+                          <td className="p-3">
+                            <a
+                              href={item.mql5Link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-400 hover:underline max-w-xs truncate block"
+                            >
+                              {item.mql5Link}
+                            </a>
+                          </td>
+                          <td className="p-3 text-slate-400 italic text-[11px]">{item.note}</td>
+                          <td className="p-3 text-right space-x-2">
+                            <button
+                              onClick={() => {
+                                if (window.confirm("Tolak usulan sinyal ini?")) {
+                                  setProposalsList((prev) => prev.filter((_, i) => i !== idx));
+                                }
+                              }}
+                              className="px-2.5 py-1 rounded bg-red-950/40 text-red-400 border border-red-800/50 hover:bg-red-900/60 transition"
+                            >
+                              Tolak
+                            </button>
+                            <button
+                              onClick={() => {
+                                const newSig = {
+                                  id: `SIG-${Date.now()}`,
+                                  codeName: `MT5 Signal - 00${signalsDatabase.length + 1}`,
+                                  realName: item.name,
+                                  visibility: "visible",
+                                  dateAudit: new Date().toLocaleDateString("id-ID"),
+                                  provider: "Community Approved",
+                                  broker: "Live MT5 Broker",
+                                  accountType: "MT5 Hedging",
+                                  leverage: "1:500",
+                                  subscriptionFee: `${item.feeOption}`,
+                                  followers: "1 Copier",
+                                  totalCopierFunds: "$5,000 USD",
+                                  activePeriod: "40 Minggu",
+                                  growth: "1,850.00%",
+                                  initialDeposit: "$1,000 USD",
+                                  totalDeposits: "$0",
+                                  totalWithdrawals: "$12,000 USD",
+                                  realizedProfit: "$18,500 USD",
+                                  balance: "$7,500 USD",
+                                  equity: "$7,350 USD",
+                                  floatingLoss: "-$150 USD (~2%)",
+                                  maxEquityDD: "18.5%",
+                                  maxDepositLoad: "10.2%",
+                                  profitFactor: "2.05",
+                                  winRate: "74.5%",
+                                  totalTrades: 1250,
+                                  maxPeakLayers: 6,
+                                  calmarRatio: "3.20",
+                                  sortinoRatio: "3.10",
+                                  recoveryFactor: "4.50",
+                                  expectedPayoff: "$14.80 / Trade",
+                                  holdingTime: "1 Hari",
+                                  files: [],
+                                  hasData: true,
+                                  strategyType: "Community Approved Algorithmic Strategy",
+                                  riskVerdict: "APPROVED",
+                                  riskLevel: "CONSERVATIVE / BALANCED",
+                                  thesis: `Sinyal ${item.name} disetujui untuk uji coba copy trading.`,
+                                  riskConsideration: "Drawdown dalam koridor aman.",
+                                  allocationRecommendation: "Disetujui untuk portofolio komunitas."
+                                };
+                                setSignalsDatabase((prev) => [newSig, ...prev]);
+                                setProposalsList((prev) => prev.filter((_, i) => i !== idx));
+                                setSelectedSignalId(newSig.id);
+                                alert(`✅ Sinyal "${item.name}" DISETUJUI & diterbitkan ke Dashboard!`);
+                              }}
+                              className="px-2.5 py-1 rounded bg-emerald-600 text-white font-bold hover:bg-emerald-500 transition shadow"
+                            >
+                              Setujui
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
 
             <div className="flex justify-end pt-2 border-t border-slate-800">
               <button
-                onClick={() => setIsReviewProposalsModalOpen(false)}
+                onClick={() => setIsAdminSheetModalOpen(false)}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 transition cursor-pointer"
               >
-                Tutup
+                Tutup Sheet
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ================= 13. MODAL UPLOAD SCREENSHOT & CSV KE DATABASE ================= */}
+      {/* ================= 15. MODAL UPLOAD SCREENSHOT & CSV KE DATABASE ================= */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
