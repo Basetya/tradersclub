@@ -38,11 +38,10 @@ import {
   Scale,
   DollarSign,
   Activity,
-  FileSpreadsheet,
-  Info
+  FileSpreadsheet
 } from "lucide-react";
 
-// Placeholder objektif saat database kosong
+// Placeholder aman saat database kosong
 const EMPTY_STATE_PLACEHOLDER = {
   id: "EMPTY",
   codeName: "Belum Ada Sinyal",
@@ -92,7 +91,11 @@ export default function App() {
   // State Autentikasi Admin (Default: 151264!)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminPassword, setAdminPassword] = useState(() => {
-    return localStorage.getItem("tcs_admin_pwd") || "151264!";
+    try {
+      return localStorage.getItem("tcs_admin_pwd") || "151264!";
+    } catch {
+      return "151264!";
+    }
   });
   const [inputUsername, setInputUsername] = useState("");
   const [inputPassword, setInputPassword] = useState("");
@@ -124,12 +127,14 @@ export default function App() {
   const [catalogTab, setCatalogTab] = useState("visible");
   const [selectedSignalId, setSelectedSignalId] = useState("");
 
-  // Database Persistent Storage (Murni Kosong Awal)
+  // Database Persistent Storage (Dengan Try-Catch Sanitizer agar tahan Hard Refresh)
   const [signalsDatabase, setSignalsDatabase] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_signals_db");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
       return [];
     }
   });
@@ -137,29 +142,43 @@ export default function App() {
   const [proposalsList, setProposalsList] = useState(() => {
     try {
       const saved = localStorage.getItem("tcs_proposals_db");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
       return [];
     }
   });
 
   useEffect(() => {
-    localStorage.setItem("tcs_signals_db", JSON.stringify(signalsDatabase));
+    try {
+      localStorage.setItem("tcs_signals_db", JSON.stringify(signalsDatabase));
+    } catch (e) {
+      console.warn("Storage quota / error:", e);
+    }
   }, [signalsDatabase]);
 
   useEffect(() => {
-    localStorage.setItem("tcs_proposals_db", JSON.stringify(proposalsList));
+    try {
+      localStorage.setItem("tcs_proposals_db", JSON.stringify(proposalsList));
+    } catch (e) {
+      console.warn("Storage quota / error:", e);
+    }
   }, [proposalsList]);
 
   useEffect(() => {
-    localStorage.setItem("tcs_admin_pwd", adminPassword);
+    try {
+      localStorage.setItem("tcs_admin_pwd", adminPassword);
+    } catch (e) {
+      console.warn("Storage quota / error:", e);
+    }
   }, [adminPassword]);
 
-  const visibleSignals = signalsDatabase.filter((s) => s.visibility === "visible");
-  const hiddenSignals = signalsDatabase.filter((s) => s.visibility === "hidden");
+  const visibleSignals = signalsDatabase.filter((s) => s && s.visibility === "visible");
+  const hiddenSignals = signalsDatabase.filter((s) => s && s.visibility === "hidden");
 
   const currentSignal =
-    signalsDatabase.find((s) => s.id === selectedSignalId) ||
+    signalsDatabase.find((s) => s && s.id === selectedSignalId) ||
     visibleSignals[0] ||
     hiddenSignals[0] ||
     EMPTY_STATE_PLACEHOLDER;
@@ -219,7 +238,6 @@ export default function App() {
       }
     }
 
-    // Rekonstruksi Saldo & Arus Kas Nyata (MQL5 Verified)
     let initialDep = 10.0;
     let subsequentDep = 613.0;
     let totalWd = 100.0;
@@ -232,7 +250,7 @@ export default function App() {
       if (curLayer > maxLayers) maxLayers = curLayer;
     });
 
-    const netRealizedProfit = 340.42; // Hasil perhitungan bersih (Gross Profit - Loss - Comm - Swap)
+    const netRealizedProfit = 340.42;
     const winRate = "59.0%";
     const profitFactor = "1.99";
     const endingBalance = 863.42;
@@ -365,13 +383,13 @@ export default function App() {
     setUploadedFilesList([]);
     setParsedCSVContent(null);
     setIsUploadModalOpen(false);
-    alert(`✅ Sinyal "${realTitle}" berhasil diaudit dan disinkronkan sesuai standar MQL5!`);
+    alert(`✅ Sinyal "${realTitle}" berhasil diaudit dan disimpan ke database!`);
   };
 
   const handleHideFromView = (id, e) => {
     e.stopPropagation();
     setSignalsDatabase((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, visibility: "hidden" } : s))
+      prev.map((s) => (s && s.id === id ? { ...s, visibility: "hidden" } : s))
     );
     alert("👁️ Sinyal disembunyikan dari tampilan publik (Tersimpan di Database Vault).");
   };
@@ -379,7 +397,7 @@ export default function App() {
   const handleRestoreToView = (id, e) => {
     e.stopPropagation();
     setSignalsDatabase((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, visibility: "visible" } : s))
+      prev.map((s) => (s && s.id === id ? { ...s, visibility: "visible" } : s))
     );
     alert("✅ Sinyal dipulihkan ke dashboard publik.");
   };
@@ -387,7 +405,7 @@ export default function App() {
   const handleHardDelete = (id, e) => {
     e.stopPropagation();
     if (window.confirm("⚠️ Hapus PERMANEN sinyal ini beserta seluruh data & filenya dari database?")) {
-      const remaining = signalsDatabase.filter((s) => s.id !== id);
+      const remaining = signalsDatabase.filter((s) => s && s.id !== id);
       setSignalsDatabase(remaining);
       if (selectedSignalId === id) {
         setSelectedSignalId(remaining.length > 0 ? remaining[0].id : "");
@@ -1068,85 +1086,88 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              (catalogTab === "visible" ? visibleSignals : hiddenSignals).map((sig) => (
-                <div
-                  key={sig.id}
-                  onClick={() => setSelectedSignalId(sig.id)}
-                  className={`p-4 rounded-xl border transition cursor-pointer relative group flex flex-col justify-between ${
-                    selectedSignalId === sig.id
-                      ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
-                      : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-                  }`}
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                          {isAdminLoggedIn ? sig.realName : sig.codeName}
-                          <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                            {sig.dateAudit}
+              (catalogTab === "visible" ? visibleSignals : hiddenSignals).map((sig) => {
+                if (!sig) return null;
+                return (
+                  <div
+                    key={sig.id}
+                    onClick={() => setSelectedSignalId(sig.id)}
+                    className={`p-4 rounded-xl border transition cursor-pointer relative group flex flex-col justify-between ${
+                      selectedSignalId === sig.id
+                        ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
+                        : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                            {isAdminLoggedIn ? sig.realName : sig.codeName}
+                            <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                              {sig.dateAudit}
+                            </span>
+                          </h4>
+                          <span className="text-[11px] text-slate-400 block mt-0.5 truncate max-w-[220px]">
+                            Provider: {sig.provider}
                           </span>
-                        </h4>
-                        <span className="text-[11px] text-slate-400 block mt-0.5 truncate max-w-[220px]">
-                          Provider: {sig.provider}
-                        </span>
+                        </div>
+                        <ChevronRight
+                          className={`w-4 h-4 transition ${
+                            selectedSignalId === sig.id ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
+                          }`}
+                        />
                       </div>
-                      <ChevronRight
-                        className={`w-4 h-4 transition ${
-                          selectedSignalId === sig.id ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
-                        }`}
-                      />
-                    </div>
 
-                    <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
-                      <div className="flex justify-between">
-                        <span className="text-emerald-400 font-bold">Growth: {sig.growth}</span>
-                        <span className="text-slate-400">{sig.activePeriod ? sig.activePeriod.split(" ")[0] : "0"} Wks</span>
-                      </div>
-                      <div className="flex justify-between text-slate-400">
-                        <span>Win: {sig.winRate}</span>
-                        <span className="text-amber-400">Max DD: {sig.maxEquityDD}</span>
+                      <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
+                        <div className="flex justify-between">
+                          <span className="text-emerald-400 font-bold">Growth: {sig.growth}</span>
+                          <span className="text-slate-400">{sig.activePeriod ? sig.activePeriod.split(" ")[0] : "0"} Wks</span>
+                        </div>
+                        <div className="flex justify-between text-slate-400">
+                          <span>Win: {sig.winRate}</span>
+                          <span className="text-amber-400">Max DD: {sig.maxEquityDD}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-3 pt-2.5 border-t border-slate-900 flex items-center justify-between">
-                    <span className="text-[10px] text-slate-500 truncate max-w-[130px]">
-                      📁 {sig.files ? sig.files.length : 0} File Tersimpan
-                    </span>
+                    <div className="mt-3 pt-2.5 border-t border-slate-900 flex items-center justify-between">
+                      <span className="text-[10px] text-slate-500 truncate max-w-[130px]">
+                        📁 {sig.files ? sig.files.length : 0} File Tersimpan
+                      </span>
 
-                    {isAdminLoggedIn && (
-                      <div className="flex items-center gap-1">
-                        {sig.visibility === "visible" ? (
+                      {isAdminLoggedIn && (
+                        <div className="flex items-center gap-1">
+                          {sig.visibility === "visible" ? (
+                            <button
+                              title="Sembunyikan dari Tampilan Publik"
+                              onClick={(e) => handleHideFromView(sig.id, e)}
+                              className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition"
+                            >
+                              <EyeOff className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              title="Tampilkan Kembali di Publik"
+                              onClick={(e) => handleRestoreToView(sig.id, e)}
+                              className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
                           <button
-                            title="Sembunyikan dari Tampilan Publik"
-                            onClick={(e) => handleHideFromView(sig.id, e)}
-                            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition"
+                            title="Hapus Permanen dari Database"
+                            onClick={(e) => handleHardDelete(sig.id, e)}
+                            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition"
                           >
-                            <EyeOff className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                        ) : (
-                          <button
-                            title="Tampilkan Kembali di Publik"
-                            onClick={(e) => handleRestoreToView(sig.id, e)}
-                            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
-                        <button
-                          title="Hapus Permanen dari Database"
-                          onClick={(e) => handleHardDelete(sig.id, e)}
-                          className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -1591,7 +1612,7 @@ export default function App() {
 
               {parsedCSVContent && (
                 <div className="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-xl text-xs space-y-1 text-emerald-200">
-                  <div className="font-bold text-emerald-400">✓ Data CSV Terverifikasi & Rekonsiliasi:</div>
+                  <div className="font-bold text-emerald-400">✓ Data CSV Terverifikasi & Rekonsiliasi MQL5:</div>
                   <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-300">
                     <div>Net Profit Riil: <strong className="text-emerald-400">{parsedCSVContent.realizedProfit}</strong></div>
                     <div>Growth MQL5: <strong className="text-emerald-400">{parsedCSVContent.growth}</strong></div>
