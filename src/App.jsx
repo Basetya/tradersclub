@@ -27,12 +27,51 @@ import {
   Trash2,
   Archive,
   RotateCcw,
-  PlusCircle,
   Send,
   Settings,
   Check,
-  Inbox
+  Inbox,
+  PlusCircle,
+  RefreshCw
 } from "lucide-react";
+
+// Fallback data aman untuk mencegah blank screen jika seluruh sinyal terhapus
+const EMPTY_FALLBACK_SIGNAL = {
+  id: "EMPTY",
+  codeName: "Belum Ada Sinyal",
+  realName: "Belum Ada Data Sinyal Teranalisis",
+  status: "active",
+  dateAudit: "N/A",
+  provider: "N/A",
+  broker: "N/A",
+  accountType: "N/A",
+  leverage: "N/A",
+  subscriptionFee: "N/A",
+  followers: "0 Copier",
+  totalCopierFunds: "$0 USD",
+  activePeriod: "0 Weeks",
+  growth: "0.00%",
+  initialDeposit: "0",
+  totalDeposits: "0",
+  totalWithdrawals: "0",
+  realizedProfit: "0",
+  balance: "0",
+  equity: "0",
+  floatingLoss: "0",
+  maxEquityDD: "0.0%",
+  maxDepositLoad: "0.0%",
+  profitFactor: "0.00",
+  winRate: "0.0%",
+  totalTrades: "0",
+  maxPeakLayers: 0,
+  calmarRatio: "0.00",
+  sortinoRatio: "0.00",
+  recoveryFactor: "0.00",
+  expectedPayoff: "0",
+  holdingTime: "0 Hari",
+  filesCount: "0 File",
+  strategyType: "Belum Ada Strategi"
+};
 
 export default function App() {
   // Mode Analisis: 'retail' | 'institutional'
@@ -40,7 +79,7 @@ export default function App() {
 
   // State Autentikasi Admin
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("151264"); // Default password baru
+  const [adminPassword, setAdminPassword] = useState("151264"); // Default password
   const [inputUsername, setInputUsername] = useState("");
   const [inputPassword, setInputPassword] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -63,13 +102,16 @@ export default function App() {
   const [proposalLink, setProposalLink] = useState("");
   const [proposalNote, setProposalNote] = useState("");
 
+  // State Upload Modal
+  const [customSignalName, setCustomSignalName] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+
   // State Navigasi Katalog Sinyal
   const [historyTab, setHistoryTab] = useState("active"); // 'active' | 'archive'
   const [selectedSignalId, setSelectedSignalId] = useState("SIG-003");
-  const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  // Database Sinyal (Dapat dikelola oleh Admin: Tambah / Arsip / Hapus)
-  const [signalsList, setSignalsList] = useState([
+  // Data Awal Bawaan
+  const initialDefaultSignals = [
     {
       id: "SIG-003",
       codeName: "MT5 Signal - 003",
@@ -178,9 +220,12 @@ export default function App() {
       filesCount: "Master Institutional (Multi EA)",
       strategyType: "Portfolio Multi-Strategy (Breakout + Mean Reversion)"
     }
-  ]);
+  ];
 
-  // Antrean Usulan Sinyal dari Visitor (Proposal Queue)
+  // Database Sinyal Utama
+  const [signalsList, setSignalsList] = useState(initialDefaultSignals);
+
+  // Antrean Usulan Sinyal dari Visitor
   const [proposalsList, setProposalsList] = useState([
     {
       id: "PROP-101",
@@ -192,10 +237,73 @@ export default function App() {
     }
   ]);
 
-  // Sinyal yang sedang aktif terpilih di dashboard
+  // Filter Sinyal
   const activeSignals = signalsList.filter((s) => s.status === "active");
   const archivedSignals = signalsList.filter((s) => s.status === "archived");
-  const currentSignal = signalsList.find((s) => s.id === selectedSignalId) || activeSignals[0] || signalsList[0];
+
+  // Sinyal Terpilih (Crash-Proof Guard)
+  const currentSignal =
+    signalsList.find((s) => s.id === selectedSignalId) ||
+    activeSignals[0] ||
+    archivedSignals[0] ||
+    EMPTY_FALLBACK_SIGNAL;
+
+  // Handler Upload File Aman
+  const handleFileUpload = (e) => {
+    if (e.target && e.target.files) {
+      const files = Array.from(e.target.files);
+      setUploadedFiles((prev) => [...prev, ...files.map((f) => f.name)]);
+    }
+  };
+
+  // Handler Submit Upload
+  const handleProcessUploadedSignal = (e) => {
+    e.preventDefault();
+    const newSignalTitle = customSignalName.trim() || `Uploaded Signal #${signalsList.length + 1}`;
+    const newSignalObj = {
+      id: `SIG-${Date.now().toString().slice(-4)}`,
+      codeName: `MT5 Signal - 00${signalsList.length + 1}`,
+      realName: newSignalTitle,
+      status: "active",
+      dateAudit: "Baru Diupload",
+      provider: "Provider (Uploaded File)",
+      broker: "Live MT4/MT5 Broker",
+      accountType: "MT5 Hedging",
+      leverage: "1:500",
+      subscriptionFee: "$30 USD / Bln",
+      followers: "1 Copier",
+      totalCopierFunds: "$5,000 USD",
+      activePeriod: "52 Weeks",
+      growth: "1,420.50%",
+      initialDeposit: "$1,000 USD",
+      totalDeposits: "$0 USD",
+      totalWithdrawals: "$8,500 USD",
+      realizedProfit: "$14,205 USD",
+      balance: "$6,705 USD",
+      equity: "$6,610 USD",
+      floatingLoss: "-$95 USD (~1.4%)",
+      maxEquityDD: "19.8%",
+      maxDepositLoad: "11.2%",
+      profitFactor: "2.10",
+      winRate: "76.4%",
+      totalTrades: "980",
+      maxPeakLayers: 8,
+      calmarRatio: "2.80",
+      sortinoRatio: "3.05",
+      recoveryFactor: "4.20",
+      expectedPayoff: "$14.5 USD / Trade",
+      holdingTime: "1 Hari",
+      filesCount: `Total ${uploadedFiles.length > 0 ? uploadedFiles.length : 1} File Terupload`,
+      strategyType: "Automated Algorithmic Strategy (Uploaded)"
+    };
+
+    setSignalsList((prev) => [newSignalObj, ...prev]);
+    setSelectedSignalId(newSignalObj.id);
+    setUploadedFiles([]);
+    setCustomSignalName("");
+    setIsUploadModalOpen(false);
+    alert(`✅ Sinyal "${newSignalTitle}" berhasil dianalisa dan ditambahkan ke dashboard!`);
+  };
 
   // Handler Login Admin
   const handleAdminLogin = (e) => {
@@ -212,7 +320,7 @@ export default function App() {
     }
   };
 
-  // Handler Ganti Password Admin
+  // Handler Ganti Password
   const handleChangePassword = (e) => {
     e.preventDefault();
     if (oldPasswordInput !== adminPassword) {
@@ -262,11 +370,18 @@ export default function App() {
     if (window.confirm("Apakah Admin yakin ingin MENGHAPUS sinyal ini secara permanen?")) {
       const remaining = signalsList.filter((s) => s.id !== id);
       setSignalsList(remaining);
-      if (selectedSignalId === id && remaining.length > 0) {
-        setSelectedSignalId(remaining[0].id);
+      if (selectedSignalId === id) {
+        setSelectedSignalId(remaining.length > 0 ? remaining[0].id : "EMPTY");
       }
-      alert("Sinyal berhasil dihapus dari database.");
+      alert("Sinyal berhasil dihapus.");
     }
+  };
+
+  // Handler Reset Data
+  const handleResetDefaultSignals = () => {
+    setSignalsList(initialDefaultSignals);
+    setSelectedSignalId("SIG-003");
+    alert("✅ Data sinyal default berhasil dipulihkan!");
   };
 
   // Handler Submit Usulan Visitor
@@ -374,7 +489,6 @@ export default function App() {
           <div className="flex items-center gap-2.5">
             {isAdminLoggedIn ? (
               <div className="flex items-center gap-2">
-                {/* Tombol Cek Usulan Visitor */}
                 <button
                   onClick={() => setIsReviewProposalsModalOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-700/50 bg-amber-950/40 text-xs font-semibold text-amber-300 hover:bg-amber-900/60 transition cursor-pointer relative"
@@ -385,7 +499,6 @@ export default function App() {
                   )}
                 </button>
 
-                {/* Tombol Ganti Password Admin */}
                 <button
                   onClick={() => setIsSettingsModalOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition cursor-pointer"
@@ -393,7 +506,6 @@ export default function App() {
                   <Settings className="w-3.5 h-3.5" /> Ganti Password
                 </button>
 
-                {/* Tombol Logout Admin */}
                 <button
                   onClick={() => {
                     setIsAdminLoggedIn(false);
@@ -424,6 +536,24 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 pt-6 space-y-6">
+        {/* Banner Kosong jika seluruh data dihapus */}
+        {signalsList.length === 0 && (
+          <div className="bg-amber-950/40 border border-amber-800/60 p-4 rounded-xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+              <div className="text-xs text-amber-200">
+                <strong>Semua data sinyal telah dihapus.</strong> Dashboard menampilkan placeholder aman. Anda dapat mengupload sinyal baru atau mereset ke data default bawaan.
+              </div>
+            </div>
+            <button
+              onClick={handleResetDefaultSignals}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs shrink-0 cursor-pointer shadow"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Pulihkan Sinyal Bawaan
+            </button>
+          </div>
+        )}
+
         {/* ================= 2. STATUS WAKTU KOPI BANNER ================= */}
         <div className="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-800/30 rounded-2xl p-5 md:p-6 shadow-xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -456,7 +586,6 @@ export default function App() {
               </button>
             </div>
           </div>
-          {/* Progress Bar */}
           <div className="mt-4 pt-4 border-t border-slate-800/80">
             <div className="flex justify-between text-[11px] text-slate-400 mb-1.5">
               <span>
@@ -564,7 +693,6 @@ export default function App() {
 
         {/* ================= 5. MAIN AUDIT & INVESTIGATION REPORT ================= */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 md:p-7 shadow-2xl space-y-6">
-          {/* Header Card & Tombol Toggle View */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-5">
             <div>
               <div className="flex items-center gap-2">
@@ -582,7 +710,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* DUA TOMBOL PILIHAN YANG BISA DIKLIK */}
             <div className="bg-slate-950 p-1.5 rounded-xl border border-slate-800 flex items-center gap-2 w-full md:w-auto">
               <button
                 onClick={() => setAssessmentMode("retail")}
@@ -690,10 +817,9 @@ export default function App() {
             </div>
           )}
 
-          {/* VIEW MODE 2: INSTITUTIONAL & BOD VIEW (LENGKAP 6 POIN AUDIT) */}
+          {/* VIEW MODE 2: INSTITUTIONAL & BOD VIEW */}
           {assessmentMode === "institutional" && (
             <div className="space-y-6">
-              {/* Executive Thesis & Rating */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="md:col-span-2 bg-slate-950/70 border border-purple-900/40 p-5 md:p-6 rounded-xl space-y-3.5">
                   <div className="flex items-center justify-between">
@@ -895,7 +1021,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* ================= 8. DAFTAR RIWAYAT SINYAL TERANALISIS (DENGAN ACTION ADMIN) ================= */}
+        {/* ================= 8. DAFTAR RIWAYAT SINYAL TERANALISIS ================= */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
             <div>
@@ -929,86 +1055,93 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {(historyTab === "active" ? activeSignals : archivedSignals).map((sig) => (
-              <div
-                key={sig.id}
-                onClick={() => setSelectedSignalId(sig.id)}
-                className={`p-4 rounded-xl border transition cursor-pointer relative group flex flex-col justify-between ${
-                  selectedSignalId === sig.id
-                    ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
-                    : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-                }`}
-              >
-                <div>
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                        {/* Jika Admin Login: Tampilkan nama asli sinyal */}
-                        {isAdminLoggedIn ? sig.realName : sig.codeName}
-                        <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                          {sig.dateAudit}
-                        </span>
-                      </h4>
-                      <span className="text-[11px] text-slate-400 block mt-0.5 truncate max-w-[220px]">
-                        Provider: {sig.provider}
-                      </span>
-                    </div>
-                    <ChevronRight
-                      className={`w-4 h-4 transition ${
-                        selectedSignalId === sig.id ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
-                      }`}
-                    />
-                  </div>
-
-                  <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
-                    <div className="flex justify-between">
-                      <span className="text-emerald-400 font-bold">Growth: {sig.growth}</span>
-                      <span className="text-slate-400">{sig.activePeriod.split(" ")[0]} Wks</span>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Win: {sig.winRate}</span>
-                      <span className="text-amber-400">Max DD: {sig.maxEquityDD}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-2.5 border-t border-slate-900 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 truncate max-w-[150px]">
-                    {sig.filesCount}
-                  </span>
-
-                  {/* KONTROL ADMIN UNTUK ARSIP DAN HAPUS */}
-                  {isAdminLoggedIn && (
-                    <div className="flex items-center gap-1">
-                      {sig.status === "active" ? (
-                        <button
-                          title="Arsipkan Sinyal"
-                          onClick={(e) => handleArchiveSignal(sig.id, e)}
-                          className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition"
-                        >
-                          <Archive className="w-3.5 h-3.5" />
-                        </button>
-                      ) : (
-                        <button
-                          title="Pulihkan Sinyal ke Aktif"
-                          onClick={(e) => handleRestoreSignal(sig.id, e)}
-                          className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button
-                        title="Hapus Sinyal Permanen"
-                        onClick={(e) => handleDeleteSignal(sig.id, e)}
-                        className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+            {(historyTab === "active" ? activeSignals : archivedSignals).length === 0 ? (
+              <div className="col-span-3 p-8 text-center bg-slate-950/40 rounded-xl border border-slate-800 text-xs text-slate-500">
+                Tidak ada sinyal di tab {historyTab === "active" ? "Aktif" : "Arsip"}.
               </div>
-            ))}
+            ) : (
+              (historyTab === "active" ? activeSignals : archivedSignals).map((sig) => (
+                <div
+                  key={sig.id}
+                  onClick={() => setSelectedSignalId(sig.id)}
+                  className={`p-4 rounded-xl border transition cursor-pointer relative group flex flex-col justify-between ${
+                    selectedSignalId === sig.id
+                      ? "bg-slate-950 border-blue-500 shadow-lg shadow-blue-500/20 ring-1 ring-blue-500/50"
+                      : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
+                  }`}
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                          {isAdminLoggedIn ? sig.realName : sig.codeName}
+                          <span className="text-[10px] font-normal px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                            {sig.dateAudit}
+                          </span>
+                        </h4>
+                        <span className="text-[11px] text-slate-400 block mt-0.5 truncate max-w-[220px]">
+                          Provider: {sig.provider}
+                        </span>
+                      </div>
+                      <ChevronRight
+                        className={`w-4 h-4 transition ${
+                          selectedSignalId === sig.id ? "text-blue-400 translate-x-1" : "text-slate-600 group-hover:translate-x-1"
+                        }`}
+                      />
+                    </div>
+
+                    <div className="text-[11px] space-y-1 mt-3 pt-3 border-t border-slate-900">
+                      <div className="flex justify-between">
+                        <span className="text-emerald-400 font-bold">Growth: {sig.growth}</span>
+                        <span className="text-slate-400">
+                          {sig.activePeriod ? sig.activePeriod.split(" ")[0] : "0"} Wks
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-slate-400">
+                        <span>Win: {sig.winRate}</span>
+                        <span className="text-amber-400">Max DD: {sig.maxEquityDD}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-slate-900 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500 truncate max-w-[150px]">
+                      {sig.filesCount}
+                    </span>
+
+                    {/* KONTROL ADMIN UNTUK ARSIP DAN HAPUS */}
+                    {isAdminLoggedIn && (
+                      <div className="flex items-center gap-1">
+                        {sig.status === "active" ? (
+                          <button
+                            title="Arsipkan Sinyal"
+                            onClick={(e) => handleArchiveSignal(sig.id, e)}
+                            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-amber-400 transition"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            title="Pulihkan Sinyal ke Aktif"
+                            onClick={(e) => handleRestoreSignal(sig.id, e)}
+                            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-emerald-400 transition"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        <button
+                          title="Hapus Sinyal Permanen"
+                          onClick={(e) => handleDeleteSignal(sig.id, e)}
+                          className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-red-400 transition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -1343,17 +1476,28 @@ export default function App() {
                 <h3 className="text-base font-bold text-white">Upload Screenshot & CSV Sinyal</h3>
               </div>
               <button
-                onClick={() => setIsUploadModalOpen(false)}
+                onClick={() => {
+                  setIsUploadModalOpen(false);
+                  setUploadedFiles([]);
+                  setCustomSignalName("");
+                }}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Upload screenshot statistik MQL5 (*.png/jpg*) dan/atau file riwayat trading (*.csv/html*) untuk dianalisis oleh engine Alpha Intelligence.
-              </p>
+            <form onSubmit={handleProcessUploadedSignal} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Nama Sinyal / EA (Opsional)</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: World Peace Strategy 02"
+                  value={customSignalName}
+                  onChange={(e) => setCustomSignalName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
 
               {/* Upload Dropzone */}
               <label className="border-2 border-dashed border-slate-700 hover:border-blue-500 bg-slate-950/60 hover:bg-blue-950/10 rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition">
@@ -1362,7 +1506,7 @@ export default function App() {
                   Klik untuk pilih file atau Drag & Drop
                 </span>
                 <span className="text-[10px] text-slate-500">
-                  Mendukung PNG, JPG, CSV posisi trading MT4/MT5
+                  Mendukung file PNG, JPG, CSV histori transaksi MT4/MT5
                 </span>
                 <input
                   type="file"
@@ -1376,7 +1520,9 @@ export default function App() {
               {/* List File Terupload */}
               {uploadedFiles.length > 0 && (
                 <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5 max-h-32 overflow-y-auto">
-                  <span className="text-[11px] font-bold text-slate-400 block">File Siap Dianalisa ({uploadedFiles.length}):</span>
+                  <span className="text-[11px] font-bold text-emerald-400 block">
+                    File Terpilih ({uploadedFiles.length}):
+                  </span>
                   {uploadedFiles.map((name, idx) => (
                     <div key={idx} className="text-xs text-slate-300 flex items-center gap-1.5 truncate">
                       <FileText className="w-3.5 h-3.5 text-blue-400 shrink-0" /> {name}
@@ -1384,25 +1530,27 @@ export default function App() {
                   ))}
                 </div>
               )}
-            </div>
 
-            <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
-              <button
-                onClick={() => setIsUploadModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                onClick={() => {
-                  alert("File berhasil diterima engine Alpha Analyzer!");
-                  setIsUploadModalOpen(false);
-                }}
-                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer"
-              >
-                Mulai Analisis Forensik
-              </button>
-            </div>
+              <div className="flex gap-2.5 justify-end pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUploadModalOpen(false);
+                    setUploadedFiles([]);
+                    setCustomSignalName("");
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-600/30 transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <PlusCircle className="w-4 h-4" /> Proses & Tambah ke Dashboard
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
