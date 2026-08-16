@@ -38,7 +38,6 @@ export function computeQuantitativeAudit(raw) {
   const isToxicMartingale = maxDepLoad > 35.0 || (raw.lossTradesShare && raw.lossTradesShare > 60 && profitFactor < 1.1);
   const estimatedMaxLayers = Math.max(1, Math.min(8, Math.round(maxDepLoad / 3.5)));
   
-  // Rumus ketahanan modal dinamis berbasis Max Drawdown riil
   const calculatedCapPerLot = Math.max(200, Math.round((maxDD * 20) / 50) * 50);
   const calculatedFundCapUSD = maxDD <= 15 ? 1000000 : (maxDD <= 25 ? 500000 : (maxDD <= 35 ? 250000 : 100000));
   const activeLeverage = raw.leverage || "1:500";
@@ -126,16 +125,15 @@ export const defaultMasterData = [
     monthlyForecast: "24.5% / Bln",
     alphaAsset: { name: "Multi FX Algo Trades", profit: 724291, winRate: 82.4, trades: 450, swap: "-120 JPY" },
     activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
-    fileDetailsInfo: "Master Verified MQL5 Signal (World PEACE #2379208)",
     batchReadiness: 90
   })
 ];
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v5');
-    localStorage.removeItem('tc_analyses_master_v6');
-    const saved = localStorage.getItem('tc_analyses_master_v8');
+    localStorage.removeItem('tc_analyses_master_v7');
+    localStorage.removeItem('tc_analyses_master_v8');
+    const saved = localStorage.getItem('tc_analyses_master_v9');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -148,7 +146,7 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v8') || "WORLD_PEACE";
+    return localStorage.getItem('tc_selected_id_v9') || "WORLD_PEACE";
   });
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
@@ -166,12 +164,10 @@ export default function Dashboard() {
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  // Admin Mode States: STRICT PASSWORD WAJIB "151264!" TANPA TOLERANSI
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v8') === 'true');
+  // Admin Mode States: STRICT PASSWORD "151264!"
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v9') === 'true');
   const [adminPassword, setAdminPassword] = useState(() => {
-    // Reset password lama jika tidak ada tanda seru
-    const savedPw = localStorage.getItem('tc_admin_pw_v8');
-    return savedPw || "151264!";
+    return localStorage.getItem('tc_admin_pw_v9') || "151264!";
   });
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -180,17 +176,17 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v8', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v9', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v8', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v9', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v8', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v9', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -323,7 +319,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v8', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v9', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -418,7 +414,6 @@ export default function Dashboard() {
         avgHoldingDays: computedMetrics.avgHoldingDays || 2.0,
         totalSwap: computedMetrics.totalSwap || "0.00",
         activePairsList: computedMetrics.activePairsList || [],
-        fileDetailsInfo: fullFileSummary,
         batchReadiness: 90
       });
 
@@ -804,7 +799,7 @@ export default function Dashboard() {
                 <select 
                   value={leadForm.interest}
                   onChange={(e) => setLeadForm({...leadForm, interest: e.target.value})}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-2.5 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-950"
                 >
                   <option value="Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)">🚀 Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)</option>
                   <option value="Ngopi Mandiri ($5 - $10/bln)">☕ Ngopi Mandiri ($5 - $10/bln) — Investor Pass / Copier</option>
@@ -952,7 +947,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 1. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION (100% DINAMIS) */}
+          {/* 1. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 space-y-4 text-white">
             <h2 className="text-lg font-bold border-b border-slate-800 pb-2 flex justify-between items-center">
               <span className="text-slate-100">Executive Summary & Institutional Recommendation ({displayName})</span>
@@ -1037,7 +1032,7 @@ export default function Dashboard() {
 
           {/* 3. DYNAMIC COMPREHENSIVE REPORT VIEW */}
           {viewPerspective === 'retail' ? (
-            /* RETAIL COPIER VIEW (MENDALAM & LENGKAP) */
+            /* RETAIL COPIER VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-indigo-500/30 animate-fadeIn">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <h2 className="text-base font-bold flex items-center space-x-2 text-indigo-300">
@@ -1092,7 +1087,7 @@ export default function Dashboard() {
               </div>
             </section>
           ) : (
-            /* HEDGE FUND / BOD VIEW (AUDIT KUANTITATIF & FORENSIK MENDALAM) */
+            /* HEDGE FUND / BOD VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-slate-800 animate-fadeIn">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <h2 className="text-lg font-bold flex items-center space-x-2">
@@ -1175,10 +1170,12 @@ export default function Dashboard() {
                       <p className="text-[11px] text-slate-400 mt-1">Ketahanan superior terhadap downside volatility.</p>
                     </div>
                     <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                      <span className="text-slate-400 font-semibold block">Recovery Factor</span>
                       <span className="text-emerald-400 font-bold text-base">{data.recoveryFactor}</span>
                       <p className="text-[11px] text-slate-400 mt-1">Kecepatan pemulihan modal sangat agresif ({data.recoveryFactor}x).</p>
                     </div>
                     <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
+                      <span className="text-slate-400 font-semibold block">Profit Factor</span>
                       <span className="text-emerald-400 font-bold text-base">{data.profitFactor}</span>
                       <p className="text-[11px] text-slate-400 mt-1">Rasio gross profit terhadap gross loss.</p>
                     </div>
@@ -1340,13 +1337,6 @@ export default function Dashboard() {
                       <span className="text-slate-700">|</span>
                       <span className="text-amber-400 font-semibold">Max DD: {item.maxDD}%</span>
                     </div>
-
-                    {item.fileDetailsInfo && (
-                      <p className="text-[11px] text-indigo-400 font-medium pt-0.5 flex items-center space-x-1">
-                        <FileText size={12} />
-                        <span>{item.fileDetailsInfo}</span>
-                      </p>
-                    )}
                   </div>
 
                   {/* KONTROL ADMIN: ARSIP & HAPUS */}
