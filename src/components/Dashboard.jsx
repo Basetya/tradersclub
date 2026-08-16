@@ -1,7 +1,4 @@
-﻿Set-Location -Path "D:\Vibe Coding Projects\TradersClub-Analyzer"
-
-@'
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
@@ -10,7 +7,7 @@ import {
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
-const defaultAnalysesList = [
+export const officialMasterAnalyses = [
   {
     id: "WORLD_PEACE",
     indexName: "MT5 Signal - 003",
@@ -72,150 +69,12 @@ const defaultAnalysesList = [
     recommendedCapitalPerLot: 500,
     fileDetailsInfo: "Master Verified MQL5 Signal (World PEACE #2379208)",
     batchReadiness: 90
-  },
-  {
-    id: "FXS1",
-    indexName: "MT5 Signal - 001",
-    realSignalName: "FXS1",
-    indexProvider: "Provider #001 (UA)",
-    realProvider: "Alexander Pavlenko",
-    currency: "USD",
-    analyzedDate: "07 Agu 2026",
-    status: "APPROVED",
-    isArchived: false,
-    growth: "2,341.33%",
-    netProfitFormatted: "+$394.69 USD",
-    netProfitUSD: "",
-    winRate: 61.50,
-    profitFactor: 2.35,
-    maxDD: 25.9,
-    broker: "EGlobalTrade-Classic",
-    leverage: "1:500",
-    reliabilityWeeks: 63,
-    reliabilityBarsCount: 5,
-    subscribersCount: 1,
-    subscribersCapitalUSD: 594,
-    tradingDays: "72 Hari Aktif (16.33%)",
-    subscriptionFee: "$30 USD / Bln",
-    balance: "$813.84",
-    equity: "$769.42",
-    initialDeposit: "$226.94",
-    totalDeposit: "$539.13",
-    totalWithdrawal: "$346.92",
-    payoffRatio: 1.45,
-    maxDepositLoad: 2.5,
-    algoTrading: 75,
-    profitTradesShare: 61.50,
-    lossTradesShare: 38.50,
-    tradingActivity: 22.7,
-    avgHoldingDays: 6.0,
-    totalSwap: "-$44.42",
-    swapDragRate: 3.59,
-    relativeDDEquity: "16.40% ($133.44)",
-    relativeDDBalance: "25.89% ($31.83)",
-    maximalDDBalance: "7.60% ($45.80)",
-    absoluteDD: "$0.12",
-    mfe: "$29.02",
-    mae: "-$1.89",
-    avgWin: "$5.22",
-    avgLoss: "-$3.70",
-    grossProfitLoss: "$709.59 / -$314.90",
-    consecutiveWins: "16",
-    consecutiveLosses: "19",
-    monthlyForecast: "30.8% / Bln",
-    calmarRatio: "2.85",
-    sortinoRatio: "3.12",
-    expectancyUSD: "$4.12 / Trade",
-    recoveryFactor: "3.42",
-    fundCapacity: "$150,000 USD (Low Slippage Risk)",
-    alphaAsset: { name: "FXS1 Trades", profit: 394.69, winRate: 61.5, trades: 120, swap: "-$44.42" },
-    secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
-    bleederAssets: [],
-    recommendedCapitalPerLot: 400,
-    fileDetailsInfo: "Total 6 File (.PNG / .CSV)",
-    batchReadiness: 85
-  },
-  {
-    id: "MULTI_EA",
-    indexName: "MT5 Signal - 002",
-    realSignalName: "Multi EA Trading",
-    indexProvider: "Provider #002 (UA)",
-    realProvider: "Alexander Pavlenko",
-    currency: "USD",
-    analyzedDate: "06 Agu 2026",
-    status: "APPROVED",
-    isArchived: false,
-    growth: "2,991.11%",
-    netProfitFormatted: "+$314.76 USD",
-    netProfitUSD: "",
-    winRate: 59.11,
-    profitFactor: 1.55,
-    maxDD: 23.5,
-    broker: "Alpari-MT5",
-    leverage: "1:500",
-    reliabilityWeeks: 58,
-    reliabilityBarsCount: 5,
-    subscribersCount: 14,
-    subscribersCapitalUSD: 32000,
-    tradingDays: "105 Hari Aktif (25.86%)",
-    subscriptionFee: "$30 USD / Bln",
-    balance: "$837.76",
-    equity: "$837.25",
-    initialDeposit: "$10.00",
-    totalDeposit: "$613.00",
-    totalWithdrawal: "$100.00",
-    payoffRatio: 1.20,
-    maxDepositLoad: 2.8,
-    algoTrading: 96,
-    profitTradesShare: 59.11,
-    lossTradesShare: 40.89,
-    tradingActivity: 90.4,
-    avgHoldingDays: 2.0,
-    totalSwap: "-$0.75",
-    swapDragRate: 0.24,
-    relativeDDEquity: "14.00% ($133.86)",
-    relativeDDBalance: "23.49% ($45.56)",
-    maximalDDBalance: "32.47% ($143.88)",
-    absoluteDD: "$0.06",
-    mfe: "$96.18",
-    mae: "-$135.82",
-    avgWin: "$4.17",
-    avgLoss: "-$3.90",
-    grossProfitLoss: "$892.22 / -$577.46",
-    consecutiveWins: "15",
-    consecutiveLosses: "11",
-    monthlyForecast: "3.93% / Bln",
-    calmarRatio: "2.40",
-    sortinoRatio: "2.85",
-    expectancyUSD: "$2.46 / Trade",
-    recoveryFactor: "2.18",
-    fundCapacity: "$500,000 USD (High Liquidity Pair)",
-    alphaAsset: { name: "Multi EA Trades", profit: 314.76, winRate: 59.11, trades: 362, swap: "-$0.75" },
-    secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
-    bleederAssets: [],
-    recommendedCapitalPerLot: 500,
-    fileDetailsInfo: "Master Institutional Audit (Multi EA)",
-    batchReadiness: 60
   }
 ];
 
 export default function Dashboard() {
-  const [analysesList, setAnalysesList] = useState(() => {
-    const saved = localStorage.getItem('tc_analyses_list_v2');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    return defaultAnalysesList;
-  });
-
-  const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    const saved = localStorage.getItem('tc_selected_signal_id_v2');
-    return saved || "WORLD_PEACE";
-  });
-
+  const [analysesList, setAnalysesList] = useState(officialMasterAnalyses);
+  const [selectedSignalId, setSelectedSignalId] = useState("WORLD_PEACE");
   const [historyTab, setHistoryTab] = useState('active');
   const [showUploader, setShowUploader] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -224,14 +83,12 @@ export default function Dashboard() {
   const [stagedFiles, setStagedFiles] = useState([]);
   const [uploadReportNotification, setUploadReportNotification] = useState(null);
 
-  // Lead Generation States
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  // Admin Mode States
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [adminPassword, setAdminPassword] = useState("151264");
   const [inputPassword, setInputPassword] = useState("");
@@ -239,25 +96,6 @@ export default function Dashboard() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [newPasswordInput, setNewPasswordInput] = useState("");
   const [authError, setAuthError] = useState("");
-
-  useEffect(() => {
-    localStorage.setItem('tc_analyses_list_v2', JSON.stringify(analysesList));
-  }, [analysesList]);
-
-  useEffect(() => {
-    localStorage.setItem('tc_selected_signal_id_v2', selectedSignalId);
-  }, [selectedSignalId]);
-
-  useEffect(() => {
-    const savedUnlocked = localStorage.getItem('tc_lead_unlocked');
-    const savedUserData = localStorage.getItem('tc_user_data');
-    if (savedUnlocked === 'true') {
-      setIsLeadUnlocked(true);
-      if (savedUserData) {
-        try { setLeadForm(JSON.parse(savedUserData)); } catch(e){}
-      }
-    }
-  }, []);
 
   const data = analysesList.find(s => s.id === selectedSignalId) || analysesList[0];
   const displayName = isAdminMode ? (data.realSignalName || data.indexName) : (data.indexName || data.realSignalName);
@@ -377,279 +215,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleAddFilesToStaging = (e) => {
-    const rawFiles = e.target.files || (e.dataTransfer && e.dataTransfer.files);
-    if (!rawFiles || rawFiles.length === 0) return;
-    const incomingFiles = Array.from(rawFiles);
-
-    setStagedFiles(prev => {
-      const existingNames = new Set(prev.map(f => `${f.name}_${f.size}`));
-      const uniqueIncoming = incomingFiles.filter(f => !existingNames.has(`${f.name}_${f.size}`));
-      return [...prev, ...uniqueIncoming];
-    });
-
-    if (e.target) e.target.value = '';
-  };
-
-  const removeStagedFile = (idxToRemove) => {
-    setStagedFiles(prev => prev.filter((_, idx) => idx !== idxToRemove));
-  };
-
-  const clearAllStagedFiles = () => {
-    setStagedFiles([]);
-  };
-
-  const handleExecuteAnalysis = () => {
-    if (stagedFiles.length === 0) return;
-
-    const extCounts = {};
-    stagedFiles.forEach(f => {
-      const ext = f.name.split('.').pop().toLowerCase();
-      extCounts[ext] = (extCounts[ext] || 0) + 1;
-    });
-
-    const extSummaryText = Object.entries(extCounts)
-      .map(([ext, count]) => `${count} file .${ext.toUpperCase()}`)
-      .join(", ");
-
-    const fullFileSummary = `Total ${stagedFiles.length} File (${extSummaryText})`;
-    setFileDetailsText(fullFileSummary);
-    setIsAiProcessing(true);
-
-    const allNamesStr = stagedFiles.map(f => f.name.toLowerCase()).join(" ");
-    const isWorldPeace = allNamesStr.includes("2379208") || allNamesStr.includes("peace") || allNamesStr.includes("world");
-    const isFXS1 = allNamesStr.includes("2603") || allNamesStr.includes("2607") || allNamesStr.includes("fxs1");
-    const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit)";
-
-    setTimeout(() => {
-      let newOrUpdatedSignalData;
-
-      if (isWorldPeace) {
-        newOrUpdatedSignalData = {
-          id: "WORLD_PEACE",
-          indexName: "MT5 Signal - 003",
-          realSignalName: "World PEACE Multi FX Algo",
-          indexProvider: "Provider #003 (JP)",
-          realProvider: "Nobeyo- Sano",
-          currency: "JPY",
-          analyzedDate: currentDateStr,
-          status: "APPROVED",
-          isArchived: false,
-          growth: "3,283.95%",
-          netProfitFormatted: "+724,291.00 JPY",
-          netProfitUSD: "(~$4,828 USD)",
-          winRate: 82.40,
-          profitFactor: 2.65,
-          maxDD: 23.7,
-          broker: "HFMarketsGlobal-Live1",
-          leverage: "1:500",
-          reliabilityWeeks: 76,
-          reliabilityBarsCount: 5,
-          subscribersCount: 51,
-          subscribersCapitalUSD: 164000,
-          tradingDays: "342 Hari Aktif (64.77%)",
-          subscriptionFee: "$30 USD / Bln",
-          balance: "204,393 JPY",
-          equity: "182,853 JPY",
-          initialDeposit: "145,000 JPY",
-          totalDeposit: "702 JPY",
-          totalWithdrawal: "665,600 JPY",
-          payoffRatio: 1.55,
-          maxDepositLoad: 12.7,
-          algoTrading: 100,
-          profitTradesShare: 82.40,
-          lossTradesShare: 17.60,
-          tradingActivity: 100.0,
-          avgHoldingDays: 2.0,
-          totalSwap: "-120 JPY",
-          swapDragRate: 0.18,
-          relativeDDEquity: "23.70%",
-          relativeDDBalance: "21.50%",
-          maximalDDBalance: "23.70%",
-          absoluteDD: "0.00 JPY",
-          mfe: "1,868 JPY",
-          mae: "-589 JPY",
-          avgWin: "185 JPY",
-          avgLoss: "-110 JPY",
-          grossProfitLoss: "845,000 / -120,709 JPY",
-          consecutiveWins: "18",
-          consecutiveLosses: "3",
-          monthlyForecast: "24.5% / Bln",
-          calmarRatio: "2.95",
-          sortinoRatio: "3.25",
-          expectancyUSD: "28.5 JPY / Trade",
-          recoveryFactor: "3.85",
-          fundCapacity: "$500,000 USD (Deep Liquidity)",
-          alphaAsset: { name: "Multi FX Algo Trades", profit: 724291, winRate: 82.4, trades: 450, swap: "-120 JPY" },
-          secondaryAsset: { name: "AUDNZD / GBPJPY", profit: 0, winRate: 0, trades: 0 },
-          bleederAssets: [],
-          recommendedCapitalPerLot: 500,
-          fileDetailsInfo: fullFileSummary,
-          batchReadiness: 90
-        };
-      } else if (isFXS1) {
-        newOrUpdatedSignalData = {
-          id: "FXS1",
-          indexName: "MT5 Signal - 001",
-          realSignalName: "FXS1",
-          indexProvider: "Provider #001 (UA)",
-          realProvider: "Alexander Pavlenko",
-          currency: "USD",
-          analyzedDate: currentDateStr,
-          status: "APPROVED",
-          isArchived: false,
-          growth: "2,341.33%",
-          netProfitFormatted: "+$394.69 USD",
-          netProfitUSD: "",
-          winRate: 61.50,
-          profitFactor: 2.35,
-          maxDD: 25.9,
-          broker: "EGlobalTrade-Classic",
-          leverage: "1:500",
-          reliabilityWeeks: 63,
-          reliabilityBarsCount: 5,
-          subscribersCount: 1,
-          subscribersCapitalUSD: 594,
-          tradingDays: "72 Hari Aktif (16.33%)",
-          subscriptionFee: "$30 USD / Bln",
-          balance: "$813.84",
-          equity: "$769.42",
-          initialDeposit: "$226.94",
-          totalDeposit: "$539.13",
-          totalWithdrawal: "$346.92",
-          payoffRatio: 1.45,
-          maxDepositLoad: 2.5,
-          algoTrading: 75,
-          profitTradesShare: 61.50,
-          lossTradesShare: 38.50,
-          tradingActivity: 22.7,
-          avgHoldingDays: 6.0,
-          totalSwap: "-$44.42",
-          swapDragRate: 3.59,
-          relativeDDEquity: "16.40% ($133.44)",
-          relativeDDBalance: "25.89% ($31.83)",
-          maximalDDBalance: "7.60% ($45.80)",
-          absoluteDD: "$0.12",
-          mfe: "$29.02",
-          mae: "-$1.89",
-          avgWin: "$5.22",
-          avgLoss: "-$3.70",
-          grossProfitLoss: "$709.59 / -$314.90",
-          consecutiveWins: "16",
-          consecutiveLosses: "19",
-          monthlyForecast: "30.8% / Bln",
-          calmarRatio: "2.85",
-          sortinoRatio: "3.12",
-          expectancyUSD: "$4.12 / Trade",
-          recoveryFactor: "3.42",
-          fundCapacity: "$150,000 USD (Low Slippage Risk)",
-          alphaAsset: { name: "FXS1 Trades", profit: 394.69, winRate: 61.5, trades: 120, swap: "-$44.42" },
-          secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
-          bleederAssets: [],
-          recommendedCapitalPerLot: 400,
-          fileDetailsInfo: fullFileSummary,
-          batchReadiness: 85
-        };
-      } else {
-        newOrUpdatedSignalData = {
-          id: `SIG_${Date.now()}`,
-          indexName: `MT5 Signal - 00${analysesList.length + 1}`,
-          realSignalName: stagedFiles[0].name.replace(/\.[^/.]+$/, ""),
-          indexProvider: `Provider #00${analysesList.length + 1}`,
-          realProvider: "Institutional Master EA",
-          currency: "USD",
-          analyzedDate: currentDateStr,
-          status: "APPROVED",
-          isArchived: false,
-          growth: "1,450.00%",
-          netProfitFormatted: "+$450.00 USD",
-          netProfitUSD: "",
-          winRate: 65.00,
-          profitFactor: 2.10,
-          maxDD: 18.5,
-          broker: "Institutional Multi-Server",
-          leverage: "1:500",
-          reliabilityWeeks: 45,
-          reliabilityBarsCount: 5,
-          subscribersCount: 10,
-          subscribersCapitalUSD: 25000,
-          tradingDays: "120 Transaksi Terverifikasi",
-          subscriptionFee: "$30 USD / Bln",
-          balance: "$1,450.00",
-          equity: "$1,450.00",
-          initialDeposit: "$500.00",
-          totalDeposit: "$500.00",
-          totalWithdrawal: "$0.00",
-          payoffRatio: 1.40,
-          maxDepositLoad: 3.2,
-          algoTrading: 95,
-          profitTradesShare: 65.00,
-          lossTradesShare: 35.00,
-          tradingActivity: 85.0,
-          avgHoldingDays: 2.0,
-          totalSwap: "-$2.50",
-          swapDragRate: 0.35,
-          relativeDDEquity: "14.50%",
-          relativeDDBalance: "18.50%",
-          maximalDDBalance: "18.50%",
-          absoluteDD: "$0.00",
-          mfe: "$40.00",
-          mae: "-$25.00",
-          avgWin: "$6.50",
-          avgLoss: "-$4.00",
-          grossProfitLoss: "$780 / -$330",
-          consecutiveWins: "12",
-          consecutiveLosses: "4",
-          monthlyForecast: "15.0% / Bln",
-          calmarRatio: "2.75",
-          sortinoRatio: "3.00",
-          expectancyUSD: "$3.75 / Trade",
-          recoveryFactor: "3.10",
-          fundCapacity: "$350,000 USD",
-          alphaAsset: { name: "Algo Trades", profit: 450, winRate: 65.0, trades: 120, swap: "-$2.50" },
-          secondaryAsset: { name: "EURUSD", profit: 0, winRate: 0, trades: 0 },
-          bleederAssets: [],
-          recommendedCapitalPerLot: 500,
-          fileDetailsInfo: fullFileSummary,
-          batchReadiness: 75
-        };
-      }
-
-      setAnalysesList(prev => {
-        const filtered = prev.filter(item => item.id !== newOrUpdatedSignalData.id);
-        return [newOrUpdatedSignalData, ...filtered];
-      });
-
-      setSelectedSignalId(newOrUpdatedSignalData.id);
-
-      setUploadReportNotification([
-        `[AUDIT MQL5 RESMI] Sinyal "${newOrUpdatedSignalData.realSignalName}" berhasil diselaraskan.`,
-        `Growth: ${newOrUpdatedSignalData.growth} | Win Rate: ${newOrUpdatedSignalData.winRate}% | Net Profit: ${newOrUpdatedSignalData.netProfitFormatted}`,
-        `Berkas Diproses: ${fullFileSummary}`
-      ]);
-
-      setIsAiProcessing(false);
-      setShowUploader(false);
-      setStagedFiles([]);
-    }, 1000);
-  };
-
-  const toggleArchiveStatus = (e, id) => {
-    e.stopPropagation();
-    setAnalysesList(prev => prev.map(item => item.id === id ? { ...item, isArchived: !item.isArchived } : item));
-  };
-
-  const deleteAnalysis = (e, id) => {
-    e.stopPropagation();
-    if (window.confirm("Apakah Kakak yakin ingin menghapus analisis sinyal ini secara permanen?")) {
-      const remaining = analysesList.filter(item => item.id !== id);
-      setAnalysesList(remaining);
-      if (selectedSignalId === id && remaining.length > 0) setSelectedSignalId(remaining[0].id);
-    }
-  };
-
-  const filteredHistory = analysesList.filter(item => historyTab === 'active' ? !item.isArchived : item.isArchived);
-
   return (
     <div className="space-y-6">
       
@@ -717,22 +282,6 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {uploadReportNotification && (
-        <div className="no-print bg-indigo-900 text-white p-4 rounded-xl shadow-lg border border-indigo-700 flex justify-between items-start animate-fadeIn">
-          <div className="space-y-1 pr-4">
-            <p className="font-bold text-amber-400 text-xs flex items-center space-x-1.5">
-              <Sparkles size={16} /> <span>Laporan Pemrosesan Upload Data (Institutional Audit Log):</span>
-            </p>
-            <ul className="list-disc list-inside text-xs text-indigo-100 space-y-0.5 pt-1">
-              {uploadReportNotification.map((note, idx) => <li key={idx}>{note}</li>)}
-            </ul>
-          </div>
-          <button onClick={() => setUploadReportNotification(null)} className="p-1 hover:bg-indigo-800 rounded-lg text-indigo-300 hover:text-white transition-colors">
-            <X size={18} />
-          </button>
-        </div>
-      )}
-
       {/* TOP BAR */}
       <div className="no-print flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex bg-slate-200 p-1 rounded-xl w-full md:w-fit space-x-1">
@@ -765,7 +314,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* LEAD CAPTURE & NGOPI BARENG MODAL */}
+      {/* LEAD CAPTURE MODAL */}
       {showLeadModal && (
         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-100 animate-fadeIn">
@@ -860,7 +409,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ADMIN AUTH & SETTINGS MODALS */}
+      {/* ADMIN AUTH MODAL */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4 border animate-fadeIn">
@@ -885,116 +434,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {showSettingsModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4 border animate-fadeIn">
-            <h3 className="font-bold text-slate-900 border-b pb-2">Ubah Password Admin</h3>
-            <form onSubmit={handlePasswordChange} className="space-y-3">
-              <input type="text" value={newPasswordInput} onChange={(e) => setNewPasswordInput(e.target.value)} placeholder="Password Baru..." className="w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500" autoFocus />
-              <div className="flex justify-end space-x-2 pt-2">
-                <button type="button" onClick={() => setShowSettingsModal(false)} className="px-4 py-2 text-xs font-semibold bg-slate-100 rounded-lg">Batal</button>
-                <button type="submit" className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-lg">Simpan</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* UPLOADER ZONE */}
-      {showUploader && (
-        <section className="no-print bg-white rounded-xl shadow-sm border border-indigo-200 p-6 animate-fadeIn space-y-4">
-          <div className="flex items-center justify-between border-b pb-3">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="text-indigo-600" size={20} />
-              <h2 className="text-sm font-bold text-slate-800">Smart Institutional Intake Gateway</h2>
-            </div>
-            {stagedFiles.length > 0 && !isAiProcessing && (
-              <button 
-                onClick={clearAllStagedFiles} 
-                className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1"
-              >
-                <Trash2 size={13} /> <span>Kosongkan Pilihan ({stagedFiles.length})</span>
-              </button>
-            )}
-          </div>
-
-          {isAiProcessing ? (
-            <div className="border-2 border-indigo-400 bg-indigo-50 rounded-xl p-8 text-center space-y-3">
-              <div className="inline-block p-3 bg-indigo-600 text-white rounded-full animate-bounce"><Cpu size={24} /></div>
-              <p className="text-sm font-bold text-indigo-900">Menganalisis & Mengkalkulasi Baris Data CSV / Screenshot MQL5...</p>
-              <p className="text-xs text-indigo-700 font-semibold">{fileDetailsText}</p>
-              <div className="w-full bg-indigo-200 rounded-full h-1.5 max-w-xs mx-auto overflow-hidden">
-                <div className="bg-indigo-600 h-1.5 rounded-full animate-pulse w-3/4"></div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div 
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleAddFilesToStaging(e); }}
-                className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}
-              >
-                <input type="file" multiple accept="image/*,.csv" onChange={handleAddFilesToStaging} className="hidden" id="file-upload-input" />
-                <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center w-full">
-                  <UploadCloud size={30} className="text-indigo-600 mb-2" />
-                  <p className="text-sm font-bold text-slate-800">
-                    {stagedFiles.length === 0 ? 'Pilih / Tarik Banyak Berkas Sekaligus (Screenshot & CSV)' : '+ Tambah Berkas Lainnya ke Antrean'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">Kakak bisa memasukkan screenshot dan CSV secara bertahap sebelum diproses.</p>
-                </label>
-              </div>
-
-              {stagedFiles.length > 0 && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-center border-b pb-2">
-                    <span className="text-xs font-bold text-slate-700">
-                      Berkas Terkumpul Siap Dianalisis ({stagedFiles.length} File):
-                    </span>
-                    <span className="text-[11px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                      Menunggu Perintah Analisis
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
-                    {stagedFiles.map((file, idx) => {
-                      const isCsv = file.name.toLowerCase().endsWith('.csv');
-                      return (
-                        <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-200 text-xs shadow-2xs">
-                          <div className="flex items-center space-x-2 truncate pr-2">
-                            {isCsv ? <FileSpreadsheet size={15} className="text-emerald-600 flex-shrink-0" /> : <FileText size={15} className="text-indigo-600 flex-shrink-0" />}
-                            <span className="truncate text-slate-800 font-medium text-[11px]">{file.name}</span>
-                          </div>
-                          <button 
-                            type="button" 
-                            onClick={() => removeStagedFile(idx)} 
-                            className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="pt-2">
-                    <button
-                      type="button"
-                      onClick={handleExecuteAnalysis}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all group"
-                    >
-                      <PlayCircle size={17} className="group-hover:scale-110 transition-transform" />
-                      <span className="uppercase tracking-wide">Mulai Analisis & Audit Kuantitatif ({stagedFiles.length} Berkas)</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* DASHBOARD SUMMARY & AUDIT REPORT VIEW */}
+      {/* DASHBOARD CONTENT VIEW */}
       <div className="space-y-6 animate-fadeIn">
         
         {/* DYNAMIC BATCHING ZONE */}
@@ -1285,81 +725,6 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
-
-      {/* BOTTOM MANAGER ZONE */}
-      <section className="bottom-manager-zone no-print bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 border-b pb-3">
-          <div>
-            <h2 className="text-base font-bold text-slate-800 flex items-center space-x-2">
-              <Clock className="text-indigo-600" size={20} /> <span>Daftar Riwayat Sinyal Teranalisis (ALPHA ANALYZER Manager)</span>
-            </h2>
-            <p className="text-xs text-slate-500">Data tersimpan otomatis secara permanen di browser Kakak.</p>
-          </div>
-          <div className="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
-            <button onClick={() => setHistoryTab('active')} className={`px-3 py-1.5 rounded-md ${historyTab === 'active' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>Aktif ({analysesList.filter(a => !a.isArchived).length})</button>
-            <button onClick={() => setHistoryTab('archived')} className={`px-3 py-1.5 rounded-md ${historyTab === 'archived' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>Arsip ({analysesList.filter(a => a.isArchived).length})</button>
-          </div>
-        </div>
-
-        {filteredHistory.length === 0 ? (
-          <div className="text-center py-8 text-slate-400 text-xs">Tidak ada data.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filteredHistory.map((item) => {
-              const isSelected = item.id === selectedSignalId;
-              const cardTitle = isAdminMode ? (item.realSignalName || item.indexName) : (item.indexName || item.realSignalName);
-              const cardProvider = isAdminMode ? (item.realProvider || item.indexProvider) : (item.indexProvider || item.realProvider);
-              
-              return (
-                <div key={item.id} onClick={() => setSelectedSignalId(item.id)} className={`p-4 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${isSelected ? 'border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-500' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}`}>
-                  <div className="space-y-1.5 w-full pr-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-slate-900 text-sm">{cardTitle}</span>
-                      <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-semibold">{item.analyzedDate}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 truncate">Provider: {cardProvider}</p>
-                    
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs pt-1">
-                      <span className="text-emerald-600 font-bold">Growth: {item.growth}</span>
-                      <span className="text-slate-300">|</span>
-                      <span className="text-slate-700 font-semibold flex items-center space-x-1">
-                        <Clock size={12} className="text-slate-400" />
-                        <span>{item.reliabilityWeeks} Wks</span>
-                      </span>
-                      <span className="text-slate-300">|</span>
-                      <span className="text-slate-600 font-medium">Win: {item.winRate}%</span>
-                      <span className="text-slate-300">|</span>
-                      <span className="text-amber-600 font-semibold">Max DD: {item.maxDD}%</span>
-                    </div>
-
-                    {item.fileDetailsInfo && (
-                      <p className="text-[11px] text-indigo-600 font-medium pt-0.5 flex items-center space-x-1">
-                        <FileText size={12} />
-                        <span>{item.fileDetailsInfo}</span>
-                      </p>
-                    )}
-                    
-                  </div>
-                  <div className="flex items-center space-x-1 flex-shrink-0">
-                    {isAdminMode && (
-                      <>
-                        <button onClick={(e) => toggleArchiveStatus(e, item.id)} className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200">{item.isArchived ? <RefreshCw size={16}/> : <Archive size={16}/>}</button>
-                        <button onClick={(e) => deleteAnalysis(e, item.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200"><Trash2 size={16}/></button>
-                      </>
-                    )}
-                    <ChevronRight className={isSelected ? "text-indigo-600 ml-1" : "text-slate-300 ml-1"} size={18} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
-'@ | Set-Content -Path "src/components/Dashboard.jsx" -Encoding Utf8
-
-git add .
-git commit -m "Fix: Synchronize precise MQL5 metrics for World PEACE (#2379208) including JPY currency, 3283.95% growth, 23.7% Max DD, and 76 weeks reliability"
-git push origin main
