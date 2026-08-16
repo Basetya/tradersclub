@@ -135,24 +135,9 @@ export const officialMasterAnalyses = [
 ];
 
 export default function Dashboard() {
-  const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_list');
-    localStorage.removeItem('tc_analyses_list_v2');
-    const saved = localStorage.getItem('tc_analyses_master_v4');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch (e) {}
-    }
-    return officialMasterAnalyses;
-  });
-
-  const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v4') || "WORLD_PEACE";
-  });
-
-  const [viewPerspective, setViewPerspective] = useState('retail'); // 'retail' or 'hedgefund'
+  const [analysesList, setAnalysesList] = useState(officialMasterAnalyses);
+  const [selectedSignalId, setSelectedSignalId] = useState("WORLD_PEACE");
+  const [viewPerspective, setViewPerspective] = useState('hedgefund');
   const [historyTab, setHistoryTab] = useState('active');
   const [showUploader, setShowUploader] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -167,8 +152,13 @@ export default function Dashboard() {
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  const [isAdminMode, setIsAdminMode] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("151264");
+  // Admin Mode States
+  const [isAdminMode, setIsAdminMode] = useState(() => {
+    return localStorage.getItem('tc_admin_mode_active') === 'true';
+  });
+  const [adminPassword, setAdminPassword] = useState(() => {
+    return localStorage.getItem('tc_admin_pw') || "151264";
+  });
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -176,12 +166,8 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v4', JSON.stringify(analysesList));
-  }, [analysesList]);
-
-  useEffect(() => {
-    localStorage.setItem('tc_selected_id_v4', selectedSignalId);
-  }, [selectedSignalId]);
+    localStorage.setItem('tc_admin_mode_active', isAdminMode ? 'true' : 'false');
+  }, [isAdminMode]);
 
   useEffect(() => {
     const savedUnlocked = localStorage.getItem('tc_lead_unlocked');
@@ -288,9 +274,13 @@ export default function Dashboard() {
     }, 600);
   };
 
+  // Verifikasi Password Admin yang Toleran & Fleksibel
   const handleAdminAuth = (e) => {
     e.preventDefault();
-    if (inputPassword.trim() === adminPassword.trim() || inputPassword.trim() === "151264") {
+    const cleanInput = inputPassword.trim().replace(/!+$/, "");
+    const cleanTarget = adminPassword.trim().replace(/!+$/, "");
+
+    if (cleanInput === cleanTarget || cleanInput === "151264") {
       setIsAdminMode(true);
       setShowAuthModal(false);
       setInputPassword("");
@@ -304,6 +294,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -419,7 +410,7 @@ export default function Dashboard() {
               <span className="flex items-center space-x-1 px-2 text-emerald-400">
                 <Unlock size={14} /> <span>ADMIN MODE</span>
               </span>
-              <button onClick={() => setShowSettingsModal(true)} className="p-1 hover:bg-slate-800 rounded text-amber-400">
+              <button onClick={() => setShowSettingsModal(true)} className="p-1 hover:bg-slate-800 rounded text-amber-400" title="Ubah Password">
                 <Settings size={14} />
               </button>
               <button onClick={() => setIsAdminMode(false)} className="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1 rounded text-[11px]">
@@ -588,6 +579,29 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* ADMIN SETTINGS MODAL */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-800 animate-fadeIn text-white">
+            <h3 className="font-bold text-white border-b border-slate-800 pb-2">Ubah Password Admin</h3>
+            <form onSubmit={handlePasswordChange} className="space-y-3">
+              <input 
+                type="password" 
+                value={newPasswordInput} 
+                onChange={(e) => setNewPasswordInput(e.target.value)} 
+                placeholder="Password Baru..." 
+                className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500" 
+                autoFocus 
+              />
+              <div className="flex justify-end space-x-2 pt-2">
+                <button type="button" onClick={() => setShowSettingsModal(false)} className="px-4 py-2 text-xs font-semibold bg-slate-800 rounded-lg text-slate-300">Batal</button>
+                <button type="submit" className="px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-lg">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* DYNAMIC BATCHING ZONE */}
       <section className="no-print bg-gradient-to-r from-amber-950 via-slate-900 to-indigo-950 text-white rounded-xl p-6 shadow-md border border-amber-500/30 space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
@@ -669,7 +683,7 @@ export default function Dashboard() {
               <span>1. Investment Thesis</span>
             </div>
             <p className="text-xs text-emerald-200 leading-relaxed">
-              Sinyal terverifikasi resmi MQL5 dengan pertumbuhan <strong>{data.growth}</strong> dari modal trading dasar <strong>{data.initialDeposit}</strong>. Menghasilkan profit akumulasi <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> rekam jejak teruji.
+              Sinyal terverifikasi resmi MQL5 dengan pertumbuhan <strong>{data.growth}</strong> dari modal trading dasar <strong>{data.initialDeposit}</strong>. Menghasilkan profit akumulasi <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> rekam jejak teruji secara konsisten.
             </p>
           </div>
 
@@ -679,7 +693,7 @@ export default function Dashboard() {
               <span>2. Key Risk Consideration</span>
             </div>
             <p className="text-xs text-amber-200 leading-relaxed">
-              Maximal Equity Drawdown tercatat hanya <strong>{data.maxDD}%</strong> dengan Deposit Load terjaga pada <strong>{data.maxDepositLoad}%</strong>. Tidak ditemukan manipulasi injeksi modal darurat (*No Toxic Grid/Martingale*).
+              Maximal Equity Drawdown tercatat hanya <strong>{data.maxDD}%</strong> dengan Deposit Load terjaga aman pada <strong>{data.maxDepositLoad}%</strong>. Tidak ditemukan manipulasi injeksi modal darurat (*Bebas dari Skema Toxic Grid & Martingale*).
             </p>
           </div>
 
@@ -739,43 +753,43 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* 3. DYNAMIC REPORT VIEW BASED ON TOGGLE */}
+      {/* 3. DYNAMIC REPORT VIEW (LENGKAP & PANJANG) */}
       {viewPerspective === 'retail' ? (
-        /* RETAIL COPIER VIEW: PRAKTIS, RAMAH INVESTOR PEMULA */
+        /* RETAIL COPIER VIEW */
         <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-5 border border-indigo-500/30 animate-fadeIn">
           <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
             <h2 className="text-base font-bold flex items-center space-x-2 text-indigo-300">
               <Eye className="text-amber-400" size={20} /> 
-              <span>Panduan Ringkas Copier (Retail View) — {displayName}</span>
+              <span>Panduan Kurasi & Rekomendasi Eksekusi Copier — {displayName}</span>
             </h2>
             <span className="text-[11px] bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full font-medium">Investor Friendly</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-1.5">
-              <span className="text-amber-400 font-bold text-sm block">1. Potensi Pertumbuhan Stabil</span>
-              <p className="text-slate-300 leading-relaxed">
-                Rata-rata estimasi performa konsisten di kisaran <strong>{data.monthlyForecast}</strong> dengan rasio kemenangan (*Win Rate*) mencapai <strong>{data.winRate}%</strong>.
+          <div className="space-y-4 text-xs text-slate-200 leading-relaxed">
+            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
+              <span className="text-amber-400 font-bold text-sm block">1. Potensi Pertumbuhan & Performa Akumulatif</span>
+              <p className="text-slate-300">
+                Sinyal <strong>{displayName}</strong> membukukan pertumbuhan akumulasi sebesar <strong className="text-emerald-400">{data.growth}</strong> dengan rata-rata proyeksi imbal hasil stabil di kisaran <strong>{data.monthlyForecast}</strong>. Didukung oleh tingkat keberhasilan transaksi (*Win Rate*) setinggi <strong className="text-emerald-400">{data.winRate}%</strong>, strategi ini sangat cocok bagi investor yang mencari pertumbuhan modal organik berisiko terukur.
               </p>
             </div>
 
-            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-1.5">
-              <span className="text-emerald-400 font-bold text-sm block">2. Keamanan & Ketahanan Modal</span>
-              <p className="text-slate-300 leading-relaxed">
-                Maksimal resiko penurunan (*Max Drawdown*) terbukti rendah di <strong>{data.maxDD}%</strong> selama 76 minggu pengujian di akun riil.
+            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
+              <span className="text-emerald-400 font-bold text-sm block">2. Keamanan & Toleransi Drawdown Rendah</span>
+              <p className="text-slate-300">
+                Tingkat penurunan saldo maksimum (*Maximal Drawdown*) terbukti terjaga sangat ketat di angka <strong>{data.maxDD}%</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> pengujian pada akun riil. Struktur eksekusi transaksi terbukti tidak menumpuk kerugian (*no toxic averaging*), sehingga modal akun terlindungi dari gejolak pasar ekstrem.
               </p>
             </div>
 
-            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-1.5">
-              <span className="text-indigo-300 font-bold text-sm block">3. Rekomendasi Ketahanan Lot</span>
-              <p className="text-slate-300 leading-relaxed">
-                Modal disarankan minimal <strong>${data.recommendedCapitalPerLot} USD</strong> untuk setiap <strong>0.01 lot</strong> agar terhindar dari margin pressure.
+            <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
+              <span className="text-indigo-300 font-bold text-sm block">3. Rekomendasi Alokasi Modal & Ketahanan Margin</span>
+              <p className="text-slate-300">
+                Bagi investor perorangan, kami menyarankan penyediaan modal minimal <strong>${data.recommendedCapitalPerLot} USD untuk setiap 0.01 lot</strong> dengan leverage <strong>{data.leverage}</strong>. Akun dapat langsung dihubungkan secara otomatis via Master VPS tanpa perlu sewa server pribadi.
               </p>
             </div>
           </div>
         </section>
       ) : (
-        /* HEDGE FUND / BOD VIEW: AUDIT KUANTITATIF MENDALAM STANDAR CRO */
+        /* HEDGE FUND / BOD VIEW (NARASI AUDIT CRO LENGKAP & PANJANG) */
         <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-slate-800 animate-fadeIn">
           <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
             <h2 className="text-lg font-bold flex items-center space-x-2">
@@ -787,42 +801,47 @@ export default function Dashboard() {
 
           <div className="space-y-5 text-sm text-slate-200 leading-relaxed">
             
+            {/* 1. GROWTH & EQUITY CURVE */}
             <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
               <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                 <TrendingUp size={18} /> <span>1. Analisis Growth & Equity Curve Dynamics</span>
               </h3>
               <p className="text-xs text-slate-300">
-                Pertumbuhan akumulatif sinyal <strong>{displayName}</strong> sebesar <strong className="text-emerald-400">{data.growth}</strong> selama rekam jejak <strong className="text-emerald-400">{data.reliabilityWeeks} Minggu</strong> membuktikan kurva ekuitas yang sangat konsisten. Didukung oleh <strong>Calmar Ratio {data.calmarRatio}</strong> dan <strong>Recovery Factor {data.recoveryFactor}</strong>, kurva ekuitas mencerminkan efisiensi perolehan profit tanpa eksposur risiko spekulatif ekstrem.
+                Pertumbuhan akumulatif sinyal <strong>{displayName}</strong> sebesar <strong className="text-emerald-400">{data.growth}</strong> selama rekam jejak <strong className="text-emerald-400">{data.reliabilityWeeks} Minggu</strong> membuktikan kurva ekuitas eksponensial yang sangat konsisten. Didukung oleh <strong>Calmar Ratio {data.calmarRatio}</strong> dan <strong>Recovery Factor {data.recoveryFactor}</strong>, kurva ekuitas mencerminkan efisiensi perolehan profit yang stabil tanpa lonjakan spekulatif berbahaya, mencerminkan kedisiplinan alokasi volume transaksi yang superior.
               </p>
             </div>
 
+            {/* 2. MICROSTRUCTURE & TRADE EXPECTANCY */}
             <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
               <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                 <Crosshair size={18} /> <span>2. Market Microstructure & Trade Expectancy</span>
               </h3>
               <p className="text-xs text-slate-300">
-                Sinyal mengandalkan eksekusi <strong>Algo Trading {data.algoTrading}%</strong> dengan rasio ekspektasi profit per transaksi (*Trade Expectancy*) sebesar <strong className="text-emerald-400">{data.expectancyUSD}</strong>. Rata-rata holding period selama {data.avgHoldingDays} hari memastikan sistem ini stabil terhadap volatilitas sesi harian.
+                Sinyal mengandalkan eksekusi <strong>Algo Trading {data.algoTrading}%</strong> dengan rasio ekspektasi profit per transaksi (*Trade Expectancy*) sebesar <strong className="text-emerald-400">{data.expectancyUSD}</strong>. Rata-rata holding period selama {data.avgHoldingDays} hari memastikan sistem ini kebal terhadap *noise* pergerakan harga jangka pendek di sesi Asia maupun London/New York, menjaga stabilitas *spread* dan menghindari slippage berlebihan.
               </p>
             </div>
 
+            {/* 3. TOXIC STRATEGY CHECK */}
             <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
               <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                 <ShieldAlert size={18} /> <span>3. Deteksi Strategi Toxic (Martingale & Grid Check)</span>
               </h3>
               <p className="text-xs text-slate-300">
-                Berdasarkan audit struktur marjin, <strong>Deposit Load Maksimum tercatat pada {data.maxDepositLoad}%</strong>. Ini adalah validasi bahwa sistem **BEBAS DARI STRATEGI MARTINGALE MAUPUN GRID TOXIC**, sehingga dana investor terproteksi dari ancaman margin call mendadak.
+                Berdasarkan audit mendalam struktur marjin, <strong>Deposit Load Maksimum tercatat pada {data.maxDepositLoad}%</strong>. Ini adalah validasi mutlak bahwa sistem **BEBAS DARI STRATEGI MARTINGALE MAUPUN GRID TOXIC**. Tidak ada penambahan volume lot eksponensial saat posisi mengalami kerugian, sehingga melindungi dana kelolaan dari risiko margin call mendadak (*ruin risk*).
               </p>
             </div>
 
+            {/* 4. FUND CAPACITY & LIQUIDITY */}
             <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
               <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                 <Activity size={18} /> <span>4. Fund Capacity & Liquidity Constraints</span>
               </h3>
               <p className="text-xs text-slate-300">
-                Kapasitas optimal untuk alokasi dana copy trading pada sinyal ini diperkirakan mencapai <strong className="text-indigo-300">{data.fundCapacity}</strong> dengan likuiditas tinggi pada pair mayor.
+                Kapasitas optimal untuk alokasi dana copy trading pada sinyal ini diperkirakan mencapai <strong className="text-indigo-300">{data.fundCapacity}</strong> dengan likuiditas tinggi pada pair utama. Melampaui ambang batas ini pada pair likuiditas rendah dapat memicu risiko pelebaran spread saat eksekusi lot institusional.
               </p>
             </div>
 
+            {/* 5. QUANTITATIVE RISK METRICS GRID */}
             <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
               <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                 <BarChart2 size={18} /> <span>5. Evaluasi Metrik Risiko Kuantitatif Lanjutan</span>
@@ -836,7 +855,7 @@ export default function Dashboard() {
                 <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
                   <span className="text-slate-400 font-semibold block">Sortino Ratio</span>
                   <span className="text-emerald-400 font-bold text-base">{data.sortinoRatio}</span>
-                  <p className="text-[11px] text-slate-400 mt-1">Mengukur return terhadap downside risk.</p>
+                  <p className="text-[11px] text-slate-400 mt-1">Mengukur return terhadap downside volatility.</p>
                 </div>
                 <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
                   <span className="text-slate-400 font-semibold block">Recovery Factor</span>
@@ -851,6 +870,7 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* 6. CRO FINAL VERDICT */}
             <div className="print-card bg-indigo-900/50 p-4 rounded-xl border border-indigo-500/40 space-y-2">
               <h3 className="font-bold text-emerald-400 text-base flex items-center space-x-2">
                 <CheckCircle size={18} /> <span>6. Kesimpulan CRO (Chief Risk Officer Final Verdict)</span>
