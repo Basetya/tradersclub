@@ -133,7 +133,9 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    const saved = localStorage.getItem('tc_analyses_master_v7');
+    localStorage.removeItem('tc_analyses_master_v5');
+    localStorage.removeItem('tc_analyses_master_v6');
+    const saved = localStorage.getItem('tc_analyses_master_v8');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -146,7 +148,7 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v7') || "WORLD_PEACE";
+    return localStorage.getItem('tc_selected_id_v8') || "WORLD_PEACE";
   });
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
@@ -165,8 +167,12 @@ export default function Dashboard() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD WAJIB "151264!" TANPA TOLERANSI
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v7') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v7') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v8') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => {
+    // Reset password lama jika tidak ada tanda seru
+    const savedPw = localStorage.getItem('tc_admin_pw_v8');
+    return savedPw || "151264!";
+  });
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -174,17 +180,17 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v7', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v8', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v7', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v8', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v7', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v8', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -299,16 +305,17 @@ export default function Dashboard() {
     }, 600);
   };
 
-  // VERIFIKASI STRICT PASSWORD ADMIN: PERSIS 100% TANPA TOLERANSI
+  // VERIFIKASI STRICT PASSWORD ADMIN: PERSIS 100% "151264!"
   const handleAdminAuth = (e) => {
     e.preventDefault();
-    if (inputPassword === adminPassword) {
+    const currentPass = adminPassword || "151264!";
+    if (inputPassword === currentPass) {
       setIsAdminMode(true);
       setShowAuthModal(false);
       setInputPassword("");
       setAuthError("");
     } else {
-      setAuthError("Password Admin salah! Password bersifat case-sensitive.");
+      setAuthError("Password Admin salah! Wajib memasukkan tanda seru (151264!).");
     }
   };
 
@@ -316,7 +323,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v7', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v8', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -828,7 +835,7 @@ export default function Dashboard() {
                 type="password" 
                 value={inputPassword} 
                 onChange={(e) => setInputPassword(e.target.value)} 
-                placeholder="Masukkan Password Admin..." 
+                placeholder="Masukkan Password Admin (Strict)..." 
                 className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500" 
                 autoFocus 
               />
@@ -959,7 +966,7 @@ export default function Dashboard() {
                   <span>1. Investment Thesis</span>
                 </div>
                 <p className="text-xs text-emerald-200 leading-relaxed">
-                  Sinyal terverifikasi dengan total pertumbuhan akumulatif <strong>{data.growth}</strong> dari setoran modal awal <strong>{data.initialDeposit}</strong>. Menghasilkan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> rekam jejak aktif teruji.
+                  Sinyal terverifikasi dengan total pertumbuhan akumulatif <strong>{data.growth}</strong> dari setoran modal dasar <strong>{data.initialDeposit}</strong>. Menghasilkan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> rekam jejak aktif teruji.
                 </p>
               </div>
 
@@ -1030,7 +1037,7 @@ export default function Dashboard() {
 
           {/* 3. DYNAMIC COMPREHENSIVE REPORT VIEW */}
           {viewPerspective === 'retail' ? (
-            /* RETAIL COPIER VIEW */
+            /* RETAIL COPIER VIEW (MENDALAM & LENGKAP) */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-indigo-500/30 animate-fadeIn">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <h2 className="text-base font-bold flex items-center space-x-2 text-indigo-300">
@@ -1168,12 +1175,10 @@ export default function Dashboard() {
                       <p className="text-[11px] text-slate-400 mt-1">Ketahanan superior terhadap downside volatility.</p>
                     </div>
                     <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-                      <span className="text-slate-400 font-semibold block">Recovery Factor</span>
                       <span className="text-emerald-400 font-bold text-base">{data.recoveryFactor}</span>
                       <p className="text-[11px] text-slate-400 mt-1">Kecepatan pemulihan modal sangat agresif ({data.recoveryFactor}x).</p>
                     </div>
                     <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-                      <span className="text-slate-400 font-semibold block">Profit Factor</span>
                       <span className="text-emerald-400 font-bold text-base">{data.profitFactor}</span>
                       <p className="text-[11px] text-slate-400 mt-1">Rasio gross profit terhadap gross loss.</p>
                     </div>
