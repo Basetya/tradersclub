@@ -7,7 +7,7 @@ import {
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
-// GENERATOR ANALISIS KUANTITATIF & NARASI DINAMIS INSTITUSIONAL
+// MESIN ANALISIS KUANTITATIF & KALKULASI DINAMIS INSTITUSIONAL
 export function computeQuantitativeAudit(raw) {
   const currency = raw.currency || "JPY";
   const currSym = currency === "JPY" ? "JPY" : (currency === "EUR" ? "EUR" : "USD");
@@ -29,15 +29,19 @@ export function computeQuantitativeAudit(raw) {
   const reliabilityWeeks = parseInt(raw.reliabilityWeeks) || 76;
   const avgHoldingDays = parseFloat(raw.avgHoldingDays) || 2.0;
 
-  const calmar = maxDD > 0 ? Number(((parseFloat(String(raw.growth).replace(/[^0-9.-]/g, '')) || 3283.95) / maxDD / Math.max(1, reliabilityWeeks / 52)).toFixed(2)) : 2.95;
-  const recoveryFactor = maxDD > 0 ? Number(((parseFloat(String(raw.growth).replace(/[^0-9.-]/g, '')) || 3283.95) / maxDD).toFixed(2)) : 3.85;
+  const growthNum = parseFloat(String(raw.growth).replace(/[^0-9.-]/g, '')) || 3283.95;
+  const calmar = maxDD > 0 ? Number((growthNum / maxDD / Math.max(1, reliabilityWeeks / 52)).toFixed(2)) : 2.95;
+  const recoveryFactor = maxDD > 0 ? Number((growthNum / maxDD).toFixed(2)) : 3.85;
   const expectancyVal = totalTrades > 0 ? Number((netProf / totalTrades).toFixed(2)) : 28.5;
   const profitFactor = parseFloat(raw.profitFactor) || 2.65;
 
   const isToxicMartingale = maxDepLoad > 35.0 || (raw.lossTradesShare && raw.lossTradesShare > 60 && profitFactor < 1.1);
   const estimatedMaxLayers = Math.max(1, Math.min(8, Math.round(maxDepLoad / 3.5)));
-  const fundCapUSD = maxDD <= 20 ? 500000 : (maxDD <= 25 ? 500000 : (maxDD <= 30 ? 250000 : 100000));
-  const recCapLot = maxDD <= 15 ? 300 : (maxDD <= 25 ? 500 : 1000);
+  
+  // Rumus ketahanan modal dinamis berbasis Max Drawdown riil
+  const calculatedCapPerLot = Math.max(200, Math.round((maxDD * 20) / 50) * 50);
+  const calculatedFundCapUSD = maxDD <= 15 ? 1000000 : (maxDD <= 25 ? 500000 : (maxDD <= 35 ? 250000 : 100000));
+  const activeLeverage = raw.leverage || "1:500";
 
   const activePairs = raw.activePairsList && raw.activePairsList.length > 0 
     ? raw.activePairsList.join(", ") 
@@ -60,8 +64,9 @@ export function computeQuantitativeAudit(raw) {
     profitFactor,
     isToxicMartingale,
     estimatedMaxLayers,
-    fundCapacity: `$${fundCapUSD.toLocaleString()} USD (${maxDD <= 25 ? 'Deep Liquidity' : 'Standard Liquidity'})`,
-    recommendedCapitalPerLot: recCapLot,
+    fundCapacity: `$${calculatedFundCapUSD.toLocaleString()} USD (${maxDD <= 25 ? 'Deep Liquidity' : 'Standard Liquidity'})`,
+    recommendedCapitalPerLot: calculatedCapPerLot,
+    leverage: activeLeverage,
     activePairsText: activePairs
   };
 }
@@ -128,7 +133,7 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    const saved = localStorage.getItem('tc_analyses_master_v6');
+    const saved = localStorage.getItem('tc_analyses_master_v7');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -141,7 +146,7 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v6') || "WORLD_PEACE";
+    return localStorage.getItem('tc_selected_id_v7') || "WORLD_PEACE";
   });
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
@@ -159,9 +164,9 @@ export default function Dashboard() {
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  // Admin Mode States (Password Resmi Default: 151264!)
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v6') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v6') || "151264!");
+  // Admin Mode States: STRICT PASSWORD WAJIB "151264!" TANPA TOLERANSI
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v7') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v7') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -169,17 +174,17 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v6', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v7', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v6', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v7', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v6', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v7', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -294,19 +299,16 @@ export default function Dashboard() {
     }, 600);
   };
 
-  // Verifikasi Password Admin Bawaan (151264! / 151264)
+  // VERIFIKASI STRICT PASSWORD ADMIN: PERSIS 100% TANPA TOLERANSI
   const handleAdminAuth = (e) => {
     e.preventDefault();
-    const rawInput = inputPassword.trim();
-    const cleanTarget = adminPassword.trim();
-
-    if (rawInput === cleanTarget || rawInput === "151264!" || rawInput === "151264" || rawInput.replace(/!+$/, "") === cleanTarget.replace(/!+$/, "")) {
+    if (inputPassword === adminPassword) {
       setIsAdminMode(true);
       setShowAuthModal(false);
       setInputPassword("");
       setAuthError("");
     } else {
-      setAuthError("Password Admin tidak valid. Silakan periksa kembali.");
+      setAuthError("Password Admin salah! Password bersifat case-sensitive.");
     }
   };
 
@@ -314,7 +316,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v6', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v7', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -521,6 +523,7 @@ export default function Dashboard() {
     }
   };
 
+  // FUNGSI ADMIN: ARSIP & HAPUS SINYAL
   const toggleArchiveStatus = (e, id) => {
     e.stopPropagation();
     setAnalysesList(prev => prev.map(item => item.id === id ? { ...item, isArchived: !item.isArchived } : item));
@@ -528,7 +531,7 @@ export default function Dashboard() {
 
   const deleteAnalysis = (e, id) => {
     e.stopPropagation();
-    if (window.confirm("Apakah Kakak yakin ingin menghapus analisis sinyal ini?")) {
+    if (window.confirm("Apakah Admin yakin ingin menghapus analisis sinyal ini secara permanen?")) {
       const remaining = analysesList.filter(item => item.id !== id);
       setAnalysesList(remaining);
       if (selectedSignalId === id && remaining.length > 0) setSelectedSignalId(remaining[0].id);
@@ -602,7 +605,7 @@ export default function Dashboard() {
             Laporan Hasil Audit Kuantitatif Sinyal: {displayName}
           </p>
           <p className="text-xs text-slate-600 font-semibold mt-0.5">
-            Institutional Quantitative Assessment Report | Tanggal Audit: {data.analyzedDate}
+            Institutional Risk Assessment Report | Tanggal Audit: {data.analyzedDate}
           </p>
         </div>
       )}
@@ -814,7 +817,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ADMIN AUTH MODAL */}
+      {/* ADMIN AUTH MODAL: STRICT VALIDATION */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-800 animate-fadeIn text-white">
@@ -872,7 +875,7 @@ export default function Dashboard() {
           </p>
         </div>
       ) : (
-        /* DASHBOARD CONTENT DENGAN DATA DINAMIS 100% */
+        /* DASHBOARD CONTENT */
         <div className="space-y-6 animate-fadeIn">
           
           {/* DYNAMIC BATCHING ZONE */}
@@ -942,7 +945,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 1. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION */}
+          {/* 1. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION (100% DINAMIS) */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 space-y-4 text-white">
             <h2 className="text-lg font-bold border-b border-slate-800 pb-2 flex justify-between items-center">
               <span className="text-slate-100">Executive Summary & Institutional Recommendation ({displayName})</span>
@@ -956,7 +959,7 @@ export default function Dashboard() {
                   <span>1. Investment Thesis</span>
                 </div>
                 <p className="text-xs text-emerald-200 leading-relaxed">
-                  Sinyal terverifikasi dengan total pertumbuhan akumulatif <strong>{data.growth}</strong> dari setoran modal dasar <strong>{data.initialDeposit}</strong>. Menghasilkan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> rekam jejak aktif teruji.
+                  Sinyal terverifikasi dengan total pertumbuhan akumulatif <strong>{data.growth}</strong> dari setoran modal awal <strong>{data.initialDeposit}</strong>. Menghasilkan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> rekam jejak aktif teruji.
                 </p>
               </div>
 
@@ -1027,7 +1030,7 @@ export default function Dashboard() {
 
           {/* 3. DYNAMIC COMPREHENSIVE REPORT VIEW */}
           {viewPerspective === 'retail' ? (
-            /* RETAIL COPIER VIEW (MENDALAM & LENGKAP) */
+            /* RETAIL COPIER VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-indigo-500/30 animate-fadeIn">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <h2 className="text-base font-bold flex items-center space-x-2 text-indigo-300">
@@ -1073,7 +1076,7 @@ export default function Dashboard() {
                     Untuk menyalin (*copy*) strategi ini dengan profil risiko konservatif:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-slate-300 pt-1 pl-1">
-                    <li><strong>Rasio Modal Minimum:</strong> Disarankan minimal <strong>${data.recommendedCapitalPerLot} USD per 0.01 lot</strong> dengan leverage <strong>{data.leverage}</strong>.</li>
+                    <li><strong>Rasio Modal Minimum Terhitung:</strong> Disarankan minimal <strong>${data.recommendedCapitalPerLot} USD per 0.01 lot</strong> dengan leverage <strong>{data.leverage}</strong>.</li>
                     <li><strong>Instrumen Utama:</strong> Sistem mengeksekusi posisi pada instrumen likuid <strong>{data.activePairsText}</strong>.</li>
                     <li><strong>Eksekusi Cloud 24/7:</strong> Terhubung otomatis via Akun Master VPS TradersClub tanpa beban konfigurasi server pribadi.</li>
                   </ul>
@@ -1281,18 +1284,24 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* BOTTOM MANAGER ZONE */}
+      {/* BOTTOM MANAGER ZONE: LENGKAP DENGAN TOMBOL ARSIP & HAPUS */}
       <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 border-b border-slate-800 pb-3">
           <div>
             <h2 className="text-base font-bold text-white flex items-center space-x-2">
               <Clock className="text-indigo-400" size={20} /> <span>Daftar Riwayat Sinyal Teranalisis (ALPHA ANALYZER Manager)</span>
             </h2>
-            <p className="text-xs text-slate-400">Seluruh riwayat audit disimpan secara dinamis tanpa data statis.</p>
+            <p className="text-xs text-slate-400">
+              {isAdminMode ? 'Mode Admin Aktif: Anda dapat mengarsipkan atau menghapus sinyal.' : 'Seluruh riwayat audit disimpan secara dinamis.'}
+            </p>
           </div>
           <div className="flex bg-slate-950 p-1 rounded-lg text-xs font-semibold border border-slate-800">
-            <button onClick={() => setHistoryTab('active')} className={`px-3 py-1.5 rounded-md ${historyTab === 'active' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>Aktif ({analysesList.filter(a => !a.isArchived).length})</button>
-            <button onClick={() => setHistoryTab('archived')} className={`px-3 py-1.5 rounded-md ${historyTab === 'archived' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>Arsip ({analysesList.filter(a => a.isArchived).length})</button>
+            <button onClick={() => setHistoryTab('active')} className={`px-3 py-1.5 rounded-md ${historyTab === 'active' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>
+              Aktif ({analysesList.filter(a => !a.isArchived).length})
+            </button>
+            <button onClick={() => setHistoryTab('archived')} className={`px-3 py-1.5 rounded-md ${historyTab === 'archived' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>
+              Arsip ({analysesList.filter(a => a.isArchived).length})
+            </button>
           </div>
         </div>
 
@@ -1334,11 +1343,25 @@ export default function Dashboard() {
                       </p>
                     )}
                   </div>
+
+                  {/* KONTROL ADMIN: ARSIP & HAPUS */}
                   <div className="flex items-center space-x-1 flex-shrink-0">
                     {isAdminMode && (
                       <>
-                        <button onClick={(e) => toggleArchiveStatus(e, item.id)} className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg">{item.isArchived ? <RefreshCw size={16}/> : <Archive size={16}/>}</button>
-                        <button onClick={(e) => deleteAnalysis(e, item.id)} className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg"><Trash2 size={16}/></button>
+                        <button 
+                          onClick={(e) => toggleArchiveStatus(e, item.id)} 
+                          className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          title={item.isArchived ? "Pulihkan dari Arsip" : "Arsipkan Sinyal"}
+                        >
+                          {item.isArchived ? <RefreshCw size={16}/> : <Archive size={16}/>}
+                        </button>
+                        <button 
+                          onClick={(e) => deleteAnalysis(e, item.id)} 
+                          className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                          title="Hapus Permanen"
+                        >
+                          <Trash2 size={16}/>
+                        </button>
                       </>
                     )}
                     <ChevronRight className={isSelected ? "text-indigo-400 ml-1" : "text-slate-600 ml-1"} size={18} />
