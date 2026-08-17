@@ -11,7 +11,7 @@
     <script type="module" src="/src/main.jsx"></script>
 
     <!-- ============================================================
-      OMNIBOT FLOATING WIDGET v1.4 - ALPHA ANALYZER EDITION
+      OMNIBOT FLOATING WIDGET v1.5 - ALPHA ANALYZER LIVE LPU
       Plug & Play: Tempelkan tepat sebelum tag penutup </body>
     ============================================================ -->
 
@@ -344,12 +344,11 @@
 
     <script>
       /**
-       * OmniBot Core Engine v1.4 - Alpha Analyzer Knowledge Anchored
+       * OmniBot Core Engine v1.5 - Direct Live LPU Link
        */
       window.OmniChat = (() => {
         const CONFIG = {
           proxyEndpoint: "https://alphatradersclubchat.humblebasty.workers.dev",
-          
           systemPrompt: `Anda adalah Alpha Assistant resmi untuk platform Alpha Analyzer (Traders Club Executive Signal Intelligence).
 PANDUAN MENJAWAB:
 1. Bersikaplah objektif, profesional, tenang, dan berbasis data kuantitatif.
@@ -368,26 +367,11 @@ PANDUAN MENJAWAB:
      * Rekomendasi Ketahanan Modal: $450 USD per 0.01 lot.`
         };
 
-        const OFFLINE_RULES = [
-          {
-            keywords: ["pasti", "untung", "profit", "garansi", "jaminan", "rugi", "loss"],
-            reply: "Dalam trading pasar finansial, **tidak ada jaminan pasti untung 100%**. Alpha Analyzer berfokus pada **probabilitas dan kontrol risiko kuantitatif** melalui audit data MQL5 terverifikasi (tanpa metode berisiko tinggi seperti Martingale/Grid). Pastikan selalu menerapkan *money management* yang aman."
-          },
-          {
-            keywords: ["minimal", "tahun", "minggu", "lama", "track record", "kriteria", "rekam jejak"],
-            reply: "Sinyal yang kami rekomendasikan (MT5 Signal - 001) telah teruji selama **76 Minggu (~1,5 tahun)** rekam jejak aktif organik di akun riil dengan **Win Rate 82.4%** dan **Max Drawdown 23.7%**."
-          },
-          {
-            keywords: ["ngopi", "program", "otomatis", "mandiri", "biaya", "fee", "harga", "cara join"],
-            reply: "Program Waktu Kopi memiliki 2 jalur partisipasi:\n- **Ngopi Otomatis**: 0% biaya di depan, 10% profit share langsung via broker mitra.\n- **Ngopi Mandiri**: Flat fee $5 - $10 bulanan menggunakan investor pass / copier mandiri."
-          },
-          {
-            keywords: ["modal", "alokasi", "ketahanan", "lot", "deposit"],
-            reply: "Rekomendasi alokasi ketahanan modal konservatif adalah minimal **$450 USD per 0.01 lot** dengan tingkat utilisasi marjin puncak (*Max Deposit Load*) di bawah 13%."
-          }
-        ];
+        // Otomatis bersihkan histori lama yang tersangkut
+        localStorage.removeItem("omni_chat_history");
+        localStorage.removeItem("omni_chat_history_v2");
 
-        let messages = JSON.parse(localStorage.getItem("omni_chat_history") || "[]");
+        let messages = JSON.parse(localStorage.getItem("omni_chat_history_v3") || "[]");
         let isSoundMuted = localStorage.getItem("omni_chat_muted") === "true";
         let isWaitingResponse = false;
 
@@ -456,24 +440,12 @@ PANDUAN MENJAWAB:
         };
 
         const resetChat = () => {
-          if (confirm("Reset seluruh riwayat percakapan?")) {
-            messages = [];
-            localStorage.removeItem("omni_chat_history");
-            renderMessages();
-          }
+          messages = [];
+          localStorage.removeItem("omni_chat_history_v3");
+          renderMessages();
         };
 
-        const getOfflineFallback = (query) => {
-          const lower = query.toLowerCase();
-          for (const item of OFFLINE_RULES) {
-            if (item.keywords.some(k => lower.includes(k))) {
-              return item.reply;
-            }
-          }
-          return "Untuk rincian audit sinyal dan alokasi modal, Anda dapat melihat ringkasan metrik langsung di dashboard atau memilih tombol program di atas.";
-        };
-
-        const callAI = async (chatHistory, userLatestText) => {
+        const callAI = async (chatHistory) => {
           try {
             const res = await fetch(CONFIG.proxyEndpoint, {
               method: "POST",
@@ -486,25 +458,27 @@ PANDUAN MENJAWAB:
               })
             });
 
-            if (res.ok) {
-              const data = await res.json();
-              if (data.choices && data.choices[0] && data.choices[0].message) {
-                return data.choices[0].message.content;
-              }
-            }
-            console.warn("[OmniBot] Proxy non-200, beralih ke Fallback Offline.");
-          } catch (err) {
-            console.warn("[OmniBot] Gagal menghubungi proxy:", err);
-          }
+            const data = await res.json();
 
-          return getOfflineFallback(userLatestText);
+            if (res.ok && data.choices && data.choices[0] && data.choices[0].message) {
+              return data.choices[0].message.content;
+            }
+
+            if (data.error) {
+              return `⚠️ **Pemberitahuan Worker/Groq:** ${typeof data.error === 'object' ? (data.error.message || JSON.stringify(data.error)) : data.error}`;
+            }
+
+            return `⚠️ Error HTTP ${res.status}: Gagal memproses data dari endpoint AI.`;
+          } catch (err) {
+            return `⚠️ **Kendala Koneksi:** Tidak dapat terhubung ke endpoint Cloudflare Worker (${err.message}).`;
+          }
         };
 
         const sendMessage = async (text) => {
           if (!text.trim() || isWaitingResponse) return;
 
           messages.push({ role: "user", content: text });
-          localStorage.setItem("omni_chat_history", JSON.stringify(messages));
+          localStorage.setItem("omni_chat_history_v3", JSON.stringify(messages));
           renderMessages();
           playAudioPing(520, 0.06);
 
@@ -518,12 +492,12 @@ PANDUAN MENJAWAB:
           isWaitingResponse = true;
 
           try {
-            const botReply = await callAI(messages.map(m => ({ role: m.role, content: m.content })), text);
+            const botReply = await callAI(messages.map(m => ({ role: m.role, content: m.content })));
             messages.push({ role: "assistant", content: botReply });
-            localStorage.setItem("omni_chat_history", JSON.stringify(messages));
+            localStorage.setItem("omni_chat_history_v3", JSON.stringify(messages));
             playAudioPing(840, 0.09);
           } catch (e) {
-            messages.push({ role: "assistant", content: getOfflineFallback(text) });
+            messages.push({ role: "assistant", content: "⚠️ Terjadi kesalahan saat memproses pesan." });
           } finally {
             isWaitingResponse = false;
             renderMessages();
