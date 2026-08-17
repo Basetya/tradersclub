@@ -10,13 +10,8 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- ============================================================
-      OMNIBOT FLOATING WIDGET v1.3 - GROQ LPU ULTRA-FAST EDITION
-      Plug & Play: Tempelkan tepat sebelum tag penutup </body>
-    ============================================================ -->
-
+    <!-- OMNIBOT FLOATING WIDGET v1.4 - GROQ LPU WITH GUARDRAILS & KNOWLEDGEBASE -->
     <div id="omni-chatbot-container">
-      <!-- Floating Launcher Bubble -->
       <button id="omni-chat-launcher" aria-label="Buka Chat" onclick="OmniChat.toggle()">
         <span class="omni-badge" id="omni-unread-badge">1</span>
         <svg class="omni-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -28,9 +23,7 @@
         </svg>
       </button>
 
-      <!-- Chat Window Pop-up -->
       <div id="omni-chat-window">
-        <!-- Header -->
         <div class="omni-header">
           <div class="omni-bot-info">
             <div class="omni-avatar">⚡</div>
@@ -46,21 +39,16 @@
           </div>
         </div>
 
-        <!-- Messages Container -->
-        <div class="omni-messages" id="omni-messages-list">
-          <!-- Chat bubbles rendered dynamically -->
-        </div>
+        <div class="omni-messages" id="omni-messages-list"></div>
 
-        <!-- Quick Reply Suggestions -->
         <div class="omni-quick-chips" id="omni-chips-container">
+          <button onclick="OmniChat.sendQuickReply('Syarat & cara join Program Ngopi Bareng?')">☕ Join Ngopi Bareng</button>
+          <button onclick="OmniChat.sendQuickReply('Berapa ketahanan modal per 0.01 lot yang aman?')">🛡️ Ketahanan Modal</button>
           <button onclick="OmniChat.sendQuickReply('Apa keunggulan bergabung di Alpha Traders Club?')">💡 Tentang Alpha Club</button>
-          <button onclick="OmniChat.sendQuickReply('Bagaimana cara mendapatkan sinyal trading & analisis?')">📊 Sinyal & Analisis</button>
-          <button onclick="OmniChat.sendQuickReply('Berapa risk management yang disarankan?')">🛡️ Risk Management</button>
         </div>
 
-        <!-- Input Area -->
         <form class="omni-input-area" onsubmit="OmniChat.handleSubmit(event)">
-          <input type="text" id="omni-user-input" placeholder="Tanya analisis, strategi, atau club..." autocomplete="off" />
+          <input type="text" id="omni-user-input" placeholder="Tanya analisis, strategi, atau program..." autocomplete="off" />
           <button type="submit" id="omni-send-btn" aria-label="Kirim Pesan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -84,16 +72,14 @@
         --omni-bot-bubble: #1e293b;
         --omni-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
       }
-
       #omni-chatbot-container {
         position: fixed;
         bottom: 24px;
         right: 24px;
         z-index: 999999;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, sans-serif;
         color: var(--omni-text-main);
       }
-
       #omni-chat-launcher {
         width: 60px;
         height: 60px;
@@ -109,21 +95,12 @@
         position: relative;
         transition: transform 0.2s ease, background-color 0.2s ease;
       }
-      #omni-chat-launcher:hover {
-        transform: scale(1.06);
-        background-color: var(--omni-primary-hover);
-      }
-      #omni-chat-launcher svg {
-        width: 28px;
-        height: 28px;
-        transition: transform 0.2s ease;
-      }
+      #omni-chat-launcher:hover { transform: scale(1.06); background-color: var(--omni-primary-hover); }
+      #omni-chat-launcher svg { width: 28px; height: 28px; }
       #omni-chat-launcher .omni-icon-close { display: none; }
-
       #omni-chatbot-container.omni-active #omni-chat-launcher .omni-icon-open { display: none; }
       #omni-chatbot-container.omni-active #omni-chat-launcher .omni-icon-close { display: block; }
       #omni-chatbot-container.omni-active #omni-unread-badge { display: none; }
-
       .omni-badge {
         position: absolute;
         top: -2px;
@@ -136,7 +113,6 @@
         border-radius: 12px;
         border: 2px solid var(--omni-bg-dark);
       }
-
       #omni-chat-window {
         display: none;
         flex-direction: column;
@@ -152,19 +128,13 @@
         border-radius: 16px;
         box-shadow: var(--omni-shadow);
         overflow: hidden;
-        transform-origin: bottom right;
         animation: omniSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       }
-
-      #omni-chatbot-container.omni-active #omni-chat-window {
-        display: flex;
-      }
-
+      #omni-chatbot-container.omni-active #omni-chat-window { display: flex; }
       @keyframes omniSlideIn {
         from { opacity: 0; transform: scale(0.9) translateY(20px); }
         to { opacity: 1; transform: scale(1) translateY(0); }
       }
-
       .omni-header {
         background: var(--omni-surface);
         padding: 14px 16px;
@@ -173,11 +143,7 @@
         justify-content: space-between;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
-      .omni-bot-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
+      .omni-bot-info { display: flex; align-items: center; gap: 10px; }
       .omni-avatar {
         width: 36px;
         height: 36px;
@@ -189,26 +155,9 @@
         font-size: 18px;
         border: 1px solid var(--omni-primary);
       }
-      .omni-title {
-        margin: 0;
-        font-size: 15px;
-        font-weight: 700;
-        color: #ffffff;
-      }
-      .omni-status {
-        font-size: 11px;
-        color: var(--omni-text-muted);
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .omni-dot {
-        width: 7px;
-        height: 7px;
-        background: var(--omni-primary);
-        border-radius: 50%;
-        box-shadow: 0 0 8px var(--omni-primary);
-      }
+      .omni-title { margin: 0; font-size: 15px; font-weight: 700; color: #ffffff; }
+      .omni-status { font-size: 11px; color: var(--omni-text-muted); display: flex; align-items: center; gap: 5px; }
+      .omni-dot { width: 7px; height: 7px; background: var(--omni-primary); border-radius: 50%; box-shadow: 0 0 8px var(--omni-primary); }
       .omni-header-actions button {
         background: transparent;
         border: none;
@@ -217,13 +166,8 @@
         cursor: pointer;
         padding: 4px 6px;
         border-radius: 6px;
-        transition: background 0.2s;
       }
-      .omni-header-actions button:hover {
-        background: var(--omni-surface-light);
-        color: #ffffff;
-      }
-
+      .omni-header-actions button:hover { background: var(--omni-surface-light); color: #ffffff; }
       .omni-messages {
         flex: 1;
         overflow-y: auto;
@@ -234,12 +178,11 @@
         background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.04), transparent 60%);
       }
       .omni-msg {
-        max-width: 82%;
+        max-width: 85%;
         padding: 10px 14px;
         border-radius: 14px;
-        font-size: 13.5px;
+        font-size: 13px;
         line-height: 1.5;
-        word-break: break-word;
       }
       .omni-msg.bot {
         align-self: flex-start;
@@ -254,18 +197,9 @@
         color: #ffffff;
         border-bottom-right-radius: 4px;
       }
-      .omni-msg p { margin: 0 0 8px 0; }
+      .omni-msg p { margin: 0 0 6px 0; }
       .omni-msg p:last-child { margin-bottom: 0; }
-      .omni-msg ul, .omni-msg ol { margin: 4px 0 6px 18px; padding: 0; }
-      .omni-msg li { margin-bottom: 3px; }
-      .omni-msg code {
-        background: rgba(0, 0, 0, 0.3);
-        padding: 2px 5px;
-        border-radius: 4px;
-        font-family: monospace;
-        font-size: 12px;
-      }
-
+      .omni-msg ul { margin: 4px 0 6px 16px; padding: 0; }
       .omni-typing {
         display: inline-flex;
         gap: 4px;
@@ -274,45 +208,28 @@
         border-radius: 12px;
         align-self: flex-start;
       }
-      .omni-typing span {
-        width: 6px;
-        height: 6px;
-        background: var(--omni-primary);
-        border-radius: 50%;
-        animation: omniPulse 1s infinite alternate;
-      }
+      .omni-typing span { width: 6px; height: 6px; background: var(--omni-primary); border-radius: 50%; animation: omniPulse 1s infinite alternate; }
       .omni-typing span:nth-child(2) { animation-delay: 0.2s; }
       .omni-typing span:nth-child(3) { animation-delay: 0.4s; }
-      @keyframes omniPulse {
-        from { opacity: 0.3; transform: translateY(0); }
-        to { opacity: 1; transform: translateY(-4px); }
-      }
-
+      @keyframes omniPulse { from { opacity: 0.3; } to { opacity: 1; } }
       .omni-quick-chips {
         padding: 6px 12px 10px;
         display: flex;
         gap: 6px;
         overflow-x: auto;
-        white-space: nowrap;
         scrollbar-width: none;
       }
-      .omni-quick-chips::-webkit-scrollbar { display: none; }
       .omni-quick-chips button {
         background: var(--omni-surface);
         border: 1px solid rgba(255, 255, 255, 0.1);
         color: var(--omni-text-muted);
-        font-size: 11.5px;
-        padding: 6px 10px;
+        font-size: 11px;
+        padding: 5px 10px;
         border-radius: 20px;
         cursor: pointer;
-        transition: all 0.2s;
+        white-space: nowrap;
       }
-      .omni-quick-chips button:hover {
-        background: var(--omni-primary);
-        color: #ffffff;
-        border-color: var(--omni-primary);
-      }
-
+      .omni-quick-chips button:hover { background: var(--omni-primary); color: #fff; }
       .omni-input-area {
         display: flex;
         align-items: center;
@@ -327,13 +244,11 @@
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 8px;
         padding: 10px 12px;
-        font-size: 13.5px;
+        font-size: 13px;
         color: #ffffff;
         outline: none;
       }
-      .omni-input-area input:focus {
-        border-color: var(--omni-primary);
-      }
+      .omni-input-area input:focus { border-color: var(--omni-primary); }
       .omni-input-area button {
         width: 38px;
         height: 38px;
@@ -345,46 +260,79 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.2s;
       }
-      .omni-input-area button:hover {
-        background: var(--omni-primary-hover);
-      }
-      .omni-input-area button svg {
-        width: 18px;
-        height: 18px;
-      }
+      .omni-input-area button svg { width: 18px; height: 18px; }
     </style>
 
     <script>
-      /**
-       * OmniBot Core Engine v1.3 - Groq LPU Powered
-       */
       window.OmniChat = (() => {
         const CONFIG = {
           proxyEndpoint: "https://alphatradersclubchat.humblebasty.workers.dev",
-          systemPrompt: "Anda adalah Alpha AI Assistant resmi untuk Alpha Traders Club. Berikan jawaban profesional, lugas, edukatif, dan ramah seputar trading forex, komoditas, indices, manajemen risiko, serta ekosistem komunitas Alpha Traders Club. Selalu ingatkan pentingnya money management."
+          temperature: 0.3,
+          max_tokens: 600,
+          systemPrompt: `Anda adalah Alpha Assistant, konsultan kuantitatif AI resmi untuk Alpha Traders Club.
+KNOWLEDGE BASE:
+- Program Waktu Kopi (Co-Subscription):
+  1. Ngopi Otomatis: 0% Biaya Depan, Profit Sharing 10% hanya saat profit, eksekusi via broker mitra.
+  2. Ngopi Mandiri: Patungan $5 - $10/bulan, 100% profit milik investor (Investor Pass / Copier).
+  3. Usulkan Sinyal: Mengusulkan sinyal MQL5 untuk diaudit komite kuantitatif.
+- Risk Management: Disarankan margin $300 - $500 / 0.01 lot, leverage 1:500, Max DD < 25%.
+GUARDRAILS:
+- Dilarang memberikan janji kepastian profit (selalu tekankan probabilitas dan money management).
+- Berikan respon yang terstruktur, padat, menggunakan poin-poin agar mudah dipahami trader.`
         };
 
-        let messages = JSON.parse(localStorage.getItem("omni_chat_history") || "[]");
+        const LOCAL_KNOWLEDGE = [
+          {
+            keywords: ["ngopi", "join", "syarat", "paket", "patungan", "biaya", "daftar"],
+            answer: `☕ **Program Waktu Kopi (Co-Subscription Alpha Club):**
+Program sewa sinyal MQL5 terverifikasi bersama komunitas:
+1. **🚀 Ngopi Otomatis (0% Biaya Depan):**
+   - Bebas biaya langganan di muka.
+   - Profit sharing 10% hanya saat akun profit.
+   - Eksekusi otomatis via Akun Master VPS.
+2. **☕ Ngopi Mandiri ($5 - $10/bln):**
+   - Biaya patungan flat bulanan hemat.
+   - 100% profit hasil trading milik Anda sepenuhnya.
+
+*Pilih opsi paket di banner atas untuk langsung mendaftar via WhatsApp!*`
+          },
+          {
+            keywords: ["modal", "lot", "margin", "risk", "drawdown", "leverage", "ketahanan"],
+            answer: `🛡️ **Panduan Manajemen Risiko Baku:**
+- **Ketahanan Modal:** Disarankan minimal **$300 - $500 USD per 0.01 lot** (atau setara Rp 5jt - 8jt per mikro lot).
+- **Leverage Rekomendasi:** **1:500** untuk fleksibilitas margin load.
+- **Toleransi Drawdown:** Maksimal **20% - 25%** untuk profil risiko aman (*Conservative*).
+- **Aturan Emas:** Hindari full-margin dan jangan menaruh seluruh dana pada satu sistem.`
+          },
+          {
+            keywords: ["tentang", "alpha", "keunggulan", "apa itu", "club", "traders club"],
+            answer: `💡 **Tentang Alpha Traders Club:**
+Komunitas riset dan kurasi sinyal trading berbasis algoritma kuantitatif (EA/Algo).
+* **Audit Independen:** Setiap sinyal diaudit dari rekam jejak riil MQL5 (bebas toxic martingale & bailout deposit).
+* **Hemat Biaya:** Program Co-Subscription memangkas biaya sewa sinyal mahal menjadi sangat terjangkau.
+* **Server Terpusat:** Eksekusi 24/7 via VPS berlatensi rendah.`
+          }
+        ];
+
+        let messages = JSON.parse(localStorage.getItem("omni_chat_history_v2") || "[]");
         let isSoundMuted = localStorage.getItem("omni_chat_muted") === "true";
         let isWaitingResponse = false;
 
-        const playAudioPing = (freq = 600, duration = 0.08) => {
+        const playAudioPing = (freq = 600) => {
           if (isSoundMuted) return;
           try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.04, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
             osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            gain.connect(ctx.destination);
             osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-          } catch (e) { /* Audio context safety */ }
+            osc.stop(ctx.currentTime + 0.08);
+          } catch (e) {}
         };
 
         const parseMarkdown = (text) => {
@@ -392,7 +340,6 @@
             .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`([^`]+)`/g, '<code>$1</code>')
             .replace(/^\s*-\s+(.*)$/gim, '<li>$1</li>')
             .replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>')
             .replace(/\n\n/g, '<br><br>')
@@ -406,7 +353,7 @@
           if (messages.length === 0) {
             messages.push({
               role: "assistant",
-              content: "Halo Trader! ⚡ Selamat datang di **Alpha Traders Club**. Ada yang bisa saya bantu terkait analisis pasar, sinyal trading, atau info komunitas hari ini?"
+              content: "Halo Trader! ⚡ Selamat datang di **Alpha Traders Club**. Ada yang bisa saya bantu terkait analisis sinyal, program Ngopi Bareng, atau manajemen risiko?"
             });
           }
 
@@ -417,6 +364,73 @@
           `).join("");
 
           container.scrollTop = container.scrollHeight;
+        };
+
+        const matchLocalFallback = (prompt) => {
+          const lower = prompt.toLowerCase();
+          for (const item of LOCAL_KNOWLEDGE) {
+            if (item.keywords.some(k => lower.includes(k))) {
+              return item.answer;
+            }
+          }
+          return `Terima kasih atas pertanyaan Kakak. Untuk informasi detail mengenai audit sinyal, kriteria alokasi modal, atau join Program Ngopi Bareng, Kakak bisa langsung memilih tombol cepat di bawah atau klik tombol aksi di dashboard.`;
+        };
+
+        const callAI = async (chatHistory, userPrompt) => {
+          try {
+            const res = await fetch(CONFIG.proxyEndpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messages: [
+                  { role: "system", content: CONFIG.systemPrompt },
+                  ...chatHistory
+                ],
+                temperature: CONFIG.temperature,
+                max_tokens: CONFIG.max_tokens
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.choices && data.choices[0] && data.choices[0].message) {
+                return data.choices[0].message.content;
+              }
+            }
+          } catch (err) {}
+
+          // Fallback lokal jika Worker / API Key Groq terkendala
+          return matchLocalFallback(userPrompt);
+        };
+
+        const sendMessage = async (text) => {
+          if (!text.trim() || isWaitingResponse) return;
+
+          messages.push({ role: "user", content: text });
+          localStorage.setItem("omni_chat_history_v2", JSON.stringify(messages));
+          renderMessages();
+          playAudioPing(520);
+
+          const container = document.getElementById("omni-messages-list");
+          const typingEl = document.createElement("div");
+          typingEl.className = "omni-typing";
+          typingEl.innerHTML = "<span></span><span></span><span></span>";
+          container.appendChild(typingEl);
+          container.scrollTop = container.scrollHeight;
+
+          isWaitingResponse = true;
+
+          try {
+            const botReply = await callAI(messages.map(m => ({ role: m.role, content: m.content })), text);
+            messages.push({ role: "assistant", content: botReply });
+            localStorage.setItem("omni_chat_history_v2", JSON.stringify(messages));
+            playAudioPing(840);
+          } catch (e) {
+            messages.push({ role: "assistant", content: matchLocalFallback(text) });
+          } finally {
+            isWaitingResponse = false;
+            renderMessages();
+          }
         };
 
         const toggle = () => {
@@ -435,68 +449,9 @@
         };
 
         const resetChat = () => {
-          if (confirm("Reset seluruh percakapan chat?")) {
+          if (confirm("Reset percakapan chat?")) {
             messages = [];
-            localStorage.removeItem("omni_chat_history");
-            renderMessages();
-          }
-        };
-
-        const callAI = async (chatHistory) => {
-          try {
-            const res = await fetch(CONFIG.proxyEndpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                messages: [
-                  { role: "system", content: CONFIG.systemPrompt },
-                  ...chatHistory
-                ]
-              })
-            });
-
-            if (res.ok) {
-              const data = await res.json();
-              if (data.choices && data.choices[0]) {
-                return data.choices[0].message.content;
-              }
-              if (data.error) {
-                return `⚠️ Error Provider: ${data.error.message || data.error}`;
-              }
-            }
-          } catch (err) {
-            console.error("[OmniBot Groq Worker Error]", err);
-          }
-
-          return "⚠️ Gagal mendapatkan respons dari AI. Pastikan URL Cloudflare Worker dan API Key Groq sudah terkonfigurasi dengan benar.";
-        };
-
-        const sendMessage = async (text) => {
-          if (!text.trim() || isWaitingResponse) return;
-
-          messages.push({ role: "user", content: text });
-          localStorage.setItem("omni_chat_history", JSON.stringify(messages));
-          renderMessages();
-          playAudioPing(520, 0.06);
-
-          const container = document.getElementById("omni-messages-list");
-          const typingEl = document.createElement("div");
-          typingEl.className = "omni-typing";
-          typingEl.innerHTML = "<span></span><span></span><span></span>";
-          container.appendChild(typingEl);
-          container.scrollTop = container.scrollHeight;
-
-          isWaitingResponse = true;
-
-          try {
-            const botReply = await callAI(messages.map(m => ({ role: m.role, content: m.content })));
-            messages.push({ role: "assistant", content: botReply });
-            localStorage.setItem("omni_chat_history", JSON.stringify(messages));
-            playAudioPing(840, 0.09);
-          } catch (e) {
-            messages.push({ role: "assistant", content: "⚠️ Terjadi kesalahan jaringan saat memproses pesan." });
-          } finally {
-            isWaitingResponse = false;
+            localStorage.removeItem("omni_chat_history_v2");
             renderMessages();
           }
         };
@@ -513,13 +468,7 @@
           sendMessage(txt);
         };
 
-        return {
-          toggle,
-          toggleMute,
-          resetChat,
-          handleSubmit,
-          sendQuickReply
-        };
+        return { toggle, toggleMute, resetChat, handleSubmit, sendQuickReply };
       })();
     </script>
   </body>

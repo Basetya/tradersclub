@@ -1,0 +1,31 @@
+@'
+# KNOWLEDGE BASE — ALPHA TRADERS CLUB & SIGNAL ANALYZER
+
+## 1. Tentang Alpha Traders Club
+* **Misi:** Komunitas kurasi sinyal trading algoritmik (EA/Algo) terverifikasi MQL5 dengan standar uji kuantitatif institusional (Hedge Fund / CRO Standard).
+* **Fokus:** Melindungi modal investor dari strategi berisiko tinggi (*toxic martingale, uncontrolled grid, emergency margin injection*).
+
+## 2. Program "Waktu Kopi" (Co-Subscription Program)
+Program patungan sewa sinyal MQL5 resmi untuk menghemat biaya langganan bulanan ($30 - $50 USD/bulan) via Master VPS TradersClub.
+
+### Pilihan Paket:
+1. **🚀 Ngopi Otomatis (0% Iuran Depan):**
+   * Biaya Awal: $0 / Gratis di muka.
+   * Model: Profit Sharing 10% hanya saat posisi profit (*High-Water Mark*).
+   * Eksekusi: Otomatis via server broker mitra.
+2. **☕ Ngopi Mandiri ($5 - $10 / Bulan):**
+   * Biaya: Flat fee hemat $5 - $10 USD/bulan (patungan).
+   * Model: 100% profit milik investor (Investor Pass / Copier).
+3. **💡 Usulkan Sinyal:**
+   * Anggota dapat mengusulkan ID sinyal MQL5 untuk diaudit dan dipajang di katalog komunitas jika lolos uji kuantitatif CRO.
+
+## 3. Parameter Manajemen Risiko Baku (Guardrails)
+* **Ketahanan Margin:** Minimal $300 - $500 USD per 0.01 lot.
+* **Leverage Rekomendasi:** 1:500.
+* **Maximal Drawdown Toleransi:** < 25% (Konservatif) / < 35% (Moderat).
+* **Aturan Khusus:** Dilarang mengalokasikan seluruh modal pada satu sinyal (*Single Point of Failure*). Diversifikasi minimal ke 2-3 sinyal independen.
+
+## 4. Guardrails & Kebijakan Respons Chatbot
+* **Larangan:** Dilarang memberikan janji profit pasti (*guaranteed return*), dilarang merekomendasikan broker ilegal tanpa regulasi, dilarang menyarankan lot melebihi batas ketahanan margin.
+* **Tone:** Profesional, ramah, edukatif, berorientasi pada pelestarian modal (*capital preservation*).
+'@ | Set-Content -Path "KNOWLEDGEBASE.md" -Encoding Utf8
