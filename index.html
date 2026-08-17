@@ -1,12 +1,526 @@
 ﻿<!doctype html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Traders Club - Signal Analyzer</title>
   </head>
-  <body class="bg-slate-50 text-slate-900 font-sans">
+  <body class="bg-slate-900 text-slate-100">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- ============================================================
+      OMNIBOT FLOATING WIDGET v1.3 - GROQ LPU ULTRA-FAST EDITION
+      Plug & Play: Tempelkan tepat sebelum tag penutup </body>
+    ============================================================ -->
+
+    <div id="omni-chatbot-container">
+      <!-- Floating Launcher Bubble -->
+      <button id="omni-chat-launcher" aria-label="Buka Chat" onclick="OmniChat.toggle()">
+        <span class="omni-badge" id="omni-unread-badge">1</span>
+        <svg class="omni-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+        </svg>
+        <svg class="omni-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Chat Window Pop-up -->
+      <div id="omni-chat-window">
+        <!-- Header -->
+        <div class="omni-header">
+          <div class="omni-bot-info">
+            <div class="omni-avatar">⚡</div>
+            <div>
+              <h4 class="omni-title">Alpha Assistant</h4>
+              <span class="omni-status"><span class="omni-dot"></span> Online • LPU Active</span>
+            </div>
+          </div>
+          <div class="omni-header-actions">
+            <button onclick="OmniChat.toggleMute()" id="omni-mute-btn" title="Toggle Suara">🔊</button>
+            <button onclick="OmniChat.resetChat()" title="Reset Percakapan">🔄</button>
+            <button onclick="OmniChat.toggle()" title="Tutup">✕</button>
+          </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="omni-messages" id="omni-messages-list">
+          <!-- Chat bubbles rendered dynamically -->
+        </div>
+
+        <!-- Quick Reply Suggestions -->
+        <div class="omni-quick-chips" id="omni-chips-container">
+          <button onclick="OmniChat.sendQuickReply('Apa keunggulan bergabung di Alpha Traders Club?')">💡 Tentang Alpha Club</button>
+          <button onclick="OmniChat.sendQuickReply('Bagaimana cara mendapatkan sinyal trading & analisis?')">📊 Sinyal & Analisis</button>
+          <button onclick="OmniChat.sendQuickReply('Berapa risk management yang disarankan?')">🛡️ Risk Management</button>
+        </div>
+
+        <!-- Input Area -->
+        <form class="omni-input-area" onsubmit="OmniChat.handleSubmit(event)">
+          <input type="text" id="omni-user-input" placeholder="Tanya analisis, strategi, atau club..." autocomplete="off" />
+          <button type="submit" id="omni-send-btn" aria-label="Kirim Pesan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <style>
+      :root {
+        --omni-primary: #10b981;
+        --omni-primary-hover: #059669;
+        --omni-bg-dark: #0f172a;
+        --omni-surface: #1e293b;
+        --omni-surface-light: #334155;
+        --omni-text-main: #f8fafc;
+        --omni-text-muted: #94a3b8;
+        --omni-user-bubble: #10b981;
+        --omni-bot-bubble: #1e293b;
+        --omni-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      }
+
+      #omni-chatbot-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 999999;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        color: var(--omni-text-main);
+      }
+
+      #omni-chat-launcher {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--omni-primary);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        cursor: pointer;
+        box-shadow: var(--omni-shadow);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+      }
+      #omni-chat-launcher:hover {
+        transform: scale(1.06);
+        background-color: var(--omni-primary-hover);
+      }
+      #omni-chat-launcher svg {
+        width: 28px;
+        height: 28px;
+        transition: transform 0.2s ease;
+      }
+      #omni-chat-launcher .omni-icon-close { display: none; }
+
+      #omni-chatbot-container.omni-active #omni-chat-launcher .omni-icon-open { display: none; }
+      #omni-chatbot-container.omni-active #omni-chat-launcher .omni-icon-close { display: block; }
+      #omni-chatbot-container.omni-active #omni-unread-badge { display: none; }
+
+      .omni-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 12px;
+        border: 2px solid var(--omni-bg-dark);
+      }
+
+      #omni-chat-window {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        bottom: 75px;
+        right: 0;
+        width: 380px;
+        height: 580px;
+        max-width: calc(100vw - 32px);
+        max-height: calc(100vh - 110px);
+        background: var(--omni-bg-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        box-shadow: var(--omni-shadow);
+        overflow: hidden;
+        transform-origin: bottom right;
+        animation: omniSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      #omni-chatbot-container.omni-active #omni-chat-window {
+        display: flex;
+      }
+
+      @keyframes omniSlideIn {
+        from { opacity: 0; transform: scale(0.9) translateY(20px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+
+      .omni-header {
+        background: var(--omni-surface);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .omni-bot-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .omni-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(16, 185, 129, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        border: 1px solid var(--omni-primary);
+      }
+      .omni-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+      }
+      .omni-status {
+        font-size: 11px;
+        color: var(--omni-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .omni-dot {
+        width: 7px;
+        height: 7px;
+        background: var(--omni-primary);
+        border-radius: 50%;
+        box-shadow: 0 0 8px var(--omni-primary);
+      }
+      .omni-header-actions button {
+        background: transparent;
+        border: none;
+        color: var(--omni-text-muted);
+        font-size: 14px;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 6px;
+        transition: background 0.2s;
+      }
+      .omni-header-actions button:hover {
+        background: var(--omni-surface-light);
+        color: #ffffff;
+      }
+
+      .omni-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.04), transparent 60%);
+      }
+      .omni-msg {
+        max-width: 82%;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 13.5px;
+        line-height: 1.5;
+        word-break: break-word;
+      }
+      .omni-msg.bot {
+        align-self: flex-start;
+        background: var(--omni-bot-bubble);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        color: var(--omni-text-main);
+        border-bottom-left-radius: 4px;
+      }
+      .omni-msg.user {
+        align-self: flex-end;
+        background: var(--omni-user-bubble);
+        color: #ffffff;
+        border-bottom-right-radius: 4px;
+      }
+      .omni-msg p { margin: 0 0 8px 0; }
+      .omni-msg p:last-child { margin-bottom: 0; }
+      .omni-msg ul, .omni-msg ol { margin: 4px 0 6px 18px; padding: 0; }
+      .omni-msg li { margin-bottom: 3px; }
+      .omni-msg code {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 12px;
+      }
+
+      .omni-typing {
+        display: inline-flex;
+        gap: 4px;
+        padding: 8px 12px;
+        background: var(--omni-bot-bubble);
+        border-radius: 12px;
+        align-self: flex-start;
+      }
+      .omni-typing span {
+        width: 6px;
+        height: 6px;
+        background: var(--omni-primary);
+        border-radius: 50%;
+        animation: omniPulse 1s infinite alternate;
+      }
+      .omni-typing span:nth-child(2) { animation-delay: 0.2s; }
+      .omni-typing span:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes omniPulse {
+        from { opacity: 0.3; transform: translateY(0); }
+        to { opacity: 1; transform: translateY(-4px); }
+      }
+
+      .omni-quick-chips {
+        padding: 6px 12px 10px;
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+      }
+      .omni-quick-chips::-webkit-scrollbar { display: none; }
+      .omni-quick-chips button {
+        background: var(--omni-surface);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--omni-text-muted);
+        font-size: 11.5px;
+        padding: 6px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .omni-quick-chips button:hover {
+        background: var(--omni-primary);
+        color: #ffffff;
+        border-color: var(--omni-primary);
+      }
+
+      .omni-input-area {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        background: var(--omni-surface);
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .omni-input-area input {
+        flex: 1;
+        background: var(--omni-bg-dark);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13.5px;
+        color: #ffffff;
+        outline: none;
+      }
+      .omni-input-area input:focus {
+        border-color: var(--omni-primary);
+      }
+      .omni-input-area button {
+        width: 38px;
+        height: 38px;
+        background: var(--omni-primary);
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .omni-input-area button:hover {
+        background: var(--omni-primary-hover);
+      }
+      .omni-input-area button svg {
+        width: 18px;
+        height: 18px;
+      }
+    </style>
+
+    <script>
+      /**
+       * OmniBot Core Engine v1.3 - Groq LPU Powered
+       */
+      window.OmniChat = (() => {
+        const CONFIG = {
+          proxyEndpoint: "https://alphatradersclubchat.humblebasty.workers.dev",
+          systemPrompt: "Anda adalah Alpha AI Assistant resmi untuk Alpha Traders Club. Berikan jawaban profesional, lugas, edukatif, dan ramah seputar trading forex, komoditas, indices, manajemen risiko, serta ekosistem komunitas Alpha Traders Club. Selalu ingatkan pentingnya money management."
+        };
+
+        let messages = JSON.parse(localStorage.getItem("omni_chat_history") || "[]");
+        let isSoundMuted = localStorage.getItem("omni_chat_muted") === "true";
+        let isWaitingResponse = false;
+
+        const playAudioPing = (freq = 600, duration = 0.08) => {
+          if (isSoundMuted) return;
+          try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+          } catch (e) { /* Audio context safety */ }
+        };
+
+        const parseMarkdown = (text) => {
+          return text
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/^\s*-\s+(.*)$/gim, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>')
+            .replace(/\n\n/g, '<br><br>')
+            .replace(/\n/g, '<br>');
+        };
+
+        const renderMessages = () => {
+          const container = document.getElementById("omni-messages-list");
+          if (!container) return;
+
+          if (messages.length === 0) {
+            messages.push({
+              role: "assistant",
+              content: "Halo Trader! ⚡ Selamat datang di **Alpha Traders Club**. Ada yang bisa saya bantu terkait analisis pasar, sinyal trading, atau info komunitas hari ini?"
+            });
+          }
+
+          container.innerHTML = messages.map(m => `
+            <div class="omni-msg ${m.role === 'user' ? 'user' : 'bot'}">
+              ${parseMarkdown(m.content)}
+            </div>
+          `).join("");
+
+          container.scrollTop = container.scrollHeight;
+        };
+
+        const toggle = () => {
+          const wrapper = document.getElementById("omni-chatbot-container");
+          wrapper.classList.toggle("omni-active");
+          if (wrapper.classList.contains("omni-active")) {
+            renderMessages();
+            document.getElementById("omni-user-input").focus();
+          }
+        };
+
+        const toggleMute = () => {
+          isSoundMuted = !isSoundMuted;
+          localStorage.setItem("omni_chat_muted", isSoundMuted);
+          document.getElementById("omni-mute-btn").innerText = isSoundMuted ? "🔇" : "🔊";
+        };
+
+        const resetChat = () => {
+          if (confirm("Reset seluruh percakapan chat?")) {
+            messages = [];
+            localStorage.removeItem("omni_chat_history");
+            renderMessages();
+          }
+        };
+
+        const callAI = async (chatHistory) => {
+          try {
+            const res = await fetch(CONFIG.proxyEndpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messages: [
+                  { role: "system", content: CONFIG.systemPrompt },
+                  ...chatHistory
+                ]
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.choices && data.choices[0]) {
+                return data.choices[0].message.content;
+              }
+              if (data.error) {
+                return `⚠️ Error Provider: ${data.error.message || data.error}`;
+              }
+            }
+          } catch (err) {
+            console.error("[OmniBot Groq Worker Error]", err);
+          }
+
+          return "⚠️ Gagal mendapatkan respons dari AI. Pastikan URL Cloudflare Worker dan API Key Groq sudah terkonfigurasi dengan benar.";
+        };
+
+        const sendMessage = async (text) => {
+          if (!text.trim() || isWaitingResponse) return;
+
+          messages.push({ role: "user", content: text });
+          localStorage.setItem("omni_chat_history", JSON.stringify(messages));
+          renderMessages();
+          playAudioPing(520, 0.06);
+
+          const container = document.getElementById("omni-messages-list");
+          const typingEl = document.createElement("div");
+          typingEl.className = "omni-typing";
+          typingEl.innerHTML = "<span></span><span></span><span></span>";
+          container.appendChild(typingEl);
+          container.scrollTop = container.scrollHeight;
+
+          isWaitingResponse = true;
+
+          try {
+            const botReply = await callAI(messages.map(m => ({ role: m.role, content: m.content })));
+            messages.push({ role: "assistant", content: botReply });
+            localStorage.setItem("omni_chat_history", JSON.stringify(messages));
+            playAudioPing(840, 0.09);
+          } catch (e) {
+            messages.push({ role: "assistant", content: "⚠️ Terjadi kesalahan jaringan saat memproses pesan." });
+          } finally {
+            isWaitingResponse = false;
+            renderMessages();
+          }
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          const input = document.getElementById("omni-user-input");
+          const txt = input.value;
+          input.value = "";
+          sendMessage(txt);
+        };
+
+        const sendQuickReply = (txt) => {
+          sendMessage(txt);
+        };
+
+        return {
+          toggle,
+          toggleMute,
+          resetChat,
+          handleSubmit,
+          sendQuickReply
+        };
+      })();
+    </script>
   </body>
 </html>
