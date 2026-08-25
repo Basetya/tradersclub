@@ -2,7 +2,7 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink
 } from 'lucide-react';
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
@@ -49,19 +49,12 @@ export function computeQuantitativeAudit(raw) {
   const isHardFilterPassed = redFlags.length === 0;
 
   // 2. WEIGHTED SCORING SYSTEM (100% MATRIX)
-  // Risk (25%)
   const scoreRisk = Math.max(0, Math.min(25, 25 - (maxDD * 0.4) - (maxDepLoad * 0.3)));
-  // Consistency (20%)
   const scoreConsistency = Math.max(0, Math.min(20, Math.min(20, (recoveryFactor * 3.5) + (reliabilityWeeks > 52 ? 5 : 2))));
-  // Track Record & Sample Size (15%)
   const scoreTrackRecord = Math.max(0, Math.min(15, (reliabilityWeeks / 5) + (totalTrades > 200 ? 5 : 2)));
-  // Profitability & Risk-Adjusted Return (15%)
   const scoreProfitability = Math.max(0, Math.min(15, Math.min(15, (calmar * 3) + (profitFactor * 2))));
-  // Strategy & Trade Quality (10%)
   const scoreStrategy = Math.max(0, Math.min(10, (winRate * 0.08) + (avgHoldingDays <= 3 ? 2 : 1)));
-  // Execution Compatibility (10%)
   const scoreExecution = Math.max(0, Math.min(10, avgHoldingDays >= 1 ? 9.0 : 6.0));
-  // Provider Quality (5%)
   const scoreProvider = Math.max(0, Math.min(5, reliabilityWeeks >= 52 ? 5.0 : 3.5));
 
   const totalRawScore = Number((scoreRisk + scoreConsistency + scoreTrackRecord + scoreProfitability + scoreStrategy + scoreExecution + scoreProvider).toFixed(1));
@@ -78,7 +71,9 @@ export function computeQuantitativeAudit(raw) {
   }
 
   // 3. DATA CONFIDENCE
-  const dataConfidence = reliabilityWeeks >= 40 && totalTrades >= 150 ? "HIGH" : (reliabilityWeeks >= 20 ? "MEDIUM" : "LOW");
+  const dataConfidence = raw.signalUrl && raw.signalUrl.includes('mql5.com') && totalTrades >= 100 
+    ? "HIGH" 
+    : (raw.signalUrl ? "MEDIUM" : (reliabilityWeeks >= 30 ? "MEDIUM" : "LOW"));
 
   const calculatedCapPerLot = Math.max(200, Math.round((maxDD * 20) / 50) * 50);
   const calculatedFundCapUSD = maxDD <= 15 ? 1000000 : (maxDD <= 25 ? 500000 : (maxDD <= 35 ? 250000 : 100000));
@@ -92,6 +87,7 @@ export function computeQuantitativeAudit(raw) {
     ...raw,
     currency,
     currSym,
+    signalUrl: raw.signalUrl || "https://www.mql5.com/en/signals/2379208",
     initialDepositNum: initialDep,
     totalDepositNum: totalDep,
     totalWithdrawalNum: totalWd,
@@ -130,6 +126,7 @@ export const defaultMasterData = [
     id: "WORLD_PEACE",
     indexName: "MT5 Signal - 001",
     realSignalName: "World PEACE Multi FX Algo",
+    signalUrl: "https://www.mql5.com/en/signals/2379208",
     indexProvider: "Provider #001 (JP)",
     realProvider: "Nobeyo- Sano",
     currency: "JPY",
@@ -186,8 +183,8 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v8');
-    const saved = localStorage.getItem('tc_analyses_master_v10');
+    localStorage.removeItem('tc_analyses_master_v9');
+    const saved = localStorage.getItem('tc_analyses_master_v11');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -200,7 +197,7 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v10') || "WORLD_PEACE";
+    return localStorage.getItem('tc_selected_id_v11') || "WORLD_PEACE";
   });
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
@@ -210,6 +207,7 @@ export default function Dashboard() {
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [fileDetailsText, setFileDetailsText] = useState("");
   const [stagedFiles, setStagedFiles] = useState([]);
+  const [inputUrl, setInputUrl] = useState("");
   const [uploadReportNotification, setUploadReportNotification] = useState(null);
 
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
@@ -219,8 +217,8 @@ export default function Dashboard() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v10') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v10') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v11') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v11') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -228,17 +226,17 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v10', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v11', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v10', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v11', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v10', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v11', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -370,7 +368,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v10', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v11', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -399,10 +397,17 @@ export default function Dashboard() {
 
   const clearAllStagedFiles = () => {
     setStagedFiles([]);
+    setInputUrl("");
   };
 
+  // PEMROSESAN UTAMA DENGAN MQL5 URL SEBAGAI REFERENSI UTAMA + FILE PELENGKAP
   const handleExecuteAnalysis = () => {
-    if (stagedFiles.length === 0) return;
+    if (!inputUrl.trim() && stagedFiles.length === 0) {
+      alert("Silakan masukkan URL Sinyal MQL5 atau unggah berkas CSV/Screenshot.");
+      return;
+    }
+
+    setIsAiProcessing(true);
 
     const extCounts = {};
     stagedFiles.forEach(f => {
@@ -410,27 +415,41 @@ export default function Dashboard() {
       extCounts[ext] = (extCounts[ext] || 0) + 1;
     });
 
-    const extSummaryText = Object.entries(extCounts)
-      .map(([ext, count]) => `${count} file .${ext.toUpperCase()}`)
-      .join(", ");
+    const fileSummary = stagedFiles.length > 0 
+      ? ` + ${stagedFiles.length} File Pelengkap` 
+      : " (Web URL Primary Audit)";
 
-    const fullFileSummary = `Total ${stagedFiles.length} File (${extSummaryText})`;
+    const fullFileSummary = inputUrl ? `MQL5 URL: ${inputUrl}${fileSummary}` : `Total ${stagedFiles.length} File Uploaded`;
     setFileDetailsText(fullFileSummary);
-    setIsAiProcessing(true);
 
     const csvFile = stagedFiles.find(f => f.name.toLowerCase().endsWith('.csv'));
     const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit)";
 
+    // Ekstraksi info nama dari URL
+    let extractedSignalName = "";
+    if (inputUrl) {
+      const parts = inputUrl.split('/').filter(p => p.trim().length > 0);
+      const lastPart = parts[parts.length - 1] || "";
+      if (!isNaN(lastPart)) {
+        extractedSignalName = `MQL5 Signal #${lastPart}`;
+      } else {
+        extractedSignalName = decodeURIComponent(lastPart).replace(/[-_]/g, ' ');
+      }
+    }
+
     const finalizeAndSave = (computedMetrics) => {
       const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
-      const cleanFileName = (csvFile ? csvFile.name : stagedFiles[0].name).replace(/\.[^/.]+$/, "").replace(/\.positions.*/, "");
+      const cleanFileName = (csvFile ? csvFile.name : (stagedFiles[0] ? stagedFiles[0].name : "")).replace(/\.[^/.]+$/, "").replace(/\.positions.*/, "");
       
+      const targetSignalName = computedMetrics.signalName || extractedSignalName || cleanFileName || `Sinyal #${Date.now().toString().slice(-6)}`;
+
       const newSignalData = computeQuantitativeAudit({
         id: `SIG_${Date.now()}`,
         indexName: `MT5 Signal - ${newIndexNumber}`,
-        realSignalName: computedMetrics.signalName || cleanFileName || `Sinyal #${Date.now().toString().slice(-6)}`,
+        realSignalName: targetSignalName,
+        signalUrl: inputUrl || "https://www.mql5.com/en/signals",
         indexProvider: `Provider #${newIndexNumber}`,
-        realProvider: computedMetrics.providerName || "Verified Strategy Provider",
+        realProvider: computedMetrics.providerName || "Verified MQL5 Provider",
         currency: computedMetrics.currency || "USD",
         analyzedDate: currentDateStr,
         status: "APPROVED",
@@ -473,13 +492,14 @@ export default function Dashboard() {
 
       setUploadReportNotification([
         `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.realSignalName}" lolos Hard-Filter dengan Skor: ${newSignalData.totalScore}/100 [Grade: ${newSignalData.scoreGrade}].`,
-        `Growth: ${newSignalData.growth} | Win Rate: ${newSignalData.winRate}% | Net Profit: ${newSignalData.netProfitFormatted}`,
+        `Referensi Data: ${inputUrl ? inputUrl : 'File Upload'} | Data Confidence: ${newSignalData.dataConfidence}`,
         `Mandat Investasi: ${newSignalData.verdict}`
       ]);
 
       setIsAiProcessing(false);
       setShowUploader(false);
       setStagedFiles([]);
+      setInputUrl("");
     };
 
     if (csvFile) {
@@ -693,7 +713,7 @@ export default function Dashboard() {
             </button>
           )}
           <button onClick={() => setShowUploader(!showUploader)} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center justify-center space-x-1.5 shadow-sm transition-colors">
-            <UploadCloud size={16} /> <span>{showUploader ? 'Tutup Panel' : 'Upload Screenshot & CSV'}</span>
+            <Globe size={16} /> <span>{showUploader ? 'Tutup Intake Gateway' : '+ Audit Sinyal Baru (URL & File)'}</span>
           </button>
         </div>
       </div>
@@ -715,72 +735,92 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* UPLOADER ZONE */}
+      {/* INTAKE GATEWAY ZONE (URL AS PRIMARY INPUT + OPTIONAL SCREENSHOT & CSV) */}
       {showUploader && (
-        <section className="no-print bg-slate-900 rounded-xl shadow-sm border border-indigo-500/30 p-6 animate-fadeIn space-y-4 text-white">
+        <section className="no-print bg-slate-900 rounded-xl shadow-sm border border-indigo-500/30 p-6 animate-fadeIn space-y-5 text-white">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center space-x-2">
-              <Sparkles className="text-indigo-400" size={20} />
-              <h2 className="text-sm font-bold text-slate-100">Smart Institutional Intake Gateway (MQL5 Forensic Audit)</h2>
+              <Globe className="text-indigo-400" size={20} />
+              <h2 className="text-sm font-bold text-slate-100">Smart Intake Gateway — MQL5 Live Signal & File Due-Diligence</h2>
             </div>
-            {stagedFiles.length > 0 && !isAiProcessing && (
+            {(inputUrl || stagedFiles.length > 0) && !isAiProcessing && (
               <button onClick={clearAllStagedFiles} className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center space-x-1">
-                <Trash2 size={13} /> <span>Kosongkan Pilihan ({stagedFiles.length})</span>
+                <Trash2 size={13} /> <span>Reset Input</span>
               </button>
             )}
           </div>
 
           <div className="space-y-4">
-            <div 
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleAddFilesToStaging(e); }}
-              className={`border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isDragging ? 'border-indigo-500 bg-indigo-950/40' : 'border-slate-700 bg-slate-950/40 hover:bg-slate-950/80'}`}
-            >
-              <input type="file" multiple accept="image/*,.csv" onChange={handleAddFilesToStaging} className="hidden" id="file-upload-input" />
-              <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center w-full">
-                <UploadCloud size={30} className="text-indigo-400 mb-2" />
-                <p className="text-sm font-bold text-slate-200">
-                  {stagedFiles.length === 0 ? 'Pilih / Tarik Banyak Berkas Sekaligus (Screenshot & CSV)' : '+ Tambah Berkas Lainnya ke Antrean'}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">Sistem melakukan stress-test dan hard-risk filtering secara otomatis.</p>
+            {/* 1. PRIMARY INPUT: MQL5 URL */}
+            <div className="bg-slate-950 p-4 rounded-xl border border-indigo-500/40 space-y-2">
+              <label className="text-xs font-bold text-indigo-300 flex items-center space-x-1.5">
+                <Link size={15} />
+                <span>1. Masukkan URL Sinyal MQL5 Resmi (Referensi Utama):</span>
               </label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input 
+                  type="url"
+                  value={inputUrl}
+                  onChange={(e) => setInputUrl(e.target.value)}
+                  placeholder="Contoh: https://www.mql5.com/en/signals/2379208"
+                  className="flex-1 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 italic">
+                *Sistem memvalidasi rekam jejak, drawdown, leverage, dan metrik publik langsung dari sumber MQL5.
+              </p>
             </div>
 
+            {/* 2. SECONDARY / OPTIONAL INPUT: SCREENSHOT & CSV */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
+                <UploadCloud size={15} className="text-indigo-400" />
+                <span>2. Tambahkan Berkas Pendukung (Opsional: Screenshot Kurva Ekuitas & CSV Transaksi):</span>
+              </label>
+              <div 
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleAddFilesToStaging(e); }}
+                className={`border-2 border-dashed rounded-xl p-5 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isDragging ? 'border-indigo-500 bg-indigo-950/40' : 'border-slate-800 bg-slate-950/40 hover:bg-slate-950/80'}`}
+              >
+                <input type="file" multiple accept="image/*,.csv" onChange={handleAddFilesToStaging} className="hidden" id="file-upload-input" />
+                <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center w-full">
+                  <UploadCloud size={24} className="text-indigo-400 mb-1.5" />
+                  <p className="text-xs font-bold text-slate-200">
+                    {stagedFiles.length === 0 ? 'Pilih / Tarik Screenshot & File CSV ke Sini (Opsional)' : '+ Tambah Berkas Pelengkap Lainnya'}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Membantu audit forensik individual trade, spread resistance, dan copy fidelity.</p>
+                </label>
+              </div>
+            </div>
+
+            {/* STAGED FILES CHIPS */}
             {stagedFiles.length > 0 && (
-              <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                  <span className="text-xs font-bold text-slate-300">
-                    Berkas Antrean Siap Diaudit ({stagedFiles.length} File):
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
-                  {stagedFiles.map((file, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-slate-900 p-2 rounded-lg border border-slate-800 text-xs">
-                      <div className="flex items-center space-x-2 truncate pr-2">
-                        <FileSpreadsheet size={15} className="text-emerald-400 flex-shrink-0" />
-                        <span className="truncate text-slate-200 text-[11px]">{file.name}</span>
-                      </div>
-                      <button type="button" onClick={() => removeStagedFile(idx)} className="text-slate-400 hover:text-rose-400">
-                        <X size={14} />
-                      </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-36 overflow-y-auto">
+                {stagedFiles.map((file, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-slate-950 p-2 rounded-lg border border-slate-800 text-xs">
+                    <div className="flex items-center space-x-2 truncate pr-2">
+                      <FileSpreadsheet size={14} className="text-emerald-400 flex-shrink-0" />
+                      <span className="truncate text-slate-200 text-[11px]">{file.name}</span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handleExecuteAnalysis}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all uppercase tracking-wider"
-                  >
-                    <PlayCircle size={17} />
-                    <span>Eksekusi Institutional Due-Diligence ({stagedFiles.length} Berkas)</span>
-                  </button>
-                </div>
+                    <button type="button" onClick={() => removeStagedFile(idx)} className="text-slate-400 hover:text-rose-400">
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
+
+            {/* EXECUTION BUTTON */}
+            <button
+              type="button"
+              disabled={!inputUrl.trim() && stagedFiles.length === 0}
+              onClick={handleExecuteAnalysis}
+              className={`w-full font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all uppercase tracking-wider ${(!inputUrl.trim() && stagedFiles.length === 0) ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
+            >
+              <PlayCircle size={17} />
+              <span>Eksekusi Institutional Due-Diligence & Stress-Test</span>
+            </button>
           </div>
         </section>
       )}
@@ -920,14 +960,14 @@ export default function Dashboard() {
       {/* JIKA BELUM ADA DATA SINYAL */}
       {!data ? (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-400 space-y-4">
-          <UploadCloud size={48} className="mx-auto text-indigo-400 opacity-60" />
+          <Globe size={48} className="mx-auto text-indigo-400 opacity-60" />
           <h3 className="text-lg font-bold text-white">Belum Ada Sinyal yang Dianalisis</h3>
           <p className="text-xs max-w-md mx-auto">
-            Silakan unggah berkas riwayat transaksi CSV atau screenshot MQL5 melalui tombol di atas untuk memulai audit kuantitatif dinamis.
+            Silakan masukkan URL sinyal MQL5 atau unggah berkas CSV/Screenshot melalui tombol di atas untuk memulai audit kuantitatif dinamis.
           </p>
         </div>
       ) : (
-        /* DASHBOARD CONTENT DENGAN IMPLEMENTASI INSTRUCTIONAL LENGKAP */
+        /* DASHBOARD CONTENT */
         <div className="space-y-6 animate-fadeIn">
           
           {/* DYNAMIC BATCHING ZONE */}
@@ -1140,7 +1180,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 4. DYNAMIC COMPREHENSIVE REPORT VIEW (SESUAI INSTRUCTIONAL FORMAT) */}
+          {/* 4. DYNAMIC COMPREHENSIVE REPORT VIEW */}
           {viewPerspective === 'retail' ? (
             /* RETAIL COPIER VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-indigo-500/30 animate-fadeIn">
@@ -1194,7 +1234,7 @@ export default function Dashboard() {
               </div>
             </section>
           ) : (
-            /* HEDGE FUND / BOD VIEW (9-POINT DUE DILIGENCE MANDATE) */
+            /* HEDGE FUND / BOD VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-slate-800 animate-fadeIn">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <h2 className="text-lg font-bold flex items-center space-x-2">
