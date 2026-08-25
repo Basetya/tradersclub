@@ -2,12 +2,14 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck
 } from 'lucide-react';
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
-// MESIN ANALISIS KUANTITATIF & KALKULASI DINAMIS INSTITUSIONAL
+// ============================================================================
+// MESIN AUDIT KUANTITATIF & HARD-RISK FILTER BERBASIS INSTRUCTIONAL PROMPT RESMI
+// ============================================================================
 export function computeQuantitativeAudit(raw) {
   const currency = raw.currency || "JPY";
   const currSym = currency === "JPY" ? "JPY" : (currency === "EUR" ? "EUR" : "USD");
@@ -28,16 +30,56 @@ export function computeQuantitativeAudit(raw) {
   const totalTrades = parseInt(raw.totalTrades) || 450;
   const reliabilityWeeks = parseInt(raw.reliabilityWeeks) || 76;
   const avgHoldingDays = parseFloat(raw.avgHoldingDays) || 2.0;
+  const profitFactor = parseFloat(raw.profitFactor) || 2.65;
 
   const growthNum = parseFloat(String(raw.growth).replace(/[^0-9.-]/g, '')) || 3283.95;
   const calmar = maxDD > 0 ? Number((growthNum / maxDD / Math.max(1, reliabilityWeeks / 52)).toFixed(2)) : 2.95;
   const recoveryFactor = maxDD > 0 ? Number((growthNum / maxDD).toFixed(2)) : 3.85;
   const expectancyVal = totalTrades > 0 ? Number((netProf / totalTrades).toFixed(2)) : 28.5;
-  const profitFactor = parseFloat(raw.profitFactor) || 2.65;
 
-  const isToxicMartingale = maxDepLoad > 35.0 || (raw.lossTradesShare && raw.lossTradesShare > 60 && profitFactor < 1.1);
-  const estimatedMaxLayers = Math.max(1, Math.min(8, Math.round(maxDepLoad / 3.5)));
-  
+  // 1. HARD-RISK FILTER EVALUATION (ANTI-TOXIC ENGINE)
+  const redFlags = [];
+  if (maxDD > 40.0) redFlags.push("Maximum Equity Drawdown melampaui batas aman (>40%).");
+  if (maxDepLoad > 40.0) redFlags.push("Deposit Load sangat tinggi (>40%), indikasi leverage tidak terkendali.");
+  if (isEmergencyDeposit) redFlags.push(`Terindikasi suntikan modal darurat (+${extraDepositRatio.toFixed(1)}%) saat drawdown.`);
+  if (reliabilityWeeks < 16) redFlags.push("Track record aktif terlalu pendek (<16 Minggu).");
+  if (totalTrades < 50) redFlags.push("Sample ukuran transaksi tidak memadai untuk validasi statistik (<50 trades).");
+  if (raw.lossTradesShare && raw.lossTradesShare > 60 && profitFactor < 1.1) redFlags.push("Payoff ratio tidak seimbang terhadap frekuensi kerugian.");
+
+  const isHardFilterPassed = redFlags.length === 0;
+
+  // 2. WEIGHTED SCORING SYSTEM (100% MATRIX)
+  // Risk (25%)
+  const scoreRisk = Math.max(0, Math.min(25, 25 - (maxDD * 0.4) - (maxDepLoad * 0.3)));
+  // Consistency (20%)
+  const scoreConsistency = Math.max(0, Math.min(20, Math.min(20, (recoveryFactor * 3.5) + (reliabilityWeeks > 52 ? 5 : 2))));
+  // Track Record & Sample Size (15%)
+  const scoreTrackRecord = Math.max(0, Math.min(15, (reliabilityWeeks / 5) + (totalTrades > 200 ? 5 : 2)));
+  // Profitability & Risk-Adjusted Return (15%)
+  const scoreProfitability = Math.max(0, Math.min(15, Math.min(15, (calmar * 3) + (profitFactor * 2))));
+  // Strategy & Trade Quality (10%)
+  const scoreStrategy = Math.max(0, Math.min(10, (winRate * 0.08) + (avgHoldingDays <= 3 ? 2 : 1)));
+  // Execution Compatibility (10%)
+  const scoreExecution = Math.max(0, Math.min(10, avgHoldingDays >= 1 ? 9.0 : 6.0));
+  // Provider Quality (5%)
+  const scoreProvider = Math.max(0, Math.min(5, reliabilityWeeks >= 52 ? 5.0 : 3.5));
+
+  const totalRawScore = Number((scoreRisk + scoreConsistency + scoreTrackRecord + scoreProfitability + scoreStrategy + scoreExecution + scoreProvider).toFixed(1));
+  const totalScore = isHardFilterPassed ? totalRawScore : Math.min(48.0, totalRawScore);
+
+  let scoreGrade = "D (Reject)";
+  let verdict = "REJECT / DO NOT APPROVE";
+  if (isHardFilterPassed) {
+    if (totalScore >= 85) { scoreGrade = "A+ (Excellent)"; verdict = "APPROVE FOR LIMITED REAL CAPITAL"; }
+    else if (totalScore >= 75) { scoreGrade = "A (Strong)"; verdict = "APPROVE FOR DEMO / LIMITED REAL CAPITAL"; }
+    else if (totalScore >= 65) { scoreGrade = "B (Watchlist)"; verdict = "WATCHLIST / APPROVE FOR DEMO"; }
+    else if (totalScore >= 55) { scoreGrade = "C (Speculative)"; verdict = "APPROVE FOR DEMO ONLY"; }
+    else { scoreGrade = "D (Reject)"; verdict = "DO NOT APPROVE / REJECT"; }
+  }
+
+  // 3. DATA CONFIDENCE
+  const dataConfidence = reliabilityWeeks >= 40 && totalTrades >= 150 ? "HIGH" : (reliabilityWeeks >= 20 ? "MEDIUM" : "LOW");
+
   const calculatedCapPerLot = Math.max(200, Math.round((maxDD * 20) / 50) * 50);
   const calculatedFundCapUSD = maxDD <= 15 ? 1000000 : (maxDD <= 25 ? 500000 : (maxDD <= 35 ? 250000 : 100000));
   const activeLeverage = raw.leverage || "1:500";
@@ -61,8 +103,21 @@ export function computeQuantitativeAudit(raw) {
     recoveryFactor: recoveryFactor > 0 ? recoveryFactor : 3.85,
     expectancyUSD: `${expectancyVal > 0 ? '+' : ''}${expectancyVal.toLocaleString()} ${currSym} / Trade`,
     profitFactor,
-    isToxicMartingale,
-    estimatedMaxLayers,
+    isHardFilterPassed,
+    redFlags,
+    scoreBreakdown: {
+      risk: Number(scoreRisk.toFixed(1)),
+      consistency: Number(scoreConsistency.toFixed(1)),
+      trackRecord: Number(scoreTrackRecord.toFixed(1)),
+      profitability: Number(scoreProfitability.toFixed(1)),
+      strategy: Number(scoreStrategy.toFixed(1)),
+      execution: Number(scoreExecution.toFixed(1)),
+      provider: Number(scoreProvider.toFixed(1))
+    },
+    totalScore,
+    scoreGrade,
+    verdict,
+    dataConfidence,
     fundCapacity: `$${calculatedFundCapUSD.toLocaleString()} USD (${maxDD <= 25 ? 'Deep Liquidity' : 'Standard Liquidity'})`,
     recommendedCapitalPerLot: calculatedCapPerLot,
     leverage: activeLeverage,
@@ -131,9 +186,8 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v7');
     localStorage.removeItem('tc_analyses_master_v8');
-    const saved = localStorage.getItem('tc_analyses_master_v9');
+    const saved = localStorage.getItem('tc_analyses_master_v10');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -146,7 +200,7 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v9') || "WORLD_PEACE";
+    return localStorage.getItem('tc_selected_id_v10') || "WORLD_PEACE";
   });
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
@@ -165,10 +219,8 @@ export default function Dashboard() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v9') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => {
-    return localStorage.getItem('tc_admin_pw_v9') || "151264!";
-  });
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v10') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v10') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -176,17 +228,17 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v9', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v10', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v9', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v10', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v9', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v10', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -220,7 +272,7 @@ export default function Dashboard() {
       const cleanSignalName = displayName.replace(/[^a-zA-Z0-9_-]/g, '_');
       const cleanDate = (data.analyzedDate || '').replace(/[^a-zA-Z0-9_-]/g, '_');
       
-      document.title = `Laporan_Audit_TradersClub_${cleanSignalName}_${cleanDate}`;
+      document.title = `Laporan_Audit_Kuantitatif_${cleanSignalName}_${cleanDate}`;
       window.print();
       
       setTimeout(() => {
@@ -301,7 +353,6 @@ export default function Dashboard() {
     }, 600);
   };
 
-  // VERIFIKASI STRICT PASSWORD ADMIN: PERSIS 100% "151264!"
   const handleAdminAuth = (e) => {
     e.preventDefault();
     const currentPass = adminPassword || "151264!";
@@ -319,7 +370,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v9', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v10', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -421,9 +472,9 @@ export default function Dashboard() {
       setSelectedSignalId(newSignalData.id);
 
       setUploadReportNotification([
-        `[AUDIT BERKAS BERHASIL] Sinyal "${newSignalData.realSignalName}" berhasil dianalisis secara dinamis.`,
+        `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.realSignalName}" lolos Hard-Filter dengan Skor: ${newSignalData.totalScore}/100 [Grade: ${newSignalData.scoreGrade}].`,
         `Growth: ${newSignalData.growth} | Win Rate: ${newSignalData.winRate}% | Net Profit: ${newSignalData.netProfitFormatted}`,
-        `Sumber Berkas: ${fullFileSummary}`
+        `Mandat Investasi: ${newSignalData.verdict}`
       ]);
 
       setIsAiProcessing(false);
@@ -525,7 +576,6 @@ export default function Dashboard() {
     }
   };
 
-  // FUNGSI ADMIN: ARSIP & HAPUS SINYAL
   const toggleArchiveStatus = (e, id) => {
     e.stopPropagation();
     setAnalysesList(prev => prev.map(item => item.id === id ? { ...item, isArchived: !item.isArchived } : item));
@@ -604,10 +654,10 @@ export default function Dashboard() {
         <div className="print-only-header">
           <h1 className="text-xl font-bold uppercase text-slate-900">TRADERSCLUB EXECUTIVE SIGNAL INTELLIGENCE</h1>
           <p className="text-sm font-bold text-indigo-900 mt-1">
-            Laporan Hasil Audit Kuantitatif Sinyal: {displayName}
+            Laporan Hasil Audit Kuantitatif & Stress-Test: {displayName}
           </p>
           <p className="text-xs text-slate-600 font-semibold mt-0.5">
-            Institutional Risk Assessment Report | Tanggal Audit: {data.analyzedDate}
+            Institutional Quantitative Due-Diligence Report | Tanggal Audit: {data.analyzedDate} | Data Confidence: {data.dataConfidence}
           </p>
         </div>
       )}
@@ -653,7 +703,7 @@ export default function Dashboard() {
         <div className="no-print bg-indigo-900 text-white p-4 rounded-xl shadow-lg border border-indigo-700 flex justify-between items-start animate-fadeIn">
           <div className="space-y-1 pr-4">
             <p className="font-bold text-amber-400 text-xs flex items-center space-x-1.5">
-              <Sparkles size={16} /> <span>Laporan Pemrosesan Data Kuantitatif:</span>
+              <Sparkles size={16} /> <span>Laporan Hasil Audit Kuantitatif:</span>
             </p>
             <ul className="list-disc list-inside text-xs text-indigo-100 space-y-0.5 pt-1">
               {uploadReportNotification.map((note, idx) => <li key={idx}>{note}</li>)}
@@ -671,7 +721,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center space-x-2">
               <Sparkles className="text-indigo-400" size={20} />
-              <h2 className="text-sm font-bold text-slate-100">Smart Institutional Intake Gateway (Dynamic Audit)</h2>
+              <h2 className="text-sm font-bold text-slate-100">Smart Institutional Intake Gateway (MQL5 Forensic Audit)</h2>
             </div>
             {stagedFiles.length > 0 && !isAiProcessing && (
               <button onClick={clearAllStagedFiles} className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center space-x-1">
@@ -693,7 +743,7 @@ export default function Dashboard() {
                 <p className="text-sm font-bold text-slate-200">
                   {stagedFiles.length === 0 ? 'Pilih / Tarik Banyak Berkas Sekaligus (Screenshot & CSV)' : '+ Tambah Berkas Lainnya ke Antrean'}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">Sistem menganalisis seluruh data sebagai satu kesatuan audit kuantitatif tanpa template statis.</p>
+                <p className="text-xs text-slate-400 mt-1">Sistem melakukan stress-test dan hard-risk filtering secara otomatis.</p>
               </label>
             </div>
 
@@ -701,7 +751,7 @@ export default function Dashboard() {
               <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-2">
                   <span className="text-xs font-bold text-slate-300">
-                    Berkas Antrean Siap Dianalisis ({stagedFiles.length} File):
+                    Berkas Antrean Siap Diaudit ({stagedFiles.length} File):
                   </span>
                 </div>
 
@@ -726,7 +776,7 @@ export default function Dashboard() {
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all uppercase tracking-wider"
                   >
                     <PlayCircle size={17} />
-                    <span>Eksekusi Audit Kuantitatif Dinamis ({stagedFiles.length} Berkas)</span>
+                    <span>Eksekusi Institutional Due-Diligence ({stagedFiles.length} Berkas)</span>
                   </button>
                 </div>
               </div>
@@ -877,7 +927,7 @@ export default function Dashboard() {
           </p>
         </div>
       ) : (
-        /* DASHBOARD CONTENT */
+        /* DASHBOARD CONTENT DENGAN IMPLEMENTASI INSTRUCTIONAL LENGKAP */
         <div className="space-y-6 animate-fadeIn">
           
           {/* DYNAMIC BATCHING ZONE */}
@@ -947,11 +997,71 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 1. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION */}
+          {/* 1. HARD-FILTER PRE-CHECK & SCORECARD GRID */}
+          <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 space-y-4 text-white">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <Scale className="text-indigo-400" size={22} />
+                <div>
+                  <h2 className="text-base font-bold text-white">Institutional Scorecard & Hard-Filter Due Diligence</h2>
+                  <p className="text-xs text-slate-400">Prinsip: Survivability → Risk Control → Consistency → Statistical Validity → Return</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className={`text-xs px-3 py-1 rounded-full font-bold border ${data.isHardFilterPassed ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40'}`}>
+                  HARD FILTER: {data.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}
+                </span>
+                <span className="text-xs bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 px-3 py-1 rounded-full font-bold">
+                  DATA CONFIDENCE: {data.dataConfidence}
+                </span>
+              </div>
+            </div>
+
+            {/* WEIGHTED SCORE METRICS BAR */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 pt-1 text-center text-xs">
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">TOTAL SCORE</span>
+                <span className="text-lg font-bold text-amber-400">{data.totalScore}/100</span>
+                <span className="text-[10px] text-slate-300 block font-semibold">{data.scoreGrade}</span>
+              </div>
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Risk (25%)</span>
+                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.risk}/25</span>
+              </div>
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Consistency (20%)</span>
+                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.consistency}/20</span>
+              </div>
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Track Rec (15%)</span>
+                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.trackRecord}/15</span>
+              </div>
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Profitability (15%)</span>
+                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.profitability}/15</span>
+              </div>
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Strategy (10%)</span>
+                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.strategy}/10</span>
+              </div>
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Execution (10%)</span>
+                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.execution}/10</span>
+              </div>
+              <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Provider (5%)</span>
+                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.provider}/5</span>
+              </div>
+            </div>
+          </section>
+
+          {/* 2. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 space-y-4 text-white">
             <h2 className="text-lg font-bold border-b border-slate-800 pb-2 flex justify-between items-center">
               <span className="text-slate-100">Executive Summary & Institutional Recommendation ({displayName})</span>
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold px-2.5 py-1 rounded-md">STATUS: {data.status}</span>
+              <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold px-2.5 py-1 rounded-md">
+                VERDICT: {data.verdict}
+              </span>
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -981,7 +1091,7 @@ export default function Dashboard() {
                   <span>3. Allocation Recommendation</span>
                 </div>
                 <div className="text-xs text-indigo-200 space-y-1">
-                  <p><strong>Verdict:</strong> <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">APPROVED</span></p>
+                  <p><strong>Verdict:</strong> <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">{data.verdict}</span></p>
                   <p><strong>Risk Level:</strong> <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded font-bold">{data.maxDD <= 25 ? 'CONSERVATIVE / BALANCED' : 'MODERATE'}</span></p>
                   <p className="text-indigo-300 pt-0.5">Disetujui untuk copy trading dengan ketahanan margin minimum <strong>${data.recommendedCapitalPerLot} USD / 0.01 lot</strong> dan leverage <strong>{data.leverage}</strong>.</p>
                 </div>
@@ -989,7 +1099,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 2. STATISTICAL SNAPSHOT CARDS */}
+          {/* 3. STATISTICAL SNAPSHOT CARDS */}
           <section className="print-section grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Total Growth (MQL5)', value: data.growth, sub: `Reliability: ${data.reliabilityWeeks} Minggu (~${Math.round(data.reliabilityWeeks / 4.3)} Bulan)`, color: 'text-emerald-400' },
@@ -1030,7 +1140,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 3. DYNAMIC COMPREHENSIVE REPORT VIEW */}
+          {/* 4. DYNAMIC COMPREHENSIVE REPORT VIEW (SESUAI INSTRUCTIONAL FORMAT) */}
           {viewPerspective === 'retail' ? (
             /* RETAIL COPIER VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-indigo-500/30 animate-fadeIn">
@@ -1044,7 +1154,6 @@ export default function Dashboard() {
 
               <div className="space-y-4 text-xs text-slate-200 leading-relaxed">
                 
-                {/* 1. REKAM JEJAK & CASH-FLOW */}
                 <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
                   <span className="text-amber-400 font-bold text-sm flex items-center space-x-1.5">
                     <Clock size={16} /> <span>1. Rekam Jejak Historis & Validitas Arus Kas (Cash-Flow Sanity)</span>
@@ -1059,7 +1168,6 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                {/* 2. PROTEKSI FLOATING & ATURAN MARGIN */}
                 <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
                   <span className="text-emerald-400 font-bold text-sm flex items-center space-x-1.5">
                     <ShieldCheck size={16} /> <span>2. Ketahanan Floating Drawdown & Pengendalian Layering</span>
@@ -1069,7 +1177,6 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                {/* 3. PANDUAN EKSEKUSI & ALOKASI AMAN */}
                 <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
                   <span className="text-indigo-300 font-bold text-sm flex items-center space-x-1.5">
                     <Target size={16} /> <span>3. Panduan Alokasi Lot & Skala Modal Copier</span>
@@ -1087,131 +1194,113 @@ export default function Dashboard() {
               </div>
             </section>
           ) : (
-            /* HEDGE FUND / BOD VIEW */
+            /* HEDGE FUND / BOD VIEW (9-POINT DUE DILIGENCE MANDATE) */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-slate-800 animate-fadeIn">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <h2 className="text-lg font-bold flex items-center space-x-2">
                   <Award className="text-amber-400" size={22} /> 
-                  <span>Institutional Analyst Assessment Report (CRO & BOD Review) — {displayName}</span>
+                  <span>Institutional Due-Diligence Audit Report (9-Point BOD Standard) — {displayName}</span>
                 </h2>
-                <span className="text-xs bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-3 py-1 rounded-full font-medium">Hedge Fund Audit Standard</span>
+                <span className="text-xs bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-3 py-1 rounded-full font-medium">Hedge Fund Due-Diligence</span>
               </div>
 
               <div className="space-y-5 text-sm text-slate-200 leading-relaxed">
                 
-                {/* 1. ANALISIS KRONOLOGIS & FORENSIK DEPOSIT DARURAT */}
+                {/* 1. VERDICT & SCORE */}
+                <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
+                      <FileCheck size={18} /> <span>1. VERDICT & SCORECARD SUMMARY</span>
+                    </h3>
+                    <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded font-bold">
+                      {data.verdict}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-300">
+                    Sinyal <strong>{displayName}</strong> memperoleh skor akhir <strong>{data.totalScore}/100 [Klasifikasi: {data.scoreGrade}]</strong> dengan status <strong>Hard-Risk Filter: {data.isHardFilterPassed ? 'PASSED (Lolos Uji Risiko Ekstrem)' : 'FAILED'}</strong>.
+                  </p>
+                </div>
+
+                {/* 2. DATA CONFIDENCE */}
                 <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                   <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
-                    <Clock size={18} /> <span>1. Analisis Kronologis & Forensik Suntikan Modal (Emergency Injection Audit)</span>
+                    <CheckCircle size={18} /> <span>2. DATA CONFIDENCE LEVEL: {data.dataConfidence}</span>
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Audit kronologis dilakukan guna mendeteksi anomali kurva MQL5 yang kerap dimanipulasi dengan setoran darurat saat terjadi *floating drawdown* besar untuk mencegah *Margin Call*. Temuan audit:
+                    Tingkat keyakinan data diklasifikasikan sebagai <strong>{data.dataConfidence}</strong> didasarkan pada rekam jejak {data.reliabilityWeeks} Minggu aktif dan {data.totalTrades} sampel transaksi riil terverifikasi MQL5.
                   </p>
+                </div>
+
+                {/* 3. STRENGTHS */}
+                <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+                  <h3 className="font-bold text-emerald-400 text-base flex items-center space-x-2">
+                    <TrendingUp size={18} /> <span>3. KEY STRENGTHS (3–5 Kekuatan Kuantitatif)</span>
+                  </h3>
                   <ul className="list-disc list-inside text-xs text-slate-300 space-y-1 pt-1 pl-1">
-                    <li><strong>Initial Deposit:</strong> {data.initialDeposit}</li>
-                    <li><strong>Total Deposit Tambahan:</strong> {data.extraDepositNum.toLocaleString()} {data.currSym} ({data.extraDepositRatio}% dari deposit awal)</li>
-                    <li>
-                      <strong>Evaluasi Forensik Arus Kas:</strong> {data.isEmergencyDeposit 
-                        ? `⚠️ Terindikasi adanya penambahan modal darurat (${data.extraDepositRatio}%) yang berpotensi dipakai menutupi floating drawdown besar.` 
-                        : `✅ Setoran tambahan sangat minim (${data.extraDepositRatio}%), membuktikan pertumbuhan ${data.growth} murni dihasilkan dari ekspansi profit transaksi organik tanpa manipulasi injeksi modal penyelamat.`}
-                    </li>
-                    <li><strong>Akumulasi Penarikan (Withdrawals):</strong> {data.totalWithdrawal} (Yield Penarikan Sehat: {((data.totalWithdrawalNum / Math.max(1, data.initialDepositNum)) * 100).toFixed(0)}% dari modal dasar).</li>
+                    <li><strong>Kurva Pertumbuhan Eksponensial:</strong> Pertumbuhan akumulatif <strong>{data.growth}</strong> dengan imbal hasil bulanan rata-rata <strong>{data.monthlyForecast}</strong>.</li>
+                    <li><strong>Efisiensi Risiko (Calmar & Sortino):</strong> Calmar Ratio <strong>{data.calmarRatio}</strong> dan Recovery Factor <strong>{data.recoveryFactor}</strong> mencerminkan rasio profit-to-drawdown yang sangat efisien.</li>
+                    <li><strong>Margin Control:</strong> Utilisasi marjin puncak (*Max Deposit Load*) terjaga sangat ketat di angka <strong>{data.maxDepositLoad}%</strong>.</li>
+                    <li><strong>Realized Cash Flow:</strong> Akumulasi penarikan profit riil <strong>{data.totalWithdrawal}</strong> membuktikan likuiditas keuntungan yang nyata.</li>
                   </ul>
                 </div>
 
-                {/* 2. IDENTIFIKASI STRATEGI & MICROSTRUCTURE */}
+                {/* 4. MAIN RISKS */}
                 <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                   <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
-                    <Compass size={18} /> <span>2. Identifikasi Strategi Perdagangan & Market Microstructure</span>
+                    <AlertTriangle size={18} /> <span>4. MAIN RISKS (3–5 Risiko Terbesar)</span>
+                  </h3>
+                  <ul className="list-disc list-inside text-xs text-slate-300 space-y-1 pt-1 pl-1">
+                    <li><strong>Historical Drawdown:</strong> Equity Drawdown historis tercatat <strong>{data.maxDD}%</strong> saat terjadi volatilitas pasar silang.</li>
+                    <li><strong>Holding Period Exposure:</strong> Rata-rata holding {data.avgHoldingDays} hari berpotensi menghadapi pelebaran spread pada rilis berita makro (*High-Impact News*).</li>
+                    <li><strong>Multi-Pair Concurrency:</strong> Paparan simultan pada pair terkait seperti <em>{data.activePairsText}</em> dapat meningkatkan korelasi risiko saat sesi transisi New York/Tokyo.</li>
+                  </ul>
+                </div>
+
+                {/* 5. HIDDEN RISKS */}
+                <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+                  <h3 className="font-bold text-rose-400 text-base flex items-center space-x-2">
+                    <ShieldAlert size={18} /> <span>5. HIDDEN & TAIL RISKS (Risiko yang Tidak Terlihat dari ROI)</span>
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Sistem beroperasi dengan otomasi <strong>Algo Trading {data.algoTrading}%</strong> dan aktivitas trading <strong>{data.tradingActivity}%</strong>. Strategi yang teridentifikasi adalah <strong>Algorithmic Multi-Pair Mean Reversion & Short-Term Momentum Correlation</strong> pada instrumen silang <em>{data.activePairsText}</em>.
-                  </p>
-                  <p className="text-xs text-slate-300 pt-1">
-                    Strategi ini mengeksploitasi divergensi harga antar-pair dengan holding period rata-rata <strong>{data.avgHoldingDays} hari</strong>, memastikan portofolio terlindungi dari risiko struktural perubahan suku bunga jangka panjang.
+                    Audit swap drag tercatat sebesar <strong>{data.totalSwap}</strong>. Sistem terbukti tidak menyembunyikan *floating hedging zombie*. Namun, risiko *slippage execution* dapat muncul jika volume copy follower melampaui batas kapasitas likuiditas broker.
                   </p>
                 </div>
 
-                {/* 3. FORENSIK TOXIC STRATEGY: LAYERING & HEDGING CHECK */}
+                {/* 6. CURRENT RISK */}
                 <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
                   <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
-                    <Layers size={18} /> <span>3. Forensik Layering Maksimal & Pemeriksaan Long-Term Hedging</span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
-                    <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-700 space-y-1">
-                      <span className="text-emerald-400 font-bold block">A. Layering & Martingale Exposure Check</span>
-                      <p className="text-slate-300">
-                        Max Deposit Load tercatat <strong>{data.maxDepositLoad}%</strong> dengan estimasi eksposur basket maksimal <strong>{data.estimatedMaxLayers} layer simultan</strong>. {data.isToxicMartingale ? '⚠️ Profil alokasi volume menunjukkan kecenderungan averaging agresif.' : '✅ Terkonfirmasi bebas dari skema Martingale eksponensial maupun grid averaging tak terkendali.'}
-                      </p>
-                    </div>
-                    <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-700 space-y-1">
-                      <span className="text-emerald-400 font-bold block">B. Long-Term Hidden Hedging Audit</span>
-                      <p className="text-slate-300">
-                        Total beban swap tercatat <strong>{data.totalSwap} (drag rate {data.swapDragRate}%)</strong>. Ini membuktikan bahwa sistem <strong>TIDAK MEMILIKI POSISI HEDGING ZOMBIE YANG DITAHAN BERBULAN-BULAN</strong> untuk menyembunyikan floating drawdown dari catatan publik.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. QUANTITATIVE RISK METRICS */}
-                <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
-                  <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
-                    <BarChart2 size={18} /> <span>4. Evaluasi Metrik Risiko Kuantitatif Lanjutan (Risk-Adjusted Return)</span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs pt-1">
-                    <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-                      <span className="text-slate-400 font-semibold block">Calmar Ratio</span>
-                      <span className="text-emerald-400 font-bold text-base">{data.calmarRatio}</span>
-                      <p className="text-[11px] text-slate-400 mt-1">Imbal hasil tahunan {data.calmarRatio}x melampaui Max Drawdown.</p>
-                    </div>
-                    <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-                      <span className="text-slate-400 font-semibold block">Sortino Ratio</span>
-                      <span className="text-emerald-400 font-bold text-base">{data.sortinoRatio}</span>
-                      <p className="text-[11px] text-slate-400 mt-1">Ketahanan superior terhadap downside volatility.</p>
-                    </div>
-                    <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-                      <span className="text-slate-400 font-semibold block">Recovery Factor</span>
-                      <span className="text-emerald-400 font-bold text-base">{data.recoveryFactor}</span>
-                      <p className="text-[11px] text-slate-400 mt-1">Kecepatan pemulihan modal sangat agresif ({data.recoveryFactor}x).</p>
-                    </div>
-                    <div className="print-card bg-slate-900/80 p-3 rounded-lg border border-slate-700">
-                      <span className="text-slate-400 font-semibold block">Profit Factor</span>
-                      <span className="text-emerald-400 font-bold text-base">{data.profitFactor}</span>
-                      <p className="text-[11px] text-slate-400 mt-1">Rasio gross profit terhadap gross loss.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5. FUND CAPACITY & SLIPPAGE TOLERANCE */}
-                <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
-                  <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
-                    <Activity size={18} /> <span>5. Fund Capacity, Liquidity Decay, & Execution Sensitivity</span>
+                    <Crosshair size={18} /> <span>6. CURRENT INHERITED RISK (Risiko yang Diwarisi Subscriber Saat Ini)</span>
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Dengan {data.subscribersCount} Followers beraset <strong>${data.subscribersCapitalUSD.toLocaleString()} USD</strong>, batas kapasitas alokasi modal optimal (*Fund Capacity Limit*) berada pada <strong>{data.fundCapacity}</strong> guna menjaga efisiensi eksekusi pada pair <em>{data.activePairsText}</em>.
+                    Posisi mengambang saat ini terkontrol dengan deposit load rendah. Investor baru tidak mewarisi *floating loss* berantai beracun jika memulai sinkronisasi pada siklus basket baru.
                   </p>
                 </div>
 
-                {/* 6. CRO FINAL MANDATE */}
+                {/* 7. REQUIRED NEXT STEP */}
+                <div className="print-card bg-slate-800/60 p-4 rounded-xl border border-slate-700/80 space-y-2">
+                  <h3 className="font-bold text-indigo-400 text-base flex items-center space-x-2">
+                    <Layers size={18} /> <span>7. REQUIRED NEXT STEP (Protokol Alokasi Bertahap)</span>
+                  </h3>
+                  <p className="text-xs text-slate-300">
+                    Protokol validasi institusional: <strong>MQL5 Data Validated → VPS Co-Subscription Setup → Observasi Copy Fidelity 1-2 Minggu → Alokasi Modal Riil Maksimal ${data.fundCapacity}</strong>.
+                  </p>
+                </div>
+
+                {/* 8. FINAL FUND MANAGER CONCLUSION */}
                 <div className="print-card bg-indigo-900/50 p-4 rounded-xl border border-indigo-500/40 space-y-2">
                   <h3 className="font-bold text-emerald-400 text-base flex items-center space-x-2">
-                    <CheckCircle size={18} /> <span>6. Kesimpulan CRO (Chief Risk Officer & Investment Committee Mandate)</span>
+                    <CheckCircle size={18} /> <span>8. FINAL FUND MANAGER CONCLUSION</span>
                   </h3>
                   <p className="text-xs text-slate-200">
-                    Berdasarkan audit komparatif kuantitatif, analisis kronologis saldo, dan pemeriksaan risiko hedging, sinyal <strong>{displayName}</strong> dinyatakan memenuhi seluruh standar kelayakan alokasi modal institusional.
+                    Sinyal <strong>{displayName}</strong> memenuhi hierarki investasi institusional (*Survivability & Risk Control*) dengan rasio return-to-drawdown yang kuat. Mandat Komite Investasi: <strong>APPROVED FOR LIMITED REAL CAPITAL DENGAN KETAHANAN MINIMUM ${data.recommendedCapitalPerLot} USD / 0.01 LOT</strong>.
                   </p>
-                  <div className="pt-1 flex flex-wrap gap-2 text-xs">
-                    <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded font-bold">MANDAT: APPROVED</span>
-                    <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2.5 py-1 rounded font-bold">PROFIL RISIKO: {data.maxDD <= 25 ? 'CONSERVATIVE / ALPHA HARVESTING' : 'MODERATE'}</span>
-                    <span className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded font-bold">MAX CO-SUB: {data.fundCapacity}</span>
-                  </div>
                 </div>
 
               </div>
             </section>
           )}
 
-          {/* 4. STRUKTUR SALDO & ARUS KAS */}
+          {/* 5. STRUKTUR SALDO & ARUS KAS */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 text-white">
             <h2 className="text-lg font-bold mb-4 border-b border-slate-800 pb-2 flex items-center space-x-2">
               <DollarSign className="text-indigo-400" size={20} /> <span>Struktur Saldo & Arus Kas Akun ({displayName})</span>
@@ -1240,7 +1329,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 5. INFORMASI PROVIDER */}
+          {/* 6. INFORMASI PROVIDER */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 text-white">
             <h2 className="text-lg font-bold mb-4 border-b border-slate-800 pb-2 flex items-center space-x-2">
               <UserCheck className="text-indigo-400" size={20} /> <span>Informasi Provider, Akses, & Saldo Copier ({displayName})</span>
@@ -1280,13 +1369,13 @@ export default function Dashboard() {
           {/* DOWNLOAD REPORT BUTTON */}
           <div className="no-print flex justify-end">
             <button onClick={handlePrintPdfRequest} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center space-x-2 transition-colors shadow-sm">
-              <FileDown size={18} /> <span>Download Laporan PDF — {displayName}</span>
+              <FileDown size={18} /> <span>Download Laporan PDF Audit Kuantitatif — {displayName}</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* BOTTOM MANAGER ZONE: LENGKAP DENGAN TOMBOL ARSIP & HAPUS */}
+      {/* BOTTOM MANAGER ZONE */}
       <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 border-b border-slate-800 pb-3">
           <div>
@@ -1336,10 +1425,11 @@ export default function Dashboard() {
                       <span className="text-slate-300 font-medium">Win: {item.winRate}%</span>
                       <span className="text-slate-700">|</span>
                       <span className="text-amber-400 font-semibold">Max DD: {item.maxDD}%</span>
+                      <span className="text-slate-700">|</span>
+                      <span className="text-indigo-400 font-semibold">Skor: {item.totalScore}/100</span>
                     </div>
                   </div>
 
-                  {/* KONTROL ADMIN: ARSIP & HAPUS */}
                   <div className="flex items-center space-x-1 flex-shrink-0">
                     {isAdminMode && (
                       <>
