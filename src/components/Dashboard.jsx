@@ -66,12 +66,25 @@ export const KNOWN_MQL5_REGISTRY = {
     tradingDays: "342 Hari Aktif (64.77%)",
     totalTrades: 450,
     subscriptionFee: "$30 USD / Bln",
-    subscribersCount: 51,
-    subscribersCapitalUSD: 164000,
+    balance: "204,393 JPY",
+    equity: "182,853 JPY",
+    initialDeposit: "145,000 JPY",
+    totalDeposit: "702 JPY",
+    totalWithdrawal: "665,600 JPY",
+    payoffRatio: 1.55,
+    maxDepositLoad: 12.7,
+    algoTrading: 100,
+    profitTradesShare: 82.40,
+    lossTradesShare: 17.60,
+    tradingActivity: 100.0,
     avgHoldingDays: 2.0,
-    activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
     totalSwap: "-120 JPY",
-    withdrawalNotice: "Penarikan modal mencapai 459% dari deposit awal, mempercepat kurva TWRR MQL5 secara compounding."
+    swapDragRate: 0.18,
+    monthlyForecast: "24.5% / Bln",
+    alphaAsset: { name: "Multi FX Algo Trades", profit: 724291, winRate: 82.4, trades: 450, swap: "-120 JPY" },
+    activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
+    lastAuditNote: "",
+    batchReadiness: 90
   },
   "2304847": {
     signalUniqueKey: "MQL5_2304847",
@@ -103,7 +116,9 @@ export const KNOWN_MQL5_REGISTRY = {
     avgHoldingDays: 1.5,
     activePairsList: ["XAUUSD (SuperGold Algo)"],
     totalSwap: "-$68.40 USD",
-    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%."
+    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%.",
+    lastAuditNote: "",
+    batchReadiness: 90
   }
 };
 
@@ -221,7 +236,6 @@ export function computeQuantitativeAudit(raw) {
   };
 }
 
-// 3 SINYAL MASTER UNIK (BERSIH DARI DUPLIKAT 004 & 005)
 export const defaultMasterData = [
   computeQuantitativeAudit({
     id: "SIG_001",
@@ -363,12 +377,11 @@ export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
     localStorage.removeItem('tc_analyses_master_v14');
     localStorage.removeItem('tc_analyses_master_v16');
-    const saved = localStorage.getItem('tc_analyses_deduped_v17');
+    const saved = localStorage.getItem('tc_analyses_deduped_v18');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Bersihkan duplikasi yang mungkin tersimpan di cache
           const seenKeys = new Set();
           const uniqueList = [];
           parsed.forEach(item => {
@@ -386,11 +399,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v17') || "SIG_001";
+    return localStorage.getItem('tc_selected_id_v18') || "SIG_001";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v5');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v6');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -414,12 +427,14 @@ export default function Dashboard() {
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
+  
+  // FORM SELALU BERSIH DAN KOSONG (TANPA AUTO-FILL / DUMMY)
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v17') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v17') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v18') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v18') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -427,31 +442,28 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_deduped_v17', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_deduped_v18', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v5', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v6', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v17', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v18', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v17', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v18', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
+  // Bersihkan cache lama agar form tidak auto-populate
   useEffect(() => {
     const savedUnlocked = localStorage.getItem('tc_lead_unlocked');
-    const savedUserData = localStorage.getItem('tc_user_data');
     if (savedUnlocked === 'true') {
       setIsLeadUnlocked(true);
-      if (savedUserData) {
-        try { setLeadForm(JSON.parse(savedUserData)); } catch(e){}
-      }
     }
   }, []);
 
@@ -485,7 +497,8 @@ export default function Dashboard() {
   };
 
   const handleOpenNgopiModal = (packageType) => {
-    setLeadForm(prev => ({ ...prev, interest: packageType }));
+    // Reset form ke status kosong
+    setLeadForm({ name: '', whatsapp: '', email: '', interest: packageType });
 
     if (!isLeadUnlocked || packageType === 'Usulkan Sinyal Ini') {
       setShowLeadModal(true);
@@ -547,7 +560,6 @@ export default function Dashboard() {
     };
 
     localStorage.setItem('tc_lead_unlocked', 'true');
-    localStorage.setItem('tc_user_data', JSON.stringify(leadForm));
 
     try {
       if (GAS_WEBHOOK_URL) {
@@ -595,7 +607,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v17', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v18', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -627,7 +639,6 @@ export default function Dashboard() {
     setInputUrl("");
   };
 
-  // PEMROSESAN CERDAS DENGAN SMART DEDUPLICATION & IN-PLACE REFRESH
   const handleExecuteAnalysis = () => {
     if (!inputUrl.trim() && stagedFiles.length === 0) {
       alert("Silakan masukkan URL Sinyal MQL5 atau unggah berkas CSV/Screenshot.");
@@ -650,7 +661,6 @@ export default function Dashboard() {
     const finalizeAndSave = (computedMetrics) => {
       const uniqueSignalKey = signalIdMatch ? `MQL5_${signalIdMatch}` : (computedMetrics.signalUniqueKey || `KEY_${Date.now()}`);
 
-      // 1. CEK APAKAH SINYAL SUDAH PERNAH ADA (DEDUPLIKASI)
       const existingIndex = analysesList.findIndex(item => 
         (item.signalUniqueKey && item.signalUniqueKey === uniqueSignalKey) ||
         (item.signalUrl && inputUrl && item.signalUrl.includes(signalIdMatch || "___")) ||
@@ -658,7 +668,6 @@ export default function Dashboard() {
       );
 
       if (existingIndex !== -1) {
-        // PERBARUI DATA YANG SUDAH ADA SECARA IN-PLACE (TIDAK MEMBUAT KARTU GANDA)
         const targetExisting = analysesList[existingIndex];
         const updatedSignal = computeQuantitativeAudit({
           ...targetExisting,
@@ -682,7 +691,6 @@ export default function Dashboard() {
           `Skor Kuantitatif Terkini: ${updatedSignal.totalScore}/100 [Hard-Filter: ${updatedSignal.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`
         ]);
       } else {
-        // BUAT KARTU BARU JIKA SINYAL BENAR-BENAR BELUM ADA
         const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
         
         const newSignalData = computeQuantitativeAudit({
@@ -1037,7 +1045,6 @@ export default function Dashboard() {
                 <input 
                   type="text" 
                   required
-                  placeholder="Contoh: Budi Santoso" 
                   value={leadForm.name}
                   onChange={(e) => setLeadForm({...leadForm, name: e.target.value})}
                   className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
@@ -1049,7 +1056,6 @@ export default function Dashboard() {
                 <input 
                   type="tel" 
                   required
-                  placeholder="Contoh: 081234567890" 
                   value={leadForm.whatsapp}
                   onChange={(e) => setLeadForm({...leadForm, whatsapp: e.target.value})}
                   className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
@@ -1061,7 +1067,6 @@ export default function Dashboard() {
                 <input 
                   type="email" 
                   required
-                  placeholder="Contoh: budi@gmail.com" 
                   value={leadForm.email}
                   onChange={(e) => setLeadForm({...leadForm, email: e.target.value})}
                   className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
@@ -1592,7 +1597,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 8. BOTTOM MANAGER ZONE DENGAN LABEL AUDIT TERKINI & DEDUPLIKASI */}
+      {/* 8. BOTTOM MANAGER ZONE */}
       <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
           <div>
