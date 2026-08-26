@@ -2,7 +2,7 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink, MessageSquarePlus, CheckCircle2
 } from 'lucide-react';
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
@@ -71,9 +71,44 @@ export const KNOWN_MQL5_REGISTRY = {
   }
 };
 
-// ============================================================================
-// MESIN AUDIT KUANTITATIF & HARD-RISK FILTER BERBASIS INSTRUCTIONAL PROMPT RESMI
-// ============================================================================
+// DAFTAR USULAN SINYAL DARI MEMBER KOMUNITAS
+export const initialMemberSuggestions = [
+  {
+    id: "SUGG_1",
+    signalName: "Goldtrade Pro ICM (#2084890)",
+    proposedBy: "Member VIP - Hendra K.",
+    date: "24 Agu 2026",
+    status: "APPROVED_CATALOG",
+    statusLabel: "Lolos Kurasi (Masuk Katalog)",
+    mql5Url: "https://www.mql5.com/en/signals/2084890",
+    votes: 48,
+    notes: "Strategi Gold algo stabil dengan rekam jejak 151 minggu tanpa injeksi deposit."
+  },
+  {
+    id: "SUGG_2",
+    signalName: "Alpha Trend Scalper EA",
+    proposedBy: "Trader - Dani S.",
+    date: "21 Agu 2026",
+    status: "UNDER_REVIEW",
+    statusLabel: "Dalam Stress-Test Tim Risiko",
+    mql5Url: "https://www.mql5.com/en/signals/1982341",
+    votes: 27,
+    notes: "Sedang dievaluasi spread resistance sesi Tokyo dan max holding period."
+  },
+  {
+    id: "SUGG_3",
+    signalName: "Quantum FX Martingale Matrix",
+    proposedBy: "Member - Rian T.",
+    date: "19 Agu 2026",
+    status: "REJECTED_FILTER",
+    statusLabel: "Ditolak (Gagal Hard-Risk Filter)",
+    mql5Url: "https://www.mql5.com/en/signals/1784910",
+    votes: 8,
+    notes: "Terdeteksi penggandaan lot Martingale tak terbatas (Uncapped Exposure)."
+  }
+];
+
+// MESIN AUDIT KUANTITATIF & HARD-RISK FILTER
 export function computeQuantitativeAudit(raw) {
   const currency = raw.currency || "USD";
   const currSym = currency === "JPY" ? "JPY" : (currency === "EUR" ? "EUR" : "USD");
@@ -101,7 +136,6 @@ export function computeQuantitativeAudit(raw) {
   const recoveryFactor = maxDD > 0 ? Number((growthNum / maxDD).toFixed(2)) : 3.50;
   const expectancyVal = totalTrades > 0 ? Number((netProf / totalTrades).toFixed(2)) : 17.04;
 
-  // 1. HARD-RISK FILTER EVALUATION
   const redFlags = [];
   if (maxDD > 40.0) redFlags.push("Maximum Equity Drawdown melampaui batas aman (>40%).");
   if (maxDepLoad > 40.0) redFlags.push("Deposit Load sangat tinggi (>40%), indikasi leverage tidak terkendali.");
@@ -112,7 +146,6 @@ export function computeQuantitativeAudit(raw) {
 
   const isHardFilterPassed = redFlags.length === 0;
 
-  // 2. WEIGHTED SCORING SYSTEM (100% MATRIX)
   const scoreRisk = Math.max(0, Math.min(25, 25 - (maxDD * 0.35) - (maxDepLoad * 0.25)));
   const scoreConsistency = Math.max(0, Math.min(20, Math.min(20, (recoveryFactor * 3.2) + (reliabilityWeeks > 100 ? 6 : (reliabilityWeeks > 52 ? 4 : 2)))));
   const scoreTrackRecord = Math.max(0, Math.min(15, Math.min(15, (reliabilityWeeks / 10) + (totalTrades > 200 ? 5 : 2))));
@@ -278,9 +311,8 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v10');
     localStorage.removeItem('tc_analyses_master_v11');
-    const saved = localStorage.getItem('tc_analyses_master_v12');
+    const saved = localStorage.getItem('tc_analyses_master_v13');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -293,7 +325,18 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v12') || "GOLDTRADE_PRO";
+    return localStorage.getItem('tc_selected_id_v13') || "GOLDTRADE_PRO";
+  });
+
+  const [suggestionsList, setSuggestionsList] = useState(() => {
+    const saved = localStorage.getItem('tc_member_suggestions_v1');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch(e){}
+    }
+    return initialMemberSuggestions;
   });
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
@@ -309,12 +352,12 @@ export default function Dashboard() {
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
-  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)' });
+  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v12') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v12') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v13') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v13') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -322,17 +365,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v12', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v13', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
+    localStorage.setItem('tc_member_suggestions_v1', JSON.stringify(suggestionsList));
+  }, [suggestionsList]);
+
+  useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v12', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v13', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v12', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v13', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -464,7 +511,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v12', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v13', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -496,7 +543,6 @@ export default function Dashboard() {
     setInputUrl("");
   };
 
-  // PEMROSESAN PARSER CERDAS MQL5 URL + CSV TRANSAKSI
   const handleExecuteAnalysis = () => {
     if (!inputUrl.trim() && stagedFiles.length === 0) {
       alert("Silakan masukkan URL Sinyal MQL5 atau unggah berkas CSV/Screenshot.");
@@ -504,10 +550,8 @@ export default function Dashboard() {
     }
 
     setIsAiProcessing(true);
-
     const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit)";
 
-    // Ekstraksi ID Sinyal MQL5 dari URL
     let signalIdMatch = "";
     if (inputUrl) {
       const match = inputUrl.match(/signals\/(\d+)/);
@@ -635,7 +679,7 @@ export default function Dashboard() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .no-print, button, nav, header, footer, .bottom-manager-zone {
+          .no-print, button, nav, header, footer, .bottom-manager-zone, .member-suggestions-zone {
             display: none !important;
           }
           .print-only-header {
@@ -741,7 +785,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* INTAKE GATEWAY ZONE (URL AS PRIMARY INPUT + OPTIONAL SCREENSHOT & CSV) */}
+      {/* INTAKE GATEWAY ZONE */}
       {showUploader && (
         <section className="no-print bg-slate-900 rounded-xl shadow-sm border border-indigo-500/30 p-6 animate-fadeIn space-y-5 text-white">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -757,7 +801,6 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-4">
-            {/* 1. PRIMARY INPUT: MQL5 URL */}
             <div className="bg-slate-950 p-4 rounded-xl border border-indigo-500/40 space-y-2">
               <label className="text-xs font-bold text-indigo-300 flex items-center space-x-1.5">
                 <Link size={15} />
@@ -777,7 +820,6 @@ export default function Dashboard() {
               </p>
             </div>
 
-            {/* 2. SECONDARY / OPTIONAL INPUT: SCREENSHOT & CSV */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
                 <UploadCloud size={15} className="text-indigo-400" />
@@ -800,7 +842,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* STAGED FILES CHIPS */}
             {stagedFiles.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-36 overflow-y-auto">
                 {stagedFiles.map((file, idx) => (
@@ -817,7 +858,6 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* EXECUTION BUTTON */}
             <button
               type="button"
               disabled={!inputUrl.trim() && stagedFiles.length === 0}
@@ -897,9 +937,9 @@ export default function Dashboard() {
                   onChange={(e) => setLeadForm({...leadForm, interest: e.target.value})}
                   className="w-full p-2.5 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-950"
                 >
-                  <option value="Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)">🚀 Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)</option>
-                  <option value="Ngopi Mandiri ($5 - $10/bln)">☕ Ngopi Mandiri ($5 - $10/bln) — Investor Pass / Copier</option>
-                  <option value="Usulkan Sinyal">💡 Usulkan Sinyal Ini ke Katalog Komunitas</option>
+                  <option value="Ngopi Otomatis ($0) - 20% Profit Sharing">🚀 Ngopi Otomatis ($0) — 20% Profit Sharing</option>
+                  <option value="Ngopi mandiri ($5 - $10/bulan)">☕ Ngopi mandiri ($5 - $10/bulan) — Flat Biaya Patungan</option>
+                  <option value="Usulkan Sinyal Ini">💡 Usulkan Sinyal Ini ke Katalog Komunitas</option>
                 </select>
               </div>
 
@@ -915,7 +955,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ADMIN AUTH MODAL: STRICT VALIDATION */}
+      {/* ADMIN AUTH MODAL */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4 border border-slate-800 animate-fadeIn text-white">
@@ -976,66 +1016,54 @@ export default function Dashboard() {
         /* DASHBOARD CONTENT */
         <div className="space-y-6 animate-fadeIn">
           
-          {/* DYNAMIC BATCHING ZONE */}
+          {/* 1. REVISED BANNER: NGOPI BARENG (CO-SUBSCRIPTION) */}
           <section className="no-print bg-gradient-to-r from-amber-950 via-slate-900 to-indigo-950 text-white rounded-xl p-6 shadow-md border border-amber-500/30 space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
-              <div className="flex items-center space-x-2">
-                <div className="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
-                  <Coffee size={22} />
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+                  <Coffee size={24} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-amber-300">Status Waktu Kopi (Co-Subscription Program)</h3>
-                  <p className="text-xs text-slate-300">Sewa Sinyal MQL5 Premium Terverifikasi bersama Komunitas TradersClub</p>
+                  <h3 className="font-bold text-lg text-amber-300">Ngopi Bareng (Co-subscription)</h3>
+                  <p className="text-xs text-slate-300">
+                    Copy Trading bareng dari signal2 terbaik dunia (biaya jauh lebih hemat bersama member club)
+                  </p>
                 </div>
-              </div>
-              <div className="bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-semibold text-amber-300 flex items-center space-x-1.5">
-                <Zap size={14} className="text-amber-400" />
-                <span>Batch #1 Readiness: {data.batchReadiness || 90}%</span>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs font-medium text-amber-200">
-                <span>Kesiapan Server & Kuota Komunitas ({displayName})</span>
-                <span className="font-bold text-amber-400">{data.batchReadiness || 90}% Ready</span>
-              </div>
-              <div className="w-full bg-slate-950 rounded-full h-3 p-0.5 border border-slate-800 overflow-hidden">
-                <div 
-                  className="bg-gradient-to-r from-amber-500 to-emerald-400 h-2 rounded-full transition-all duration-1000 shadow-sm"
-                  style={{ width: `${data.batchReadiness || 90}%` }}
-                ></div>
-              </div>
-              <p className="text-[11px] text-slate-400 italic pt-0.5">
-                *Batch dibuka otomatis saat indikator mencapai kesiapan server minimum.
+            <div className="pt-0.5">
+              <p className="text-xs text-amber-200/90 italic">
+                *Batch dibuka otomatis bila minimum peserta dan account copier siap
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
               <button 
-                onClick={() => handleOpenNgopiModal('Ngopi Otomatis (0% Iuran Depan, 10% Profit Share)')}
-                className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3 rounded-xl text-xs flex flex-col items-center justify-center space-y-1 transition-all shadow-md group"
+                onClick={() => handleOpenNgopiModal('Ngopi Otomatis ($0) - 20% Profit Sharing')}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3.5 rounded-xl text-xs flex flex-col items-center justify-center space-y-1 transition-all shadow-md group"
               >
-                <span className="flex items-center space-x-1 text-sm">
-                  <Rocket size={16} /> <span>🚀 Ngopi Otomatis (0% Depan)</span>
+                <span className="flex items-center space-x-1.5 text-sm">
+                  <Rocket size={16} /> <span>🚀 Ngopi Otomatis ( $0)</span>
                 </span>
-                <span className="text-[10px] text-slate-900 font-medium opacity-90">10% Profit Share • Langsung via App Broker Mitra</span>
+                <span className="text-[11px] text-slate-900 font-semibold opacity-95">20% profit sharing</span>
               </button>
 
               <button 
-                onClick={() => handleOpenNgopiModal('Ngopi Mandiri ($5 - $10/bln)')}
-                className="bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold p-3 rounded-xl text-xs border border-amber-500/40 flex flex-col items-center justify-center space-y-1 transition-all"
+                onClick={() => handleOpenNgopiModal('Ngopi mandiri ($5 - $10/bulan)')}
+                className="bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold p-3.5 rounded-xl text-xs border border-amber-500/40 flex flex-col items-center justify-center space-y-1 transition-all"
               >
-                <span className="flex items-center space-x-1 text-sm">
-                  <Coffee size={16} /> <span>☕ Ngopi Mandiri ($5 - $10)</span>
+                <span className="flex items-center space-x-1.5 text-sm">
+                  <Coffee size={16} /> <span>☕ Ngopi mandiri ($5 - $10/bulan)</span>
                 </span>
-                <span className="text-[10px] text-amber-200/80 font-normal">Flat Fee Bulanan • Investor Pass / Copier</span>
+                <span className="text-[10px] text-amber-200/80 font-normal">Flat biaya patungan signal/bulan - Investor Password</span>
               </button>
 
               <button 
-                onClick={() => handleOpenNgopiModal('Usulkan Sinyal')}
-                className="bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 font-semibold p-3 rounded-xl text-xs border border-indigo-700/50 flex flex-col items-center justify-center space-y-1 transition-all"
+                onClick={() => handleOpenNgopiModal('Usulkan Sinyal Ini')}
+                className="bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200 font-semibold p-3.5 rounded-xl text-xs border border-indigo-700/50 flex flex-col items-center justify-center space-y-1 transition-all"
               >
-                <span className="flex items-center space-x-1 text-sm">
+                <span className="flex items-center space-x-1.5 text-sm">
                   <Sparkles size={16} className="text-indigo-400" /> <span>💡 Usulkan Sinyal Ini</span>
                 </span>
                 <span className="text-[10px] text-indigo-300/80 font-normal">Pajang Sinyal Ini di Katalog Komunitas</span>
@@ -1043,7 +1071,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 1. HARD-FILTER PRE-CHECK & SCORECARD GRID */}
+          {/* 2. HARD-FILTER PRE-CHECK & SCORECARD GRID */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 space-y-4 text-white">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2">
@@ -1101,7 +1129,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 2. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION */}
+          {/* 3. EXECUTIVE SUMMARY & 3 CARD RECOMMENDATION */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 space-y-4 text-white">
             <h2 className="text-lg font-bold border-b border-slate-800 pb-2 flex justify-between items-center">
               <span className="text-slate-100">Executive Summary & Institutional Recommendation ({displayName})</span>
@@ -1145,7 +1173,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 3. STATISTICAL SNAPSHOT CARDS */}
+          {/* 4. STATISTICAL SNAPSHOT CARDS */}
           <section className="print-section grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Total Growth (MQL5)', value: data.growth, sub: `Reliability: ${data.reliabilityWeeks} Minggu (~${Math.round(data.reliabilityWeeks / 4.3)} Bulan)`, color: 'text-emerald-400' },
@@ -1186,7 +1214,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 4. DYNAMIC COMPREHENSIVE REPORT VIEW */}
+          {/* 5. DYNAMIC COMPREHENSIVE REPORT VIEW */}
           {viewPerspective === 'retail' ? (
             /* RETAIL COPIER VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-indigo-500/30 animate-fadeIn">
@@ -1344,7 +1372,7 @@ export default function Dashboard() {
             </section>
           )}
 
-          {/* 5. STRUKTUR SALDO & ARUS KAS */}
+          {/* 6. STRUKTUR SALDO & ARUS KAS */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 text-white">
             <h2 className="text-lg font-bold mb-4 border-b border-slate-800 pb-2 flex items-center space-x-2">
               <DollarSign className="text-indigo-400" size={20} /> <span>Struktur Saldo & Arus Kas Akun ({displayName})</span>
@@ -1373,7 +1401,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* 6. INFORMASI PROVIDER */}
+          {/* 7. INFORMASI PROVIDER */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 text-white">
             <h2 className="text-lg font-bold mb-4 border-b border-slate-800 pb-2 flex items-center space-x-2">
               <UserCheck className="text-indigo-400" size={20} /> <span>Informasi Provider, Akses, & Saldo Copier ({displayName})</span>
@@ -1419,7 +1447,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* BOTTOM MANAGER ZONE */}
+      {/* 8. BOTTOM MANAGER ZONE: DAFTAR RIWAYAT SINYAL */}
       <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 border-b border-slate-800 pb-3">
           <div>
@@ -1501,6 +1529,56 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+
+      {/* 9. MEMBER SUGGESTIONS ZONE (BAGIAN PALING BAWAH) */}
+      <section className="member-suggestions-zone no-print bg-slate-900 rounded-xl shadow-sm border border-indigo-500/20 p-6 text-white space-y-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg">
+              <MessageSquarePlus size={20} />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white">Daftar Usulan Sinyal dari Member Komunitas</h2>
+              <p className="text-xs text-slate-400">Usulkan ID/URL sinyal MQL5 favorit Anda untuk diaudit oleh Komite Risiko Alpha Club</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => handleOpenNgopiModal('Usulkan Sinyal Ini')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center space-x-1.5 transition-colors shadow-sm"
+          >
+            <Sparkles size={15} /> <span>+ Ajukan Sinyal Baru</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {suggestionsList.map((sugg) => (
+            <div key={sugg.id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all">
+              <div className="flex justify-between items-start">
+                <span className="font-bold text-sm text-slate-100 truncate pr-2">{sugg.signalName}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap border ${
+                  sugg.status === 'APPROVED_CATALOG' 
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
+                    : (sugg.status === 'UNDER_REVIEW' 
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
+                        : 'bg-rose-500/20 text-rose-300 border-rose-500/30')
+                }`}>
+                  {sugg.statusLabel}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                {sugg.notes}
+              </p>
+
+              <div className="flex justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+                <span>Diusulkan oleh: <strong className="text-slate-400">{sugg.proposedBy}</strong></span>
+                <span>{sugg.date}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
     </div>
   );
 }
