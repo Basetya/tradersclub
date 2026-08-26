@@ -2,13 +2,44 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink, MessageSquarePlus, ArrowUpDown, Shield
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink, MessageSquarePlus, ArrowUpDown, Shield, Info
 } from 'lucide-react';
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
-// DATABASE REGISTRY SINYAL MQL5 TERVERIFIKASI
+// DATABASE REGISTRY SINYAL MQL5 TERVERIFIKASI RESMI
 export const KNOWN_MQL5_REGISTRY = {
+  "2304847": {
+    realSignalName: "MSC SuperGold Pro",
+    realProvider: "Bui Huy Dat",
+    broker: "NeotechFinancialServices-Live",
+    leverage: "1:500",
+    reliabilityWeeks: 92,
+    currency: "USD",
+    growth: "20,291.15%",
+    netProfitFormatted: "+$5,621.82 USD",
+    netProfitNum: 5621.82,
+    netProfitUSD: "",
+    initialDeposit: "$451.49 USD",
+    totalDeposit: "$0.00 USD",
+    totalWithdrawal: "$4,985.45 USD",
+    balance: "$1,087.86 USD",
+    equity: "$1,087.86 USD",
+    maxDD: 53.0, // Melebihi 40% -> Hard Filter Triggered
+    maxDepositLoad: 30.0,
+    algoTrading: 96,
+    winRate: 76.9,
+    profitFactor: 2.30,
+    tradingDays: "331 Hari Aktif (51.40%)",
+    totalTrades: 420,
+    subscriptionFee: "$50 USD / Bln",
+    subscribersCount: 23,
+    subscribersCapitalUSD: 63000,
+    avgHoldingDays: 1.5,
+    activePairsList: ["XAUUSD (SuperGold Algo)"],
+    totalSwap: "-$68.40 USD",
+    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%."
+  },
   "2084890": {
     realSignalName: "Goldtrade Pro ICM",
     realProvider: "Profalgo Limited",
@@ -37,7 +68,8 @@ export const KNOWN_MQL5_REGISTRY = {
     subscribersCapitalUSD: 0,
     avgHoldingDays: 1.8,
     activePairsList: ["XAUUSD (Gold Algo)"],
-    totalSwap: "-145.20 EUR"
+    totalSwap: "-145.20 EUR",
+    withdrawalNotice: "Pertumbuhan terakumulasi organik murni tanpa distorsi penarikan modal."
   },
   "2379208": {
     realSignalName: "World PEACE Multi FX Algo",
@@ -67,7 +99,8 @@ export const KNOWN_MQL5_REGISTRY = {
     subscribersCapitalUSD: 164000,
     avgHoldingDays: 2.0,
     activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
-    totalSwap: "-120 JPY"
+    totalSwap: "-120 JPY",
+    withdrawalNotice: "Penarikan modal mencapai 459% dari deposit awal, mempercepat kurva TWRR MQL5 secara compounding."
   }
 };
 
@@ -81,6 +114,7 @@ export function computeQuantitativeAudit(raw) {
   const totalWd = typeof raw.totalWithdrawal === 'number' ? raw.totalWithdrawal : (parseFloat(String(raw.totalWithdrawal).replace(/[^0-9.-]/g, '')) || 0);
   const netProf = typeof raw.netProfitNum === 'number' ? raw.netProfitNum : (parseFloat(String(raw.netProfitFormatted || raw.netProfit).replace(/[^0-9.-]/g, '')) || 0);
   
+  const simpleRoi = initialDep > 0 ? Number(((netProf / initialDep) * 100).toFixed(2)) : 0;
   const extraDeposit = Math.max(0, totalDep);
   const extraDepositRatio = initialDep > 0 ? (extraDeposit / initialDep) * 100 : 0;
   const isEmergencyDeposit = extraDepositRatio > 35.0;
@@ -94,14 +128,15 @@ export function computeQuantitativeAudit(raw) {
   const avgHoldingDays = parseFloat(raw.avgHoldingDays) || 1.8;
   const profitFactor = parseFloat(raw.profitFactor) || 2.15;
 
-  const growthNum = parseFloat(String(raw.growth).replace(/[^0-9.-]/g, '')) || 647.49;
+  const growthNum = parseFloat(String(raw.growth).replace(/[^0-9.-]/g, '')) || simpleRoi;
   const calmar = maxDD > 0 ? Number((growthNum / maxDD / Math.max(1, reliabilityWeeks / 52)).toFixed(2)) : 2.10;
   const recoveryFactor = maxDD > 0 ? Number((growthNum / maxDD).toFixed(2)) : 3.50;
   const expectancyVal = totalTrades > 0 ? Number((netProf / totalTrades).toFixed(2)) : 17.04;
 
+  // 1. HARD-RISK FILTER EVALUATION (ANTI-TOXIC ENGINE)
   const redFlags = [];
-  if (maxDD > 40.0) redFlags.push("Maximum Equity Drawdown melampaui batas aman (>40%).");
-  if (maxDepLoad > 40.0) redFlags.push("Deposit Load sangat tinggi (>40%), indikasi leverage tidak terkendali.");
+  if (maxDD > 40.0) redFlags.push(`Maximum Equity Drawdown melampaui batas aman institusional (${maxDD}% > 40%).`);
+  if (maxDepLoad > 40.0) redFlags.push(`Deposit Load sangat tinggi (${maxDepLoad}% > 40%), indikasi leverage berlebih.`);
   if (isEmergencyDeposit) redFlags.push(`Terindikasi suntikan modal darurat (+${extraDepositRatio.toFixed(1)}%) saat drawdown.`);
   if (reliabilityWeeks < 16) redFlags.push("Track record aktif terlalu pendek (<16 Minggu).");
   if (totalTrades < 50) redFlags.push("Sample ukuran transaksi tidak memadai untuk validasi statistik (<50 trades).");
@@ -109,6 +144,7 @@ export function computeQuantitativeAudit(raw) {
 
   const isHardFilterPassed = redFlags.length === 0;
 
+  // 2. WEIGHTED SCORING SYSTEM (100% MATRIX)
   const scoreRisk = Math.max(0, Math.min(25, 25 - (maxDD * 0.35) - (maxDepLoad * 0.25)));
   const scoreConsistency = Math.max(0, Math.min(20, Math.min(20, (recoveryFactor * 3.2) + (reliabilityWeeks > 100 ? 6 : (reliabilityWeeks > 52 ? 4 : 2)))));
   const scoreTrackRecord = Math.max(0, Math.min(15, Math.min(15, (reliabilityWeeks / 10) + (totalTrades > 200 ? 5 : 2))));
@@ -128,6 +164,9 @@ export function computeQuantitativeAudit(raw) {
     else if (totalScore >= 65) { scoreGrade = "B (Watchlist)"; verdict = "WATCHLIST / APPROVE FOR DEMO"; }
     else if (totalScore >= 55) { scoreGrade = "C (Speculative)"; verdict = "APPROVE FOR DEMO ONLY"; }
     else { scoreGrade = "D (Reject)"; verdict = "DO NOT APPROVE / REJECT"; }
+  } else {
+    scoreGrade = "D (Failed Hard Filter)";
+    verdict = "DO NOT APPROVE / REJECT (HIGH RISK)";
   }
 
   const dataConfidence = reliabilityWeeks >= 52 && totalTrades >= 100 ? "HIGH" : (reliabilityWeeks >= 20 ? "MEDIUM" : "LOW");
@@ -143,6 +182,7 @@ export function computeQuantitativeAudit(raw) {
     ...raw,
     currency,
     currSym,
+    simpleRoi,
     signalUrl: raw.signalUrl || "https://www.mql5.com/en/signals",
     initialDepositNum: initialDep,
     totalDepositNum: totalDep,
@@ -173,7 +213,8 @@ export function computeQuantitativeAudit(raw) {
     fundCapacity: `$${calculatedFundCapUSD.toLocaleString()} USD (${maxDD <= 25 ? 'Deep Liquidity' : 'Standard Liquidity'})`,
     recommendedCapitalPerLot: calculatedCapPerLot,
     leverage: activeLeverage,
-    activePairsText: activePairs
+    activePairsText: activePairs,
+    withdrawalNotice: raw.withdrawalNotice || (totalWd > initialDep ? `Penarikan modal ${((totalWd / initialDep) * 100).toFixed(0)}% mempengaruhi kurva Compounding MQL5.` : 'Pertumbuhan organik tanpa distorsi penarikan.')
   };
 }
 
@@ -269,13 +310,48 @@ export const defaultMasterData = [
     alphaAsset: { name: "Multi FX Algo Trades", profit: 724291, winRate: 82.4, trades: 450, swap: "-120 JPY" },
     activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
     batchReadiness: 90
+  }),
+  computeQuantitativeAudit({
+    id: "SIG_003",
+    indexName: "MT5 Signal - 003",
+    realSignalName: "MSC SuperGold Pro",
+    signalUrl: "https://www.mql5.com/en/signals/2304847",
+    indexProvider: "Provider #003",
+    realProvider: "Bui Huy Dat",
+    currency: "USD",
+    analyzedDate: "26 Agu 2026",
+    status: "REJECTED",
+    isArchived: false,
+    growth: "20,291.15%",
+    netProfitFormatted: "+$5,621.82 USD",
+    netProfitNum: 5621.82,
+    netProfitUSD: "",
+    initialDeposit: "$451.49 USD",
+    totalDeposit: "$0.00 USD",
+    totalWithdrawal: "$4,985.45 USD",
+    balance: "$1,087.86 USD",
+    equity: "$1,087.86 USD",
+    maxDD: 53.0,
+    maxDepositLoad: 30.0,
+    algoTrading: 96,
+    winRate: 76.9,
+    profitFactor: 2.30,
+    tradingDays: "331 Hari Aktif (51.40%)",
+    totalTrades: 420,
+    subscriptionFee: "$50 USD / Bln",
+    subscribersCount: 23,
+    subscribersCapitalUSD: 63000,
+    avgHoldingDays: 1.5,
+    activePairsList: ["XAUUSD (SuperGold Algo)"],
+    totalSwap: "-$68.40 USD",
+    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%."
   })
 ];
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v13');
-    const saved = localStorage.getItem('tc_analyses_master_v15');
+    localStorage.removeItem('tc_analyses_master_v14');
+    const saved = localStorage.getItem('tc_analyses_master_v16');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -288,11 +364,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v15') || "SIG_001";
+    return localStorage.getItem('tc_selected_id_v16') || "SIG_003";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v3');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v4');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -320,8 +396,8 @@ export default function Dashboard() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v15') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v15') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v16') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v16') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -329,21 +405,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v15', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v16', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v3', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v4', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v15', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v16', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v15', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v16', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -424,7 +500,6 @@ export default function Dashboard() {
 
     const isSuggesting = leadForm.interest.includes('Usulkan Sinyal') || leadForm.interest === 'Usulkan Sinyal Ini';
 
-    // Otomatis usulkan sinyal yang sedang dibuka saat ini
     if (isSuggesting) {
       const targetSignalLabel = data ? `${data.indexName} (${data.growth} | DD ${data.maxDD}%)` : `Sinyal Pilihan Member`;
       const newSuggestion = {
@@ -498,7 +573,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v15', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v16', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -561,7 +636,7 @@ export default function Dashboard() {
         realProvider: computedMetrics.realProvider || "Verified MQL5 Provider",
         currency: computedMetrics.currency || "USD",
         analyzedDate: currentDateStr,
-        status: "APPROVED",
+        status: computedMetrics.maxDD > 40 ? "REJECTED" : "APPROVED",
         isArchived: false,
         growth: computedMetrics.growth || "100.00%",
         netProfitFormatted: computedMetrics.netProfitFormatted || "$0.00",
@@ -593,6 +668,7 @@ export default function Dashboard() {
         avgHoldingDays: computedMetrics.avgHoldingDays || 2.0,
         totalSwap: computedMetrics.totalSwap || "0.00",
         activePairsList: computedMetrics.activePairsList || [],
+        withdrawalNotice: computedMetrics.withdrawalNotice || "",
         batchReadiness: 90
       });
 
@@ -600,8 +676,8 @@ export default function Dashboard() {
       setSelectedSignalId(newSignalData.id);
 
       setUploadReportNotification([
-        `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.indexName}" lolos Hard-Filter dengan Skor: ${newSignalData.totalScore}/100 [Grade: ${newSignalData.scoreGrade}].`,
-        `Growth: ${newSignalData.growth} | Net Profit: ${newSignalData.netProfitFormatted} | Drawdown: ${newSignalData.maxDD}%`,
+        `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.indexName}" dianalisis: Skor ${newSignalData.totalScore}/100 [Hard-Filter: ${newSignalData.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`,
+        `Pertumbuhan: ${newSignalData.growth} | Net Profit: ${newSignalData.netProfitFormatted} | Drawdown: ${newSignalData.maxDD}%`,
         `Mandat Investasi: ${newSignalData.verdict}`
       ]);
 
@@ -811,7 +887,7 @@ export default function Dashboard() {
                   type="url"
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
-                  placeholder="Contoh: https://www.mql5.com/en/signals/2084890"
+                  placeholder="Contoh: https://www.mql5.com/en/signals/2304847"
                   className="flex-1 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -1097,12 +1173,12 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 pt-1 text-center text-xs">
               <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">TOTAL SCORE</span>
-                <span className="text-lg font-bold text-amber-400">{data.totalScore}/100</span>
+                <span className={`text-lg font-bold ${data.isHardFilterPassed ? 'text-amber-400' : 'text-rose-400'}`}>{data.totalScore}/100</span>
                 <span className="text-[10px] text-slate-300 block font-semibold">{data.scoreGrade}</span>
               </div>
               <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Risk (25%)</span>
-                <span className="text-sm font-bold text-emerald-400">{data.scoreBreakdown.risk}/25</span>
+                <span className={`text-sm font-bold ${data.scoreBreakdown.risk < 15 ? 'text-rose-400' : 'text-emerald-400'}`}>{data.scoreBreakdown.risk}/25</span>
               </div>
               <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
                 <span className="text-slate-400 block text-[10px]">Consistency (20%)</span>
@@ -1135,7 +1211,7 @@ export default function Dashboard() {
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 space-y-4 text-white">
             <h2 className="text-lg font-bold border-b border-slate-800 pb-2 flex justify-between items-center">
               <span className="text-slate-100">Executive Summary & Institutional Recommendation ({displayName})</span>
-              <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold px-2.5 py-1 rounded-md">
+              <span className={`text-xs px-2.5 py-1 rounded-md font-bold border ${data.isHardFilterPassed ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'}`}>
                 VERDICT: {data.verdict}
               </span>
             </h2>
@@ -1144,20 +1220,20 @@ export default function Dashboard() {
               <div className="print-card bg-emerald-950/30 border border-emerald-500/30 p-4 rounded-xl space-y-2">
                 <div className="flex items-center space-x-2 text-emerald-400 font-bold text-sm">
                   <Target size={18} />
-                  <span>1. Investment Thesis</span>
+                  <span>1. Investment Thesis & Compounding Dynamics</span>
                 </div>
                 <p className="text-xs text-emerald-200 leading-relaxed">
-                  Sinyal terverifikasi dengan total pertumbuhan akumulatif <strong>{data.growth}</strong> dari setoran modal dasar <strong>{data.initialDeposit}</strong>. Menghasilkan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> selama <strong>{data.reliabilityWeeks} Minggu</strong> rekam jejak aktif teruji.
+                  Sinyal membukukan pertumbuhan MQL5 <strong>{data.growth}</strong> (Time-Weighted Compounding) dari deposit awal <strong>{data.initialDeposit}</strong> dengan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> (Simple ROI: {data.simpleRoi}%). {data.withdrawalNotice}
                 </p>
               </div>
 
-              <div className="print-card bg-amber-950/30 border border-amber-500/30 p-4 rounded-xl space-y-2">
-                <div className="flex items-center space-x-2 text-amber-400 font-bold text-sm">
+              <div className={`print-card p-4 rounded-xl space-y-2 border ${data.maxDD > 40 ? 'bg-rose-950/30 border-rose-500/40' : 'bg-amber-950/30 border-amber-500/30'}`}>
+                <div className={`flex items-center space-x-2 font-bold text-sm ${data.maxDD > 40 ? 'text-rose-400' : 'text-amber-400'}`}>
                   <AlertTriangle size={18} />
                   <span>2. Key Risk Consideration</span>
                 </div>
-                <p className="text-xs text-amber-200 leading-relaxed">
-                  Maximal Equity Drawdown tercatat <strong>{data.maxDD}%</strong> dengan utilisasi marjin puncak (*Max Deposit Load*) sebesar <strong>{data.maxDepositLoad}%</strong>. {data.isEmergencyDeposit ? '⚠️ Terdeteksi penambahan setoran modal darurat saat drawdown.' : '✅ Struktur arus kas murni organik, bebas dari manipulasi injeksi modal darurat (*No Toxic Martingale/Grid*).'}
+                <p className={`text-xs leading-relaxed ${data.maxDD > 40 ? 'text-rose-200' : 'text-amber-200'}`}>
+                  Maximal Equity Drawdown tercatat <strong>{data.maxDD}%</strong> dengan utilisasi marjin puncak (*Max Deposit Load*) sebesar <strong>{data.maxDepositLoad}%</strong>. {data.maxDD > 40 ? '⚠️ Drawdown melampaui toleransi risiko institusional (>40%). Wajib demo observasi sebelum real capital.' : '✅ Deposit load dan ketahanan marjin terjaga aman.'}
                 </p>
               </div>
 
@@ -1167,9 +1243,9 @@ export default function Dashboard() {
                   <span>3. Allocation Recommendation</span>
                 </div>
                 <div className="text-xs text-indigo-200 space-y-1">
-                  <p><strong>Verdict:</strong> <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">{data.verdict}</span></p>
-                  <p><strong>Risk Level:</strong> <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded font-bold">{data.maxDD <= 25 ? 'CONSERVATIVE / BALANCED' : 'MODERATE'}</span></p>
-                  <p className="text-indigo-300 pt-0.5">Disetujui untuk copy trading dengan ketahanan margin minimum <strong>${data.recommendedCapitalPerLot} USD / 0.01 lot</strong> dan leverage <strong>{data.leverage}</strong>.</p>
+                  <p><strong>Verdict:</strong> <span className={`px-1.5 py-0.5 rounded font-bold ${data.isHardFilterPassed ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>{data.verdict}</span></p>
+                  <p><strong>Risk Level:</strong> <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded font-bold">{data.maxDD <= 25 ? 'CONSERVATIVE / BALANCED' : (data.maxDD <= 40 ? 'MODERATE' : 'SPECULATIVE / HIGH RISK')}</span></p>
+                  <p className="text-indigo-300 pt-0.5">Ketahanan margin minimum terhitung: <strong>${data.recommendedCapitalPerLot} USD / 0.01 lot</strong> dengan leverage <strong>{data.leverage}</strong>.</p>
                 </div>
               </div>
             </div>
@@ -1178,10 +1254,10 @@ export default function Dashboard() {
           {/* 4. STATISTICAL SNAPSHOT CARDS */}
           <section className="print-section grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Growth (MQL5)', value: data.growth, sub: `Reliability: ${data.reliabilityWeeks} Minggu (~${Math.round(data.reliabilityWeeks / 4.3)} Bulan)`, color: 'text-emerald-400' },
+              { label: 'Total Growth (MQL5 Compounding)', value: data.growth, sub: `Simple Cash ROI: ${data.simpleRoi}% | ${data.reliabilityWeeks} Wks`, color: 'text-emerald-400' },
               { label: 'Total Net Profit', value: data.netProfitFormatted, sub: data.netProfitUSD ? `Net Profit ${data.netProfitUSD}` : 'Calculated Net Profit', color: 'text-emerald-400' },
               { label: 'Win Rate', value: `${data.winRate}%`, sub: `${data.tradingDays}`, color: 'text-slate-200' },
-              { label: 'Max Deposit Load', value: `${data.maxDepositLoad}%`, sub: 'Margin Usage Sehat', color: 'text-slate-200' },
+              { label: 'Max Deposit Load / DD', value: `${data.maxDepositLoad}% / ${data.maxDD}%`, sub: data.maxDD > 40 ? '⚠️ High Risk DD (>40%)' : 'Margin Usage Terkendali', color: data.maxDD > 40 ? 'text-rose-400' : 'text-slate-200' },
             ].map((stat, idx) => (
               <div key={idx} className="print-card bg-slate-900 p-4 rounded-xl shadow-sm border border-slate-800 flex flex-col justify-between text-white">
                 <p className="text-sm text-slate-400 font-medium mb-2">{stat.label}</p>
@@ -1232,13 +1308,13 @@ export default function Dashboard() {
                 
                 <div className="bg-slate-950/60 p-4 rounded-xl border border-slate-800 space-y-2">
                   <span className="text-amber-400 font-bold text-sm flex items-center space-x-1.5">
-                    <Clock size={16} /> <span>1. Rekam Jejak Historis & Validitas Arus Kas (Cash-Flow Sanity)</span>
+                    <Clock size={16} /> <span>1. Rekam Jejak Historis & Distorsi Compounding Akibat Penarikan (Cash-Flow Sanity)</span>
                   </span>
                   <p className="text-slate-300">
-                    Sinyal <strong>{displayName}</strong> membuktikan rekam jejak aktif selama <strong>{data.reliabilityWeeks} Minggu (~{Math.round(data.reliabilityWeeks / 4.3)} Bulan)</strong> dengan {data.tradingDays}. Modal dasar trading tercatat sebesar <strong>{data.initialDeposit}</strong> dengan profit terakumulasi mencapai <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong>.
+                    Sinyal <strong>{displayName}</strong> membuktikan rekam jejak aktif selama <strong>{data.reliabilityWeeks} Minggu (~{Math.round(data.reliabilityWeeks / 4.3)} Bulan)</strong> dengan {data.tradingDays}. Modal dasar trading tercatat sebesar <strong>{data.initialDeposit}</strong> dengan total penarikan profit mencapai <strong>{data.totalWithdrawal}</strong>.
                   </p>
                   <p className="text-slate-300">
-                    Akumulasi profit bersih terus bertumbuh secara organik di dalam akun dengan rasio penarikan dan setoran yang terpantau sehat tanpa manipulasi injeksi modal.
+                    <strong>Catatan Transparansi Pertumbuhan:</strong> {data.withdrawalNotice}
                   </p>
                 </div>
 
@@ -1247,7 +1323,7 @@ export default function Dashboard() {
                     <ShieldCheck size={16} /> <span>2. Ketahanan Floating Drawdown & Pengendalian Layering</span>
                   </span>
                   <p className="text-slate-300">
-                    Bagi investor ritel bermodal besar, risiko fatal dalam copy trading adalah penahanan floating rugi berlarut-larut. Pada sinyal ini, <strong>Maximal Drawdown tercatat {data.maxDD}%</strong> dan beban marjin maksimal (*Max Deposit Load*) hanya <strong>{data.maxDepositLoad}%</strong>. Rata-rata durasi posisi terbuka adalah <strong>{data.avgHoldingDays} hari</strong>, dan jumlah layer posisi simultan dibatasi pada kisaran <strong>{data.estimatedMaxLayers} layer</strong> {data.isToxicMartingale ? '(Perlu kehati-hatian dalam penyesuaian lot)' : '(Terkonfirmasi bebas dari penumpukan lot Martingale yang berbahaya)'}.
+                    Pada sinyal ini, <strong>Maximal Drawdown tercatat {data.maxDD}%</strong> dan beban marjin maksimal (*Max Deposit Load*) berada di <strong>{data.maxDepositLoad}%</strong>. Rata-rata durasi posisi terbuka adalah <strong>{data.avgHoldingDays} hari</strong>, dan estimasi layer aktif berkisar pada <strong>{data.estimatedMaxLayers} layer</strong>.
                   </p>
                 </div>
 
@@ -1256,7 +1332,7 @@ export default function Dashboard() {
                     <Target size={16} /> <span>3. Panduan Alokasi Lot & Skala Modal Copier</span>
                   </span>
                   <p className="text-slate-300">
-                    Untuk menyalin (*copy*) strategi ini dengan profil risiko konservatif:
+                    Untuk menyalin (*copy*) strategi ini dengan profil risiko aman:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-slate-300 pt-1 pl-1">
                     <li><strong>Rasio Modal Minimum Terhitung:</strong> Disarankan minimal <strong>${data.recommendedCapitalPerLot} USD per 0.01 lot</strong> dengan leverage <strong>{data.leverage}</strong>.</li>
@@ -1286,13 +1362,21 @@ export default function Dashboard() {
                     <h3 className="font-bold text-amber-400 text-base flex items-center space-x-2">
                       <FileCheck size={18} /> <span>1. VERDICT & SCORECARD SUMMARY</span>
                     </h3>
-                    <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded font-bold">
+                    <span className={`text-xs px-2.5 py-0.5 rounded font-bold border ${data.isHardFilterPassed ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border-rose-500/40'}`}>
                       {data.verdict}
                     </span>
                   </div>
                   <p className="text-xs text-slate-300">
-                    Sinyal <strong>{displayName}</strong> memperoleh skor akhir <strong>{data.totalScore}/100 [Klasifikasi: {data.scoreGrade}]</strong> dengan status <strong>Hard-Risk Filter: {data.isHardFilterPassed ? 'PASSED (Lolos Uji Risiko Ekstrem)' : 'FAILED'}</strong>.
+                    Sinyal <strong>{displayName}</strong> memperoleh skor akhir <strong>{data.totalScore}/100 [Klasifikasi: {data.scoreGrade}]</strong> dengan status <strong>Hard-Risk Filter: {data.isHardFilterPassed ? 'PASSED (Lolos Uji Risiko Ekstrem)' : 'FAILED (Gagal Uji Risiko Maksimum)'}</strong>.
                   </p>
+                  {!data.isHardFilterPassed && data.redFlags.length > 0 && (
+                    <div className="p-2.5 bg-rose-950/40 border border-rose-500/40 rounded-lg text-xs text-rose-300 space-y-1 mt-1">
+                      <span className="font-bold block">Temuan Red Flags Komite Risiko:</span>
+                      <ul className="list-disc list-inside space-y-0.5 pl-1">
+                        {data.redFlags.map((rf, idx) => <li key={idx}>{rf}</li>)}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. DATA CONFIDENCE */}
@@ -1311,10 +1395,9 @@ export default function Dashboard() {
                     <TrendingUp size={18} /> <span>3. KEY STRENGTHS (3–5 Kekuatan Kuantitatif)</span>
                   </h3>
                   <ul className="list-disc list-inside text-xs text-slate-300 space-y-1 pt-1 pl-1">
-                    <li><strong>Kurva Pertumbuhan Eksponensial:</strong> Pertumbuhan akumulatif <strong>{data.growth}</strong> dengan imbal hasil bulanan rata-rata <strong>{data.monthlyForecast}</strong>.</li>
-                    <li><strong>Efisiensi Risiko (Calmar & Sortino):</strong> Calmar Ratio <strong>{data.calmarRatio}</strong> dan Recovery Factor <strong>{data.recoveryFactor}</strong> mencerminkan rasio profit-to-drawdown yang sangat efisien.</li>
-                    <li><strong>Margin Control:</strong> Utilisasi marjin puncak (*Max Deposit Load*) terjaga sangat ketat di angka <strong>{data.maxDepositLoad}%</strong>.</li>
-                    <li><strong>Realized Cash Flow:</strong> Profit akumulasi <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> murni dihasilkan dari ekspansi profit transaksi organik.</li>
+                    <li><strong>Kurva Pertumbuhan Eksponensial:</strong> Pertumbuhan akumulatif <strong>{data.growth}</strong> (Compounding TWRR) dengan imbal hasil bulanan rata-rata <strong>{data.monthlyForecast}</strong>.</li>
+                    <li><strong>Efisiensi Risiko (Calmar & Sortino):</strong> Calmar Ratio <strong>{data.calmarRatio}</strong> dan Recovery Factor <strong>{data.recoveryFactor}</strong> mencerminkan rasio profit-to-drawdown yang agresif.</li>
+                    <li><strong>Realized Cash Flow:</strong> Profit akumulasi <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> dan total penarikan <strong>{data.totalWithdrawal}</strong> membuktikan likuiditas profit nyata.</li>
                   </ul>
                 </div>
 
@@ -1324,9 +1407,9 @@ export default function Dashboard() {
                     <AlertTriangle size={18} /> <span>4. MAIN RISKS (3–5 Risiko Terbesar)</span>
                   </h3>
                   <ul className="list-disc list-inside text-xs text-slate-300 space-y-1 pt-1 pl-1">
-                    <li><strong>Historical Drawdown:</strong> Equity Drawdown historis tercatat <strong>{data.maxDD}%</strong> saat terjadi volatilitas pasar silang.</li>
-                    <li><strong>Holding Period Exposure:</strong> Rata-rata holding {data.avgHoldingDays} hari berpotensi menghadapi pelebaran spread pada rilis berita makro (*High-Impact News*).</li>
-                    <li><strong>Multi-Pair Concurrency:</strong> Paparan simultan pada pair terkait seperti <em>{data.activePairsText}</em> dapat meningkatkan korelasi risiko saat sesi transisi New York/Tokyo.</li>
+                    <li><strong>Historical Drawdown Ekstrem:</strong> Equity Drawdown historis pernah menyentuh <strong>{data.maxDD}%</strong> saat pergerakan tajam instrumen <em>{data.activePairsText}</em>.</li>
+                    <li><strong>Deposit Load Concurrency:</strong> Max Deposit Load mencapai <strong>{data.maxDepositLoad}%</strong>, mengindikasikan volume lot membesar saat menghadapi floating loss.</li>
+                    <li><strong>TWRR Compounding Distortion:</strong> Pertumbuhan 20,000%+ terjadi akibat basis saldo kecil karena penarikan rutin ($4,985 USD ditarik vs $1,087 USD saldo). Simple Cash ROI riil adalah {data.simpleRoi}%.</li>
                   </ul>
                 </div>
 
@@ -1336,7 +1419,7 @@ export default function Dashboard() {
                     <ShieldAlert size={18} /> <span>5. HIDDEN & TAIL RISKS (Risiko yang Tidak Terlihat dari ROI)</span>
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Audit swap drag tercatat sebesar <strong>{data.totalSwap}</strong>. Sistem terbukti tidak menyembunyikan *floating hedging zombie*. Namun, risiko *slippage execution* dapat muncul jika volume copy follower melampaui batas kapasitas likuiditas broker.
+                    Audit swap drag tercatat sebesar <strong>{data.totalSwap}</strong>. Terdapat risiko *tail-risk liquidation* jika pergerakan harga emas (*Gold*) mengalami reli parabolik satu arah tanpa retracement saat deposit load menyentuh batas atas.
                   </p>
                 </div>
 
@@ -1346,7 +1429,7 @@ export default function Dashboard() {
                     <Crosshair size={18} /> <span>6. CURRENT INHERITED RISK (Risiko yang Diwarisi Subscriber Saat Ini)</span>
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Posisi mengambang saat ini terkontrol dengan deposit load rendah. Investor baru tidak mewarisi *floating loss* berantai beracun jika memulai sinkronisasi pada siklus basket baru.
+                    Dengan saldo aktif saat ini sebesar <strong>{data.balance}</strong>, copier baru wajib menyediakan margin minimal <strong>${data.recommendedCapitalPerLot} USD / 0.01 lot</strong> agar terhindar dari Margin Call saat drawdown mencapai titik historis 53%.
                   </p>
                 </div>
 
@@ -1356,7 +1439,7 @@ export default function Dashboard() {
                     <Layers size={18} /> <span>7. REQUIRED NEXT STEP (Protokol Alokasi Bertahap)</span>
                   </h3>
                   <p className="text-xs text-slate-300">
-                    Protokol validasi institusional: <strong>MQL5 Data Validated → VPS Co-Subscription Setup → Observasi Copy Fidelity 1-2 Minggu → Alokasi Modal Riil Maksimal ${data.fundCapacity}</strong>.
+                    Protokol validasi institusional: <strong>MQL5 Data Validated → Wajib Demo Subscription 2-4 Minggu → Observasi Copy Fidelity & Slippage Gold → Keputusan Alokasi Modal Riil Terbatas</strong>.
                   </p>
                 </div>
 
@@ -1366,7 +1449,7 @@ export default function Dashboard() {
                     <CheckCircle size={18} /> <span>8. FINAL FUND MANAGER CONCLUSION</span>
                   </h3>
                   <p className="text-xs text-slate-200">
-                    Sinyal <strong>{displayName}</strong> memenuhi hierarki investasi institusional (*Survivability & Risk Control*) dengan rasio return-to-drawdown yang kuat. Mandat Komite Investasi: <strong>APPROVED FOR LIMITED REAL CAPITAL DENGAN KETAHANAN MINIMUM ${data.recommendedCapitalPerLot} USD / 0.01 LOT</strong>.
+                    Sinyal <strong>{displayName}</strong> memiliki kapabilitas yield tinggi namun membawa risiko drawdown historis 53% (gagal Hard Filter untuk Real Capital Tanpa Buffer). Mandat Komite: <strong>{data.verdict} DENGAN KETAHANAN MARGIN KETAT ${data.recommendedCapitalPerLot} USD / 0.01 LOT</strong>.
                   </p>
                 </div>
 
@@ -1377,7 +1460,7 @@ export default function Dashboard() {
           {/* 6. STRUKTUR SALDO & ARUS KAS */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 text-white">
             <h2 className="text-lg font-bold mb-4 border-b border-slate-800 pb-2 flex items-center space-x-2">
-              <DollarSign className="text-indigo-400" size={20} /> <span>Struktur Saldo & Arus Kas Akun ({displayName})</span>
+              <DollarSign className="text-indigo-400" size={20} /> <span>Struktur Saldo, Penarikan, & Arus Kas Akun ({displayName})</span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
               <div className="print-card p-3 bg-slate-950 rounded-lg border border-slate-800">
@@ -1449,7 +1532,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 8. BOTTOM MANAGER ZONE DENGAN OPSI PENGURUTAN KUALITAS */}
+      {/* 8. BOTTOM MANAGER ZONE */}
       <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
           <div>
@@ -1516,9 +1599,9 @@ export default function Dashboard() {
                       <span className="text-slate-700">|</span>
                       <span className="text-slate-300 font-medium">Win: {item.winRate}%</span>
                       <span className="text-slate-700">|</span>
-                      <span className="text-amber-400 font-semibold">Max DD: {item.maxDD}%</span>
+                      <span className={`font-semibold ${item.maxDD > 40 ? 'text-rose-400' : 'text-amber-400'}`}>Max DD: {item.maxDD}%</span>
                       <span className="text-slate-700">|</span>
-                      <span className="text-indigo-400 font-semibold">Skor: {item.totalScore}/100</span>
+                      <span className={`font-semibold ${item.isHardFilterPassed ? 'text-indigo-400' : 'text-rose-400'}`}>Skor: {item.totalScore}/100</span>
                     </div>
                   </div>
 
@@ -1550,7 +1633,7 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* 9. MEMBER SUGGESTIONS ZONE (BERSIH DARI DUMMY - MURNI DARI FORMULIR USULAN MEMBER) */}
+      {/* 9. MEMBER SUGGESTIONS ZONE */}
       <section className="member-suggestions-zone no-print bg-slate-900 rounded-xl shadow-sm border border-indigo-500/20 p-6 text-white space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
