@@ -274,8 +274,8 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v12');
-    const saved = localStorage.getItem('tc_analyses_master_v14');
+    localStorage.removeItem('tc_analyses_master_v13');
+    const saved = localStorage.getItem('tc_analyses_master_v15');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -288,12 +288,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v14') || "SIG_001";
+    return localStorage.getItem('tc_selected_id_v15') || "SIG_001";
   });
 
-  // Hapus dummy usulan, inisialisasi murni dari input riil member
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v2');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v3');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -305,7 +304,7 @@ export default function Dashboard() {
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
   const [historyTab, setHistoryTab] = useState('active');
-  const [sortBy, setSortBy] = useState('chronological'); // 'chronological', 'score', 'drawdown', 'growth'
+  const [sortBy, setSortBy] = useState('chronological');
   const [showUploader, setShowUploader] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
@@ -317,12 +316,12 @@ export default function Dashboard() {
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
-  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing', suggestedSignalUrl: '' });
+  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v14') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v14') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v15') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v15') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -330,21 +329,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v14', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v15', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v2', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v3', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v14', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v15', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v14', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v15', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -361,7 +360,6 @@ export default function Dashboard() {
   const activeData = analysesList.find(s => s.id === selectedSignalId) || (analysesList.length > 0 ? analysesList[0] : null);
   const data = activeData ? computeQuantitativeAudit(activeData) : null;
 
-  // STRICT PRIVACY: Default Publik selalu memakai penamaan indeks berurutan (MT5 Signal - 001)
   const displayName = data 
     ? (isAdminMode ? (data.realSignalName || data.indexName) : (data.indexName || "MT5 Signal - 001"))
     : "Belum Ada Sinyal";
@@ -426,17 +424,18 @@ export default function Dashboard() {
 
     const isSuggesting = leadForm.interest.includes('Usulkan Sinyal') || leadForm.interest === 'Usulkan Sinyal Ini';
 
-    // Jika member mengusulkan sinyal, masukkan secara riil ke daftar usulan member
+    // Otomatis usulkan sinyal yang sedang dibuka saat ini
     if (isSuggesting) {
+      const targetSignalLabel = data ? `${data.indexName} (${data.growth} | DD ${data.maxDD}%)` : `Sinyal Pilihan Member`;
       const newSuggestion = {
         id: `SUGG_${Date.now()}`,
-        signalName: leadForm.suggestedSignalUrl ? `Usulan Member (URL: ${leadForm.suggestedSignalUrl.substring(0, 32)}...)` : `Usulan: ${displayName}`,
+        signalName: targetSignalLabel,
         proposedBy: `Member - ${leadForm.name}`,
         date: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
         status: "UNDER_REVIEW",
-        statusLabel: "Dalam Stress-Test Tim Risiko",
-        mql5Url: leadForm.suggestedSignalUrl || data?.signalUrl || "https://www.mql5.com",
-        notes: `Diajukan untuk audit kelayakan masuk katalog Co-Subscription Alpha Traders Club.`
+        statusLabel: "Dalam Antrean Audit Tim Risiko",
+        mql5Url: data?.signalUrl || "https://www.mql5.com",
+        notes: `Member mengajukan ${data?.indexName || 'sinyal ini'} untuk diprioritaskan masuk katalog Co-Subscription Alpha Traders Club.`
       };
       setSuggestionsList(prev => [newSuggestion, ...prev]);
     }
@@ -447,7 +446,7 @@ export default function Dashboard() {
       email: leadForm.email,
       interest: leadForm.interest,
       signalName: displayName,
-      suggestedUrl: leadForm.suggestedSignalUrl || "-"
+      suggestedUrl: data?.signalUrl || "-"
     };
 
     localStorage.setItem('tc_lead_unlocked', 'true');
@@ -472,7 +471,7 @@ export default function Dashboard() {
       setShowLeadModal(false);
 
       if (isSuggesting) {
-        alert(`Terima kasih Kak ${leadForm.name}! Usulan sinyal Anda telah tercatat dan masuk ke antrean audit tim risiko di bagian bawah.`);
+        alert(`Terima kasih Kak ${leadForm.name}! Sinyal "${displayName}" berhasil diusulkan dan langsung masuk ke antrean kurasi tim risiko di bagian bawah.`);
       }
 
       if (pendingAction === 'pdf') {
@@ -499,7 +498,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v14', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v15', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -551,7 +550,6 @@ export default function Dashboard() {
     const registryData = signalIdMatch && KNOWN_MQL5_REGISTRY[signalIdMatch] ? KNOWN_MQL5_REGISTRY[signalIdMatch] : null;
 
     const finalizeAndSave = (computedMetrics) => {
-      // Penamaan berurutan kronologis
       const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
       
       const newSignalData = computeQuantitativeAudit({
@@ -650,20 +648,18 @@ export default function Dashboard() {
     }
   };
 
-  // PENGURUTAN DAFTAR SINYAL BERDASARKAN KUALITAS & METRIK
   const filteredHistory = analysesList
     .filter(item => historyTab === 'active' ? !item.isArchived : item.isArchived)
     .sort((a, b) => {
       if (sortBy === 'score') {
         return (b.totalScore || 0) - (a.totalScore || 0);
       } else if (sortBy === 'drawdown') {
-        return (a.maxDD || 0) - (b.maxDD || 0); // DD terendah lebih baik
+        return (a.maxDD || 0) - (b.maxDD || 0);
       } else if (sortBy === 'growth') {
         const growthA = parseFloat(String(a.growth).replace(/[^0-9.-]/g, '')) || 0;
         const growthB = parseFloat(String(b.growth).replace(/[^0-9.-]/g, '')) || 0;
         return growthB - growthA;
       }
-      // Default: Kronologis berdasarkan index penomoran
       return a.indexName.localeCompare(b.indexName);
     });
 
@@ -885,7 +881,7 @@ export default function Dashboard() {
                   <Coffee size={12} /> <span>Program Ngopi Bareng TradersClub</span>
                 </span>
                 <h3 className="text-base font-bold text-white">
-                  {leadForm.interest.includes('Usulkan') ? 'Usulkan Sinyal Baru ke Komunitas' : `Gabung Patungan — ${displayName}`}
+                  {leadForm.interest.includes('Usulkan') ? `Usulkan ${displayName} ke Komunitas` : `Gabung Patungan — ${displayName}`}
                 </h3>
               </div>
               <button onClick={() => setShowLeadModal(false)} className="text-slate-400 hover:text-white">
@@ -895,7 +891,7 @@ export default function Dashboard() {
 
             <p className="text-xs text-slate-300 leading-relaxed">
               {leadForm.interest.includes('Usulkan') 
-                ? 'Masukkan link sinyal MQL5 pilihan Anda. Tim analis kuantitatif kami akan melakukan audit kelayakan sebelum dipajang di katalog komunitas.'
+                ? `Anda mengusulkan sinyal "${displayName}" untuk dievaluasi oleh Tim Analis Kuantitatif agar masuk ke katalog resmi komunitas.`
                 : 'Dapatkan akses laporan audit lengkap dan pilih opsi langganan terhemat dengan menyambungkan akun Kakak ke Akun Master VPS kami.'}
             </p>
 
@@ -935,20 +931,6 @@ export default function Dashboard() {
                   className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
-
-              {leadForm.interest.includes('Usulkan') && (
-                <div>
-                  <label className="text-xs font-semibold text-amber-300 block mb-1">Link URL Sinyal MQL5 yang Diusulkan</label>
-                  <input 
-                    type="url" 
-                    required
-                    placeholder="https://www.mql5.com/en/signals/..." 
-                    value={leadForm.suggestedSignalUrl || ''}
-                    onChange={(e) => setLeadForm({...leadForm, suggestedSignalUrl: e.target.value})}
-                    className="w-full p-2.5 bg-slate-950 border border-amber-500/50 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
-              )}
 
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">Pilihan Paket Ngopi</label>
@@ -1480,7 +1462,6 @@ export default function Dashboard() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* OPSI PENGURUTAN KUALITAS SINYAL */}
             <div className="flex items-center space-x-1 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 text-xs">
               <ArrowUpDown size={13} className="text-indigo-400" />
               <span className="text-slate-400 text-[11px] font-medium mr-1">Urutkan:</span>
@@ -1590,7 +1571,7 @@ export default function Dashboard() {
             <Sparkles size={28} className="mx-auto text-indigo-400 opacity-60 mb-1" />
             <p className="text-xs font-semibold text-slate-300">Belum ada usulan sinyal baru dari member saat ini.</p>
             <p className="text-[11px] text-slate-500 max-w-md mx-auto">
-              Member dapat mengusulkan ID sinyal MQL5 baru dengan mengklik tombol <strong>"💡 Usulkan Sinyal Ini"</strong> pada banner Ngopi Bareng di atas.
+              Member dapat mengusulkan sinyal aktif dengan mengklik tombol <strong>"💡 Usulkan Sinyal Ini"</strong> pada banner Ngopi Bareng di atas.
             </p>
           </div>
         ) : (
