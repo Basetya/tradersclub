@@ -2,45 +2,15 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink, MessageSquarePlus, ArrowUpDown, Shield, Info
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink, MessageSquarePlus, ArrowUpDown, Shield, Info, History
 } from 'lucide-react';
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
 // DATABASE REGISTRY SINYAL MQL5 TERVERIFIKASI RESMI
 export const KNOWN_MQL5_REGISTRY = {
-  "2304847": {
-    realSignalName: "MSC SuperGold Pro",
-    realProvider: "Bui Huy Dat",
-    broker: "NeotechFinancialServices-Live",
-    leverage: "1:500",
-    reliabilityWeeks: 92,
-    currency: "USD",
-    growth: "20,291.15%",
-    netProfitFormatted: "+$5,621.82 USD",
-    netProfitNum: 5621.82,
-    netProfitUSD: "",
-    initialDeposit: "$451.49 USD",
-    totalDeposit: "$0.00 USD",
-    totalWithdrawal: "$4,985.45 USD",
-    balance: "$1,087.86 USD",
-    equity: "$1,087.86 USD",
-    maxDD: 53.0, // Melebihi 40% -> Hard Filter Triggered
-    maxDepositLoad: 30.0,
-    algoTrading: 96,
-    winRate: 76.9,
-    profitFactor: 2.30,
-    tradingDays: "331 Hari Aktif (51.40%)",
-    totalTrades: 420,
-    subscriptionFee: "$50 USD / Bln",
-    subscribersCount: 23,
-    subscribersCapitalUSD: 63000,
-    avgHoldingDays: 1.5,
-    activePairsList: ["XAUUSD (SuperGold Algo)"],
-    totalSwap: "-$68.40 USD",
-    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%."
-  },
   "2084890": {
+    signalUniqueKey: "MQL5_2084890",
     realSignalName: "Goldtrade Pro ICM",
     realProvider: "Profalgo Limited",
     broker: "ICMarketsSC-MT5-4",
@@ -72,6 +42,7 @@ export const KNOWN_MQL5_REGISTRY = {
     withdrawalNotice: "Pertumbuhan terakumulasi organik murni tanpa distorsi penarikan modal."
   },
   "2379208": {
+    signalUniqueKey: "MQL5_2379208",
     realSignalName: "World PEACE Multi FX Algo",
     realProvider: "Nobeyo- Sano",
     broker: "HFMarketsGlobal-Live1",
@@ -101,6 +72,38 @@ export const KNOWN_MQL5_REGISTRY = {
     activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
     totalSwap: "-120 JPY",
     withdrawalNotice: "Penarikan modal mencapai 459% dari deposit awal, mempercepat kurva TWRR MQL5 secara compounding."
+  },
+  "2304847": {
+    signalUniqueKey: "MQL5_2304847",
+    realSignalName: "MSC SuperGold Pro",
+    realProvider: "Bui Huy Dat",
+    broker: "NeotechFinancialServices-Live",
+    leverage: "1:500",
+    reliabilityWeeks: 92,
+    currency: "USD",
+    growth: "20,291.15%",
+    netProfitFormatted: "+$5,621.82 USD",
+    netProfitNum: 5621.82,
+    netProfitUSD: "",
+    initialDeposit: "$451.49 USD",
+    totalDeposit: "$0.00 USD",
+    totalWithdrawal: "$4,985.45 USD",
+    balance: "$1,087.86 USD",
+    equity: "$1,087.86 USD",
+    maxDD: 53.0,
+    maxDepositLoad: 30.0,
+    algoTrading: 96,
+    winRate: 76.9,
+    profitFactor: 2.30,
+    tradingDays: "331 Hari Aktif (51.40%)",
+    totalTrades: 420,
+    subscriptionFee: "$50 USD / Bln",
+    subscribersCount: 23,
+    subscribersCapitalUSD: 63000,
+    avgHoldingDays: 1.5,
+    activePairsList: ["XAUUSD (SuperGold Algo)"],
+    totalSwap: "-$68.40 USD",
+    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%."
   }
 };
 
@@ -133,7 +136,6 @@ export function computeQuantitativeAudit(raw) {
   const recoveryFactor = maxDD > 0 ? Number((growthNum / maxDD).toFixed(2)) : 3.50;
   const expectancyVal = totalTrades > 0 ? Number((netProf / totalTrades).toFixed(2)) : 17.04;
 
-  // 1. HARD-RISK FILTER EVALUATION (ANTI-TOXIC ENGINE)
   const redFlags = [];
   if (maxDD > 40.0) redFlags.push(`Maximum Equity Drawdown melampaui batas aman institusional (${maxDD}% > 40%).`);
   if (maxDepLoad > 40.0) redFlags.push(`Deposit Load sangat tinggi (${maxDepLoad}% > 40%), indikasi leverage berlebih.`);
@@ -144,7 +146,6 @@ export function computeQuantitativeAudit(raw) {
 
   const isHardFilterPassed = redFlags.length === 0;
 
-  // 2. WEIGHTED SCORING SYSTEM (100% MATRIX)
   const scoreRisk = Math.max(0, Math.min(25, 25 - (maxDD * 0.35) - (maxDepLoad * 0.25)));
   const scoreConsistency = Math.max(0, Math.min(20, Math.min(20, (recoveryFactor * 3.2) + (reliabilityWeeks > 100 ? 6 : (reliabilityWeeks > 52 ? 4 : 2)))));
   const scoreTrackRecord = Math.max(0, Math.min(15, Math.min(15, (reliabilityWeeks / 10) + (totalTrades > 200 ? 5 : 2))));
@@ -183,6 +184,7 @@ export function computeQuantitativeAudit(raw) {
     currency,
     currSym,
     simpleRoi,
+    signalUniqueKey: raw.signalUniqueKey || raw.id,
     signalUrl: raw.signalUrl || "https://www.mql5.com/en/signals",
     initialDepositNum: initialDep,
     totalDepositNum: totalDep,
@@ -214,20 +216,23 @@ export function computeQuantitativeAudit(raw) {
     recommendedCapitalPerLot: calculatedCapPerLot,
     leverage: activeLeverage,
     activePairsText: activePairs,
-    withdrawalNotice: raw.withdrawalNotice || (totalWd > initialDep ? `Penarikan modal ${((totalWd / initialDep) * 100).toFixed(0)}% mempengaruhi kurva Compounding MQL5.` : 'Pertumbuhan organik tanpa distorsi penarikan.')
+    withdrawalNotice: raw.withdrawalNotice || (totalWd > initialDep ? `Penarikan modal ${((totalWd / initialDep) * 100).toFixed(0)}% mempengaruhi kurva Compounding MQL5.` : 'Pertumbuhan organik tanpa distorsi penarikan.'),
+    lastAuditNote: raw.lastAuditNote || ""
   };
 }
 
+// 3 SINYAL MASTER UNIK (BERSIH DARI DUPLIKAT 004 & 005)
 export const defaultMasterData = [
   computeQuantitativeAudit({
     id: "SIG_001",
     indexName: "MT5 Signal - 001",
+    signalUniqueKey: "MQL5_2084890",
     realSignalName: "Goldtrade Pro ICM",
     signalUrl: "https://www.mql5.com/en/signals/2084890",
     indexProvider: "Provider #001",
     realProvider: "Profalgo Limited",
     currency: "EUR",
-    analyzedDate: "10 Agu 2026",
+    analyzedDate: "26 Agu 2026 (Audit Terkini)",
     status: "APPROVED",
     isArchived: false,
     growth: "647.49%",
@@ -263,11 +268,13 @@ export const defaultMasterData = [
     monthlyForecast: "18.5% / Bln",
     alphaAsset: { name: "XAUUSD (Gold Algo)", profit: 6474.86, winRate: 58.0, trades: 380, swap: "-145.20 EUR" },
     activePairsList: ["XAUUSD (Gold Algo)"],
+    lastAuditNote: "Data Diperbarui ke Hasil Audit Terkini (Sinkron dengan MQL5 #2084890)",
     batchReadiness: 90
   }),
   computeQuantitativeAudit({
     id: "SIG_002",
     indexName: "MT5 Signal - 002",
+    signalUniqueKey: "MQL5_2379208",
     realSignalName: "World PEACE Multi FX Algo",
     signalUrl: "https://www.mql5.com/en/signals/2379208",
     indexProvider: "Provider #002",
@@ -309,11 +316,13 @@ export const defaultMasterData = [
     monthlyForecast: "24.5% / Bln",
     alphaAsset: { name: "Multi FX Algo Trades", profit: 724291, winRate: 82.4, trades: 450, swap: "-120 JPY" },
     activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
+    lastAuditNote: "",
     batchReadiness: 90
   }),
   computeQuantitativeAudit({
     id: "SIG_003",
     indexName: "MT5 Signal - 003",
+    signalUniqueKey: "MQL5_2304847",
     realSignalName: "MSC SuperGold Pro",
     signalUrl: "https://www.mql5.com/en/signals/2304847",
     indexProvider: "Provider #003",
@@ -344,19 +353,32 @@ export const defaultMasterData = [
     avgHoldingDays: 1.5,
     activePairsList: ["XAUUSD (SuperGold Algo)"],
     totalSwap: "-$68.40 USD",
-    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%."
+    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%.",
+    lastAuditNote: "",
+    batchReadiness: 90
   })
 ];
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
     localStorage.removeItem('tc_analyses_master_v14');
-    const saved = localStorage.getItem('tc_analyses_master_v16');
+    localStorage.removeItem('tc_analyses_master_v16');
+    const saved = localStorage.getItem('tc_analyses_deduped_v17');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(item => computeQuantitativeAudit(item));
+          // Bersihkan duplikasi yang mungkin tersimpan di cache
+          const seenKeys = new Set();
+          const uniqueList = [];
+          parsed.forEach(item => {
+            const key = item.signalUrl || item.realSignalName || item.indexName;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              uniqueList.push(computeQuantitativeAudit(item));
+            }
+          });
+          if (uniqueList.length > 0) return uniqueList;
         }
       } catch (e) {}
     }
@@ -364,11 +386,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v16') || "SIG_003";
+    return localStorage.getItem('tc_selected_id_v17') || "SIG_001";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v4');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v5');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -396,8 +418,8 @@ export default function Dashboard() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v16') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v16') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v17') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v17') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -405,21 +427,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v16', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_deduped_v17', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v4', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v5', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v16', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v17', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v16', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v17', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -573,7 +595,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v16', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v17', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -605,6 +627,7 @@ export default function Dashboard() {
     setInputUrl("");
   };
 
+  // PEMROSESAN CERDAS DENGAN SMART DEDUPLICATION & IN-PLACE REFRESH
   const handleExecuteAnalysis = () => {
     if (!inputUrl.trim() && stagedFiles.length === 0) {
       alert("Silakan masukkan URL Sinyal MQL5 atau unggah berkas CSV/Screenshot.");
@@ -612,7 +635,7 @@ export default function Dashboard() {
     }
 
     setIsAiProcessing(true);
-    const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit)";
+    const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit Terkini)";
 
     let signalIdMatch = "";
     if (inputUrl) {
@@ -625,61 +648,98 @@ export default function Dashboard() {
     const registryData = signalIdMatch && KNOWN_MQL5_REGISTRY[signalIdMatch] ? KNOWN_MQL5_REGISTRY[signalIdMatch] : null;
 
     const finalizeAndSave = (computedMetrics) => {
-      const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
-      
-      const newSignalData = computeQuantitativeAudit({
-        id: `SIG_${newIndexNumber}`,
-        indexName: `MT5 Signal - ${newIndexNumber}`,
-        realSignalName: computedMetrics.realSignalName || `MQL5 Signal #${signalIdMatch || Date.now().toString().slice(-6)}`,
-        signalUrl: inputUrl || "https://www.mql5.com/en/signals",
-        indexProvider: `Provider #${newIndexNumber}`,
-        realProvider: computedMetrics.realProvider || "Verified MQL5 Provider",
-        currency: computedMetrics.currency || "USD",
-        analyzedDate: currentDateStr,
-        status: computedMetrics.maxDD > 40 ? "REJECTED" : "APPROVED",
-        isArchived: false,
-        growth: computedMetrics.growth || "100.00%",
-        netProfitFormatted: computedMetrics.netProfitFormatted || "$0.00",
-        netProfitNum: computedMetrics.netProfitNum || 0,
-        netProfitUSD: computedMetrics.netProfitUSD || "",
-        winRate: computedMetrics.winRate || 60.0,
-        profitFactor: computedMetrics.profitFactor || 1.80,
-        maxDD: computedMetrics.maxDD || 15.0,
-        broker: computedMetrics.broker || "MetaQuotes-Server",
-        leverage: computedMetrics.leverage || "1:500",
-        reliabilityWeeks: computedMetrics.reliabilityWeeks || 24,
-        reliabilityBarsCount: 5,
-        subscribersCount: computedMetrics.subscribersCount || 0,
-        subscribersCapitalUSD: computedMetrics.subscribersCapitalUSD || 0,
-        tradingDays: computedMetrics.tradingDays || `${computedMetrics.totalTrades || 50} Transaksi Riil`,
-        totalTrades: computedMetrics.totalTrades || 50,
-        subscriptionFee: computedMetrics.subscriptionFee || "$30 USD / Bln",
-        balance: computedMetrics.balance || "1,000.00",
-        equity: computedMetrics.equity || "1,000.00",
-        initialDeposit: computedMetrics.initialDeposit || "1,000.00",
-        totalDeposit: computedMetrics.totalDeposit || "0.00",
-        totalWithdrawal: computedMetrics.totalWithdrawal || "0.00",
-        payoffRatio: computedMetrics.payoffRatio || 1.40,
-        maxDepositLoad: computedMetrics.maxDepositLoad || 10.0,
-        algoTrading: computedMetrics.algoTrading || 100,
-        profitTradesShare: computedMetrics.winRate || 60.0,
-        lossTradesShare: (100 - (computedMetrics.winRate || 60.0)).toFixed(2),
-        tradingActivity: computedMetrics.tradingActivity || 100.0,
-        avgHoldingDays: computedMetrics.avgHoldingDays || 2.0,
-        totalSwap: computedMetrics.totalSwap || "0.00",
-        activePairsList: computedMetrics.activePairsList || [],
-        withdrawalNotice: computedMetrics.withdrawalNotice || "",
-        batchReadiness: 90
-      });
+      const uniqueSignalKey = signalIdMatch ? `MQL5_${signalIdMatch}` : (computedMetrics.signalUniqueKey || `KEY_${Date.now()}`);
 
-      setAnalysesList(prev => [...prev, newSignalData]);
-      setSelectedSignalId(newSignalData.id);
+      // 1. CEK APAKAH SINYAL SUDAH PERNAH ADA (DEDUPLIKASI)
+      const existingIndex = analysesList.findIndex(item => 
+        (item.signalUniqueKey && item.signalUniqueKey === uniqueSignalKey) ||
+        (item.signalUrl && inputUrl && item.signalUrl.includes(signalIdMatch || "___")) ||
+        (item.realSignalName && computedMetrics.realSignalName && item.realSignalName.toLowerCase() === computedMetrics.realSignalName.toLowerCase())
+      );
 
-      setUploadReportNotification([
-        `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.indexName}" dianalisis: Skor ${newSignalData.totalScore}/100 [Hard-Filter: ${newSignalData.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`,
-        `Pertumbuhan: ${newSignalData.growth} | Net Profit: ${newSignalData.netProfitFormatted} | Drawdown: ${newSignalData.maxDD}%`,
-        `Mandat Investasi: ${newSignalData.verdict}`
-      ]);
+      if (existingIndex !== -1) {
+        // PERBARUI DATA YANG SUDAH ADA SECARA IN-PLACE (TIDAK MEMBUAT KARTU GANDA)
+        const targetExisting = analysesList[existingIndex];
+        const updatedSignal = computeQuantitativeAudit({
+          ...targetExisting,
+          ...computedMetrics,
+          analyzedDate: currentDateStr,
+          status: computedMetrics.maxDD > 40 ? "REJECTED" : "APPROVED",
+          lastAuditNote: `Data Diperbarui ke Hasil Audit Terkini (${currentDateStr})`
+        });
+
+        setAnalysesList(prev => {
+          const nextList = [...prev];
+          nextList[existingIndex] = updatedSignal;
+          return nextList;
+        });
+
+        setSelectedSignalId(targetExisting.id);
+
+        setUploadReportNotification([
+          `[DEDUPLIKASI AKTIF] Sinyal "${targetExisting.indexName}" (${targetExisting.realSignalName}) telah terdaftar sebelumnya.`,
+          `Data berhasil diperbarui ke hasil audit terkini (${currentDateStr}) tanpa membuat kartu redundan.`,
+          `Skor Kuantitatif Terkini: ${updatedSignal.totalScore}/100 [Hard-Filter: ${updatedSignal.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`
+        ]);
+      } else {
+        // BUAT KARTU BARU JIKA SINYAL BENAR-BENAR BELUM ADA
+        const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
+        
+        const newSignalData = computeQuantitativeAudit({
+          id: `SIG_${newIndexNumber}`,
+          indexName: `MT5 Signal - ${newIndexNumber}`,
+          signalUniqueKey: uniqueSignalKey,
+          realSignalName: computedMetrics.realSignalName || `MQL5 Signal #${signalIdMatch || Date.now().toString().slice(-6)}`,
+          signalUrl: inputUrl || "https://www.mql5.com/en/signals",
+          indexProvider: `Provider #${newIndexNumber}`,
+          realProvider: computedMetrics.realProvider || "Verified MQL5 Provider",
+          currency: computedMetrics.currency || "USD",
+          analyzedDate: currentDateStr,
+          status: computedMetrics.maxDD > 40 ? "REJECTED" : "APPROVED",
+          isArchived: false,
+          growth: computedMetrics.growth || "100.00%",
+          netProfitFormatted: computedMetrics.netProfitFormatted || "$0.00",
+          netProfitNum: computedMetrics.netProfitNum || 0,
+          netProfitUSD: computedMetrics.netProfitUSD || "",
+          winRate: computedMetrics.winRate || 60.0,
+          profitFactor: computedMetrics.profitFactor || 1.80,
+          maxDD: computedMetrics.maxDD || 15.0,
+          broker: computedMetrics.broker || "MetaQuotes-Server",
+          leverage: computedMetrics.leverage || "1:500",
+          reliabilityWeeks: computedMetrics.reliabilityWeeks || 24,
+          reliabilityBarsCount: 5,
+          subscribersCount: computedMetrics.subscribersCount || 0,
+          subscribersCapitalUSD: computedMetrics.subscribersCapitalUSD || 0,
+          tradingDays: computedMetrics.tradingDays || `${computedMetrics.totalTrades || 50} Transaksi Riil`,
+          totalTrades: computedMetrics.totalTrades || 50,
+          subscriptionFee: computedMetrics.subscriptionFee || "$30 USD / Bln",
+          balance: computedMetrics.balance || "1,000.00",
+          equity: computedMetrics.equity || "1,000.00",
+          initialDeposit: computedMetrics.initialDeposit || "1,000.00",
+          totalDeposit: computedMetrics.totalDeposit || "0.00",
+          totalWithdrawal: computedMetrics.totalWithdrawal || "0.00",
+          payoffRatio: computedMetrics.payoffRatio || 1.40,
+          maxDepositLoad: computedMetrics.maxDepositLoad || 10.0,
+          algoTrading: computedMetrics.algoTrading || 100,
+          profitTradesShare: computedMetrics.winRate || 60.0,
+          lossTradesShare: (100 - (computedMetrics.winRate || 60.0)).toFixed(2),
+          tradingActivity: computedMetrics.tradingActivity || 100.0,
+          avgHoldingDays: computedMetrics.avgHoldingDays || 2.0,
+          totalSwap: computedMetrics.totalSwap || "0.00",
+          activePairsList: computedMetrics.activePairsList || [],
+          withdrawalNotice: computedMetrics.withdrawalNotice || "",
+          batchReadiness: 90
+        });
+
+        setAnalysesList(prev => [...prev, newSignalData]);
+        setSelectedSignalId(newSignalData.id);
+
+        setUploadReportNotification([
+          `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.indexName}" berhasil didaftarkan: Skor ${newSignalData.totalScore}/100 [Hard-Filter: ${newSignalData.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`,
+          `Pertumbuhan: ${newSignalData.growth} | Net Profit: ${newSignalData.netProfitFormatted} | Drawdown: ${newSignalData.maxDD}%`,
+          `Mandat Investasi: ${newSignalData.verdict}`
+        ]);
+      }
 
       setIsAiProcessing(false);
       setShowUploader(false);
@@ -849,7 +909,7 @@ export default function Dashboard() {
         <div className="no-print bg-indigo-900 text-white p-4 rounded-xl shadow-lg border border-indigo-700 flex justify-between items-start animate-fadeIn">
           <div className="space-y-1 pr-4">
             <p className="font-bold text-amber-400 text-xs flex items-center space-x-1.5">
-              <Sparkles size={16} /> <span>Laporan Hasil Audit Kuantitatif:</span>
+              <Sparkles size={16} /> <span>Laporan Hasil Pemrosesan Sinyal:</span>
             </p>
             <ul className="list-disc list-inside text-xs text-indigo-100 space-y-0.5 pt-1">
               {uploadReportNotification.map((note, idx) => <li key={idx}>{note}</li>)}
@@ -887,12 +947,12 @@ export default function Dashboard() {
                   type="url"
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
-                  placeholder="Contoh: https://www.mql5.com/en/signals/2304847"
+                  placeholder="Contoh: https://www.mql5.com/en/signals/2304847 atau 2084890"
                   className="flex-1 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               <p className="text-[11px] text-slate-400 italic">
-                *Sistem memvalidasi rekam jejak, drawdown, leverage, dan metrik publik langsung dari sumber MQL5.
+                *Sistem secara otomatis mendeteksi jika sinyal sudah ada dan memperbarui data terkini (Smart Deduplication).
               </p>
             </div>
 
@@ -1223,7 +1283,7 @@ export default function Dashboard() {
                   <span>1. Investment Thesis & Compounding Dynamics</span>
                 </div>
                 <p className="text-xs text-emerald-200 leading-relaxed">
-                  Sinyal membukukan pertumbuhan MQL5 <strong>{data.growth}</strong> (Time-Weighted Compounding) dari deposit awal <strong>{data.initialDeposit}</strong> dengan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> (Simple ROI: {data.simpleRoi}%). {data.withdrawalNotice}
+                  Sinyal membukukan pertumbuhan MQL5 <strong>{data.growth}</strong> (Time-Weighted Compounding) dari deposit awal <strong>{data.initialDeposit}</strong> dengan profit bersih riil <strong>{data.netProfitFormatted} {data.netProfitUSD}</strong> (Simple Cash ROI: {data.simpleRoi}%). {data.withdrawalNotice}
                 </p>
               </div>
 
@@ -1233,7 +1293,7 @@ export default function Dashboard() {
                   <span>2. Key Risk Consideration</span>
                 </div>
                 <p className={`text-xs leading-relaxed ${data.maxDD > 40 ? 'text-rose-200' : 'text-amber-200'}`}>
-                  Maximal Equity Drawdown tercatat <strong>{data.maxDD}%</strong> dengan utilisasi marjin puncak (*Max Deposit Load*) sebesar <strong>{data.maxDepositLoad}%</strong>. {data.maxDD > 40 ? '⚠️ Drawdown melampaui toleransi risiko institusional (>40%). Wajib demo observasi sebelum real capital.' : '✅ Deposit load dan ketahanan marjin terjaga aman.'}
+                  Maximal Equity Drawdown tercatat <strong>{data.maxDD}%</strong> dengan utilisasi marjin puncak (*Max Deposit Load*) sebesar <strong>{data.maxDepositLoad}%</strong>. {data.maxDD > 40 ? '⚠️ Drawdown melampaui batas aman (>40%). Wajib demo testing sebelum real capital.' : '✅ Deposit load dan ketahanan marjin terjaga aman.'}
                 </p>
               </div>
 
@@ -1532,7 +1592,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 8. BOTTOM MANAGER ZONE */}
+      {/* 8. BOTTOM MANAGER ZONE DENGAN LABEL AUDIT TERKINI & DEDUPLIKASI */}
       <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
           <div>
@@ -1540,7 +1600,7 @@ export default function Dashboard() {
               <Clock className="text-indigo-400" size={20} /> <span>Daftar Riwayat Sinyal Teranalisis (ALPHA ANALYZER Manager)</span>
             </h2>
             <p className="text-xs text-slate-400">
-              {isAdminMode ? 'Mode Admin Aktif: Anda dapat melihat nama asli sinyal dan mengarsipkan/menghapus.' : 'Sinyal diurutkan secara terstruktur dengan penamaan indeks proteksi.'}
+              {isAdminMode ? 'Mode Admin Aktif: Anda dapat melihat nama asli sinyal dan mengarsipkan/menghapus.' : 'Sinyal terdeduplikasi otomatis dengan riwayat audit terkini.'}
             </p>
           </div>
 
@@ -1603,6 +1663,13 @@ export default function Dashboard() {
                       <span className="text-slate-700">|</span>
                       <span className={`font-semibold ${item.isHardFilterPassed ? 'text-indigo-400' : 'text-rose-400'}`}>Skor: {item.totalScore}/100</span>
                     </div>
+
+                    {item.lastAuditNote && (
+                      <p className="text-[11px] text-amber-300/90 font-medium pt-0.5 flex items-center space-x-1">
+                        <Info size={12} />
+                        <span>{item.lastAuditNote}</span>
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center space-x-1 flex-shrink-0">
