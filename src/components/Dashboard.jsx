@@ -2,7 +2,7 @@
 import { 
   AlertTriangle, CheckCircle, TrendingUp, ShieldAlert, FileSpreadsheet, 
   BarChart2, BookOpen, DollarSign, Sparkles, UserCheck, Cpu, 
-  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink, MessageSquarePlus, CheckCircle2
+  Archive, Trash2, RefreshCw, Lock, Unlock, Key, Settings, Clock, UploadCloud, Users, ChevronRight, Award, FileText, Target, Crosshair, Zap, X, FileDown, Calendar, Tag, ShieldCheck, Activity, BarChart, Send, Coffee, Rocket, Check, ArrowRight, PlayCircle, Eye, Briefcase, Layers, Compass, HelpCircle, AlertOctagon, Scale, FileCheck, Globe, Link, ExternalLink, MessageSquarePlus, ArrowUpDown, Shield
 } from 'lucide-react';
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
@@ -70,43 +70,6 @@ export const KNOWN_MQL5_REGISTRY = {
     totalSwap: "-120 JPY"
   }
 };
-
-// DAFTAR USULAN SINYAL DARI MEMBER KOMUNITAS
-export const initialMemberSuggestions = [
-  {
-    id: "SUGG_1",
-    signalName: "Goldtrade Pro ICM (#2084890)",
-    proposedBy: "Member VIP - Hendra K.",
-    date: "24 Agu 2026",
-    status: "APPROVED_CATALOG",
-    statusLabel: "Lolos Kurasi (Masuk Katalog)",
-    mql5Url: "https://www.mql5.com/en/signals/2084890",
-    votes: 48,
-    notes: "Strategi Gold algo stabil dengan rekam jejak 151 minggu tanpa injeksi deposit."
-  },
-  {
-    id: "SUGG_2",
-    signalName: "Alpha Trend Scalper EA",
-    proposedBy: "Trader - Dani S.",
-    date: "21 Agu 2026",
-    status: "UNDER_REVIEW",
-    statusLabel: "Dalam Stress-Test Tim Risiko",
-    mql5Url: "https://www.mql5.com/en/signals/1982341",
-    votes: 27,
-    notes: "Sedang dievaluasi spread resistance sesi Tokyo dan max holding period."
-  },
-  {
-    id: "SUGG_3",
-    signalName: "Quantum FX Martingale Matrix",
-    proposedBy: "Member - Rian T.",
-    date: "19 Agu 2026",
-    status: "REJECTED_FILTER",
-    statusLabel: "Ditolak (Gagal Hard-Risk Filter)",
-    mql5Url: "https://www.mql5.com/en/signals/1784910",
-    votes: 8,
-    notes: "Terdeteksi penggandaan lot Martingale tak terbatas (Uncapped Exposure)."
-  }
-];
 
 // MESIN AUDIT KUANTITATIF & HARD-RISK FILTER
 export function computeQuantitativeAudit(raw) {
@@ -216,14 +179,14 @@ export function computeQuantitativeAudit(raw) {
 
 export const defaultMasterData = [
   computeQuantitativeAudit({
-    id: "GOLDTRADE_PRO",
+    id: "SIG_001",
     indexName: "MT5 Signal - 001",
     realSignalName: "Goldtrade Pro ICM",
     signalUrl: "https://www.mql5.com/en/signals/2084890",
-    indexProvider: "Provider #001 (Profalgo)",
+    indexProvider: "Provider #001",
     realProvider: "Profalgo Limited",
     currency: "EUR",
-    analyzedDate: "26 Agu 2026",
+    analyzedDate: "10 Agu 2026",
     status: "APPROVED",
     isArchived: false,
     growth: "647.49%",
@@ -262,11 +225,11 @@ export const defaultMasterData = [
     batchReadiness: 90
   }),
   computeQuantitativeAudit({
-    id: "WORLD_PEACE",
+    id: "SIG_002",
     indexName: "MT5 Signal - 002",
     realSignalName: "World PEACE Multi FX Algo",
     signalUrl: "https://www.mql5.com/en/signals/2379208",
-    indexProvider: "Provider #002 (JP)",
+    indexProvider: "Provider #002",
     realProvider: "Nobeyo- Sano",
     currency: "JPY",
     analyzedDate: "16 Agu 2026",
@@ -311,8 +274,8 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v11');
-    const saved = localStorage.getItem('tc_analyses_master_v13');
+    localStorage.removeItem('tc_analyses_master_v12');
+    const saved = localStorage.getItem('tc_analyses_master_v14');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -325,22 +288,24 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v13') || "GOLDTRADE_PRO";
+    return localStorage.getItem('tc_selected_id_v14') || "SIG_001";
   });
 
+  // Hapus dummy usulan, inisialisasi murni dari input riil member
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_member_suggestions_v1');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v2');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch(e){}
     }
-    return initialMemberSuggestions;
+    return [];
   });
 
   const [viewPerspective, setViewPerspective] = useState('hedgefund');
   const [historyTab, setHistoryTab] = useState('active');
+  const [sortBy, setSortBy] = useState('chronological'); // 'chronological', 'score', 'drawdown', 'growth'
   const [showUploader, setShowUploader] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
@@ -352,12 +317,12 @@ export default function Dashboard() {
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
-  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
+  const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing', suggestedSignalUrl: '' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v13') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v13') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v14') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v14') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -365,21 +330,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_master_v13', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_master_v14', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_member_suggestions_v1', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v2', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v13', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v14', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v13', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v14', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   useEffect(() => {
@@ -396,11 +361,12 @@ export default function Dashboard() {
   const activeData = analysesList.find(s => s.id === selectedSignalId) || (analysesList.length > 0 ? analysesList[0] : null);
   const data = activeData ? computeQuantitativeAudit(activeData) : null;
 
+  // STRICT PRIVACY: Default Publik selalu memakai penamaan indeks berurutan (MT5 Signal - 001)
   const displayName = data 
-    ? (isAdminMode ? (data.realSignalName || data.indexName) : (data.indexName || data.realSignalName))
+    ? (isAdminMode ? (data.realSignalName || data.indexName) : (data.indexName || "MT5 Signal - 001"))
     : "Belum Ada Sinyal";
   const displayProvider = data 
-    ? (isAdminMode ? (data.realProvider || data.indexProvider) : (data.indexProvider || data.realProvider))
+    ? (isAdminMode ? (data.realProvider || data.indexProvider) : (data.indexProvider || "Provider Terverifikasi"))
     : "-";
 
   const handlePrintPdfRequest = () => {
@@ -425,7 +391,7 @@ export default function Dashboard() {
   const handleOpenNgopiModal = (packageType) => {
     setLeadForm(prev => ({ ...prev, interest: packageType }));
 
-    if (!isLeadUnlocked) {
+    if (!isLeadUnlocked || packageType === 'Usulkan Sinyal Ini') {
       setShowLeadModal(true);
     } else {
       const payload = {
@@ -458,12 +424,30 @@ export default function Dashboard() {
 
     setIsSubmittingLead(true);
 
+    const isSuggesting = leadForm.interest.includes('Usulkan Sinyal') || leadForm.interest === 'Usulkan Sinyal Ini';
+
+    // Jika member mengusulkan sinyal, masukkan secara riil ke daftar usulan member
+    if (isSuggesting) {
+      const newSuggestion = {
+        id: `SUGG_${Date.now()}`,
+        signalName: leadForm.suggestedSignalUrl ? `Usulan Member (URL: ${leadForm.suggestedSignalUrl.substring(0, 32)}...)` : `Usulan: ${displayName}`,
+        proposedBy: `Member - ${leadForm.name}`,
+        date: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+        status: "UNDER_REVIEW",
+        statusLabel: "Dalam Stress-Test Tim Risiko",
+        mql5Url: leadForm.suggestedSignalUrl || data?.signalUrl || "https://www.mql5.com",
+        notes: `Diajukan untuk audit kelayakan masuk katalog Co-Subscription Alpha Traders Club.`
+      };
+      setSuggestionsList(prev => [newSuggestion, ...prev]);
+    }
+
     const payload = {
       name: leadForm.name,
       whatsapp: leadForm.whatsapp,
       email: leadForm.email,
       interest: leadForm.interest,
-      signalName: displayName
+      signalName: displayName,
+      suggestedUrl: leadForm.suggestedSignalUrl || "-"
     };
 
     localStorage.setItem('tc_lead_unlocked', 'true');
@@ -486,6 +470,10 @@ export default function Dashboard() {
       setIsSubmittingLead(false);
       setIsLeadUnlocked(true);
       setShowLeadModal(false);
+
+      if (isSuggesting) {
+        alert(`Terima kasih Kak ${leadForm.name}! Usulan sinyal Anda telah tercatat dan masuk ke antrean audit tim risiko di bagian bawah.`);
+      }
 
       if (pendingAction === 'pdf') {
         handlePrintPdfRequest();
@@ -511,7 +499,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v13', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v14', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -563,10 +551,11 @@ export default function Dashboard() {
     const registryData = signalIdMatch && KNOWN_MQL5_REGISTRY[signalIdMatch] ? KNOWN_MQL5_REGISTRY[signalIdMatch] : null;
 
     const finalizeAndSave = (computedMetrics) => {
+      // Penamaan berurutan kronologis
       const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
       
       const newSignalData = computeQuantitativeAudit({
-        id: `SIG_${Date.now()}`,
+        id: `SIG_${newIndexNumber}`,
         indexName: `MT5 Signal - ${newIndexNumber}`,
         realSignalName: computedMetrics.realSignalName || `MQL5 Signal #${signalIdMatch || Date.now().toString().slice(-6)}`,
         signalUrl: inputUrl || "https://www.mql5.com/en/signals",
@@ -609,11 +598,11 @@ export default function Dashboard() {
         batchReadiness: 90
       });
 
-      setAnalysesList(prev => [newSignalData, ...prev]);
+      setAnalysesList(prev => [...prev, newSignalData]);
       setSelectedSignalId(newSignalData.id);
 
       setUploadReportNotification([
-        `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.realSignalName}" lolos Hard-Filter dengan Skor: ${newSignalData.totalScore}/100 [Grade: ${newSignalData.scoreGrade}].`,
+        `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.indexName}" lolos Hard-Filter dengan Skor: ${newSignalData.totalScore}/100 [Grade: ${newSignalData.scoreGrade}].`,
         `Growth: ${newSignalData.growth} | Net Profit: ${newSignalData.netProfitFormatted} | Drawdown: ${newSignalData.maxDD}%`,
         `Mandat Investasi: ${newSignalData.verdict}`
       ]);
@@ -661,7 +650,22 @@ export default function Dashboard() {
     }
   };
 
-  const filteredHistory = analysesList.filter(item => historyTab === 'active' ? !item.isArchived : item.isArchived);
+  // PENGURUTAN DAFTAR SINYAL BERDASARKAN KUALITAS & METRIK
+  const filteredHistory = analysesList
+    .filter(item => historyTab === 'active' ? !item.isArchived : item.isArchived)
+    .sort((a, b) => {
+      if (sortBy === 'score') {
+        return (b.totalScore || 0) - (a.totalScore || 0);
+      } else if (sortBy === 'drawdown') {
+        return (a.maxDD || 0) - (b.maxDD || 0); // DD terendah lebih baik
+      } else if (sortBy === 'growth') {
+        const growthA = parseFloat(String(a.growth).replace(/[^0-9.-]/g, '')) || 0;
+        const growthB = parseFloat(String(b.growth).replace(/[^0-9.-]/g, '')) || 0;
+        return growthB - growthA;
+      }
+      // Default: Kronologis berdasarkan index penomoran
+      return a.indexName.localeCompare(b.indexName);
+    });
 
   return (
     <div className="space-y-6">
@@ -881,7 +885,7 @@ export default function Dashboard() {
                   <Coffee size={12} /> <span>Program Ngopi Bareng TradersClub</span>
                 </span>
                 <h3 className="text-base font-bold text-white">
-                  Gabung Patungan Sinyal — {displayName}
+                  {leadForm.interest.includes('Usulkan') ? 'Usulkan Sinyal Baru ke Komunitas' : `Gabung Patungan — ${displayName}`}
                 </h3>
               </div>
               <button onClick={() => setShowLeadModal(false)} className="text-slate-400 hover:text-white">
@@ -890,7 +894,9 @@ export default function Dashboard() {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              Dapatkan akses laporan audit lengkap dan pilih opsi langganan terhemat dengan menyambungkan akun Kakak ke Akun Master VPS kami.
+              {leadForm.interest.includes('Usulkan') 
+                ? 'Masukkan link sinyal MQL5 pilihan Anda. Tim analis kuantitatif kami akan melakukan audit kelayakan sebelum dipajang di katalog komunitas.'
+                : 'Dapatkan akses laporan audit lengkap dan pilih opsi langganan terhemat dengan menyambungkan akun Kakak ke Akun Master VPS kami.'}
             </p>
 
             <form onSubmit={handleLeadSubmit} className="space-y-3">
@@ -929,6 +935,20 @@ export default function Dashboard() {
                   className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
+
+              {leadForm.interest.includes('Usulkan') && (
+                <div>
+                  <label className="text-xs font-semibold text-amber-300 block mb-1">Link URL Sinyal MQL5 yang Diusulkan</label>
+                  <input 
+                    type="url" 
+                    required
+                    placeholder="https://www.mql5.com/en/signals/..." 
+                    value={leadForm.suggestedSignalUrl || ''}
+                    onChange={(e) => setLeadForm({...leadForm, suggestedSignalUrl: e.target.value})}
+                    className="w-full p-2.5 bg-slate-950 border border-amber-500/50 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">Pilihan Paket Ngopi</label>
@@ -1209,7 +1229,7 @@ export default function Dashboard() {
                 onClick={() => setViewPerspective('hedgefund')}
                 className={`px-3 py-1.5 rounded-md flex items-center space-x-1.5 transition-all ${viewPerspective === 'hedgefund' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
               >
-                <Briefcase size={14} /> <span>Hedge Fund / BOD View</span>
+                <Briefcase size={14} /> <span>Hedge Fund View</span>
               </button>
             </div>
           </section>
@@ -1266,14 +1286,14 @@ export default function Dashboard() {
               </div>
             </section>
           ) : (
-            /* HEDGE FUND / BOD VIEW */
+            /* HEDGE FUND VIEW */
             <section className="print-section bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-xl shadow-md p-6 space-y-6 border border-slate-800 animate-fadeIn">
               <div className="border-b border-slate-800 pb-3 flex justify-between items-center">
                 <h2 className="text-lg font-bold flex items-center space-x-2">
                   <Award className="text-amber-400" size={22} /> 
-                  <span>Institutional Due-Diligence Audit Report (9-Point BOD Standard) — {displayName}</span>
+                  <span>Institutional Due-Diligence Audit Report (9-Point Standard) — {displayName}</span>
                 </h2>
-                <span className="text-xs bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-3 py-1 rounded-full font-medium">Hedge Fund Due-Diligence</span>
+                <span className="text-xs bg-indigo-500/30 text-indigo-300 border border-indigo-400/30 px-3 py-1 rounded-full font-medium">Hedge Fund View</span>
               </div>
 
               <div className="space-y-5 text-sm text-slate-200 leading-relaxed">
@@ -1447,24 +1467,43 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* 8. BOTTOM MANAGER ZONE: DAFTAR RIWAYAT SINYAL */}
-      <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 border-b border-slate-800 pb-3">
+      {/* 8. BOTTOM MANAGER ZONE DENGAN OPSI PENGURUTAN KUALITAS */}
+      <section className="bottom-manager-zone no-print bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 mt-8 text-white space-y-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
           <div>
             <h2 className="text-base font-bold text-white flex items-center space-x-2">
               <Clock className="text-indigo-400" size={20} /> <span>Daftar Riwayat Sinyal Teranalisis (ALPHA ANALYZER Manager)</span>
             </h2>
             <p className="text-xs text-slate-400">
-              {isAdminMode ? 'Mode Admin Aktif: Anda dapat mengarsipkan atau menghapus sinyal.' : 'Seluruh riwayat audit disimpan secara dinamis.'}
+              {isAdminMode ? 'Mode Admin Aktif: Anda dapat melihat nama asli sinyal dan mengarsipkan/menghapus.' : 'Sinyal diurutkan secara terstruktur dengan penamaan indeks proteksi.'}
             </p>
           </div>
-          <div className="flex bg-slate-950 p-1 rounded-lg text-xs font-semibold border border-slate-800">
-            <button onClick={() => setHistoryTab('active')} className={`px-3 py-1.5 rounded-md ${historyTab === 'active' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>
-              Aktif ({analysesList.filter(a => !a.isArchived).length})
-            </button>
-            <button onClick={() => setHistoryTab('archived')} className={`px-3 py-1.5 rounded-md ${historyTab === 'archived' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>
-              Arsip ({analysesList.filter(a => a.isArchived).length})
-            </button>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* OPSI PENGURUTAN KUALITAS SINYAL */}
+            <div className="flex items-center space-x-1 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 text-xs">
+              <ArrowUpDown size={13} className="text-indigo-400" />
+              <span className="text-slate-400 text-[11px] font-medium mr-1">Urutkan:</span>
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-slate-900 text-white text-xs border border-slate-700 rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="chronological">Kronologis (Urutan Sinyal)</option>
+                <option value="score">Skor Kuantitatif Tertinggi (Rekomendasi)</option>
+                <option value="drawdown">Drawdown Terendah (Safety)</option>
+                <option value="growth">Growth Tertinggi (MQL5 Return)</option>
+              </select>
+            </div>
+
+            <div className="flex bg-slate-950 p-1 rounded-lg text-xs font-semibold border border-slate-800">
+              <button onClick={() => setHistoryTab('active')} className={`px-3 py-1 rounded-md ${historyTab === 'active' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>
+                Aktif ({analysesList.filter(a => !a.isArchived).length})
+              </button>
+              <button onClick={() => setHistoryTab('archived')} className={`px-3 py-1 rounded-md ${historyTab === 'archived' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400'}`}>
+                Arsip ({analysesList.filter(a => a.isArchived).length})
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1474,8 +1513,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filteredHistory.map((item) => {
               const isSelected = item.id === selectedSignalId;
-              const cardTitle = isAdminMode ? (item.realSignalName || item.indexName) : (item.indexName || item.realSignalName);
-              const cardProvider = isAdminMode ? (item.realProvider || item.indexProvider) : (item.indexProvider || item.realProvider);
+              const cardTitle = isAdminMode ? (item.realSignalName || item.indexName) : item.indexName;
+              const cardProvider = isAdminMode ? (item.realProvider || item.indexProvider) : item.indexProvider;
               
               return (
                 <div key={item.id} onClick={() => setSelectedSignalId(item.id)} className={`p-4 rounded-xl border transition-all cursor-pointer flex justify-between items-center ${isSelected ? 'border-indigo-500 bg-indigo-950/40 ring-1 ring-indigo-500' : 'border-slate-800 bg-slate-950 hover:bg-slate-900'}`}>
@@ -1484,7 +1523,7 @@ export default function Dashboard() {
                       <span className="font-bold text-white text-sm">{cardTitle}</span>
                       <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-semibold">{item.analyzedDate}</span>
                     </div>
-                    <p className="text-xs text-slate-400 truncate">Provider: {cardProvider}</p>
+                    <p className="text-xs text-slate-400 truncate">Provider Terverifikasi: {cardProvider}</p>
                     
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs pt-1">
                       <span className="text-emerald-400 font-bold">Growth: {item.growth}</span>
@@ -1530,7 +1569,7 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* 9. MEMBER SUGGESTIONS ZONE (BAGIAN PALING BAWAH) */}
+      {/* 9. MEMBER SUGGESTIONS ZONE (BERSIH DARI DUMMY - MURNI DARI FORMULIR USULAN MEMBER) */}
       <section className="member-suggestions-zone no-print bg-slate-900 rounded-xl shadow-sm border border-indigo-500/20 p-6 text-white space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-800 pb-3">
           <div className="flex items-center space-x-2.5">
@@ -1539,44 +1578,44 @@ export default function Dashboard() {
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Daftar Usulan Sinyal dari Member Komunitas</h2>
-              <p className="text-xs text-slate-400">Usulkan ID/URL sinyal MQL5 favorit Anda untuk diaudit oleh Komite Risiko Alpha Club</p>
+              <p className="text-xs text-slate-400">
+                Riwayat sinyal yang diajukan oleh member melalui tombol "Usulkan Sinyal Ini" untuk dievaluasi oleh Komite Risiko.
+              </p>
             </div>
           </div>
-          <button 
-            onClick={() => handleOpenNgopiModal('Usulkan Sinyal Ini')}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center space-x-1.5 transition-colors shadow-sm"
-          >
-            <Sparkles size={15} /> <span>+ Ajukan Sinyal Baru</span>
-          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {suggestionsList.map((sugg) => (
-            <div key={sugg.id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all">
-              <div className="flex justify-between items-start">
-                <span className="font-bold text-sm text-slate-100 truncate pr-2">{sugg.signalName}</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap border ${
-                  sugg.status === 'APPROVED_CATALOG' 
-                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
-                    : (sugg.status === 'UNDER_REVIEW' 
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
-                        : 'bg-rose-500/20 text-rose-300 border-rose-500/30')
-                }`}>
-                  {sugg.statusLabel}
-                </span>
-              </div>
+        {suggestionsList.length === 0 ? (
+          <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-8 text-center text-slate-400 space-y-2">
+            <Sparkles size={28} className="mx-auto text-indigo-400 opacity-60 mb-1" />
+            <p className="text-xs font-semibold text-slate-300">Belum ada usulan sinyal baru dari member saat ini.</p>
+            <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+              Member dapat mengusulkan ID sinyal MQL5 baru dengan mengklik tombol <strong>"💡 Usulkan Sinyal Ini"</strong> pada banner Ngopi Bareng di atas.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {suggestionsList.map((sugg) => (
+              <div key={sugg.id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5 hover:border-slate-700 transition-all">
+                <div className="flex justify-between items-start">
+                  <span className="font-bold text-sm text-slate-100 truncate pr-2">{sugg.signalName}</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap border bg-amber-500/20 text-amber-300 border-amber-500/30">
+                    {sugg.statusLabel}
+                  </span>
+                </div>
 
-              <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
-                {sugg.notes}
-              </p>
+                <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                  {sugg.notes}
+                </p>
 
-              <div className="flex justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
-                <span>Diusulkan oleh: <strong className="text-slate-400">{sugg.proposedBy}</strong></span>
-                <span>{sugg.date}</span>
+                <div className="flex justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+                  <span>Diusulkan oleh: <strong className="text-slate-400">{sugg.proposedBy}</strong></span>
+                  <span>{sugg.date}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
     </div>
