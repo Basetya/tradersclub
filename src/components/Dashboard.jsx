@@ -262,7 +262,7 @@ export const defaultMasterData = [
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
     localStorage.removeItem('tc_analyses_master_v16');
-    const saved = localStorage.getItem('tc_analyses_files_v21');
+    const saved = localStorage.getItem('tc_analyses_files_v22');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -284,11 +284,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v21') || "SIG_001";
+    return localStorage.getItem('tc_selected_id_v22') || "SIG_001";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v9');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v10');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -316,8 +316,8 @@ export default function Dashboard() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v21') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v21') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v22') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v22') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -325,21 +325,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_files_v21', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_files_v22', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v9', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v10', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v21', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v22', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v21', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v22', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   const activeData = analysesList.find(s => s.id === selectedSignalId) || (analysesList.length > 0 ? analysesList[0] : null);
@@ -458,7 +458,8 @@ export default function Dashboard() {
     }, 600);
   };
 
-  coconst handleAdminAuth = (e) => {
+  // KEAMANAN: PESAN ERROR DIBERSIHKAN DARI KEBOCORAN PASSWORD
+  const handleAdminAuth = (e) => {
     e.preventDefault();
     const currentPass = adminPassword || "151264!";
     if (inputPassword === currentPass) {
@@ -470,13 +471,12 @@ export default function Dashboard() {
       setAuthError("Password Admin tidak valid. Silakan coba lagi.");
     }
   };
-  };
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v21', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v22', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -1018,7 +1018,7 @@ export default function Dashboard() {
                 type="password" 
                 value={inputPassword} 
                 onChange={(e) => setInputPassword(e.target.value)} 
-                placeholder="Masukkan Password Admin (Strict)..." 
+                placeholder="Masukkan Password Admin..." 
                 className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500" 
                 autoFocus 
               />
