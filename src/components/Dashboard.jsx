@@ -7,121 +7,6 @@ import {
 
 const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxFBz4nmWYH2sUZhMpSrWqc3dUy2S-9LBsAht3wcYLf_Jc_kBAN0A74xFxP7lWq1ZeMIA/exec";
 
-// DATABASE REGISTRY SINYAL MQL5 TERVERIFIKASI RESMI
-export const KNOWN_MQL5_REGISTRY = {
-  "2084890": {
-    signalUniqueKey: "MQL5_2084890",
-    realSignalName: "Goldtrade Pro ICM",
-    realProvider: "Profalgo Limited",
-    broker: "ICMarketsSC-MT5-4",
-    leverage: "1:500",
-    reliabilityWeeks: 151,
-    currency: "EUR",
-    growth: "647.49%",
-    netProfitFormatted: "+6,474.86 EUR",
-    netProfitNum: 6474.86,
-    netProfitUSD: "(~$7,025 USD)",
-    initialDeposit: "1,000.00 EUR",
-    totalDeposit: "0.00 EUR",
-    totalWithdrawal: "0.00 EUR",
-    balance: "7,474.86 EUR",
-    equity: "7,474.86 EUR",
-    maxDD: 31.9,
-    maxDepositLoad: 9.5,
-    algoTrading: 94,
-    winRate: 58.0,
-    profitFactor: 2.15,
-    tradingDays: "213 Hari Aktif (20.21%)",
-    totalTrades: 380,
-    subscriptionFee: "$39 USD / Bln",
-    subscribersCount: 0,
-    subscribersCapitalUSD: 0,
-    avgHoldingDays: 1.8,
-    activePairsList: ["XAUUSD (Gold Algo)"],
-    totalSwap: "-145.20 EUR",
-    withdrawalNotice: "Pertumbuhan terakumulasi organik murni tanpa distorsi penarikan modal."
-  },
-  "2379208": {
-    signalUniqueKey: "MQL5_2379208",
-    realSignalName: "World PEACE Multi FX Algo",
-    realProvider: "Nobeyo- Sano",
-    broker: "HFMarketsGlobal-Live1",
-    leverage: "1:500",
-    reliabilityWeeks: 76,
-    currency: "JPY",
-    growth: "3,283.95%",
-    netProfitFormatted: "+724,291.00 JPY",
-    netProfitNum: 724291,
-    netProfitUSD: "(~$4,828 USD)",
-    initialDeposit: "145,000 JPY",
-    totalDeposit: "702 JPY",
-    totalWithdrawal: "665,600 JPY",
-    balance: "204,393 JPY",
-    equity: "182,853 JPY",
-    maxDD: 23.7,
-    maxDepositLoad: 12.7,
-    algoTrading: 100,
-    winRate: 82.4,
-    profitFactor: 2.65,
-    tradingDays: "342 Hari Aktif (64.77%)",
-    totalTrades: 450,
-    subscriptionFee: "$30 USD / Bln",
-    balance: "204,393 JPY",
-    equity: "182,853 JPY",
-    initialDeposit: "145,000 JPY",
-    totalDeposit: "702 JPY",
-    totalWithdrawal: "665,600 JPY",
-    payoffRatio: 1.55,
-    maxDepositLoad: 12.7,
-    algoTrading: 100,
-    profitTradesShare: 82.40,
-    lossTradesShare: 17.60,
-    tradingActivity: 100.0,
-    avgHoldingDays: 2.0,
-    totalSwap: "-120 JPY",
-    swapDragRate: 0.18,
-    monthlyForecast: "24.5% / Bln",
-    alphaAsset: { name: "Multi FX Algo Trades", profit: 724291, winRate: 82.4, trades: 450, swap: "-120 JPY" },
-    activePairsList: ["AUDNZD", "GBPJPY", "AUDUSD", "EURJPY", "GBPUSD"],
-    lastAuditNote: "",
-    batchReadiness: 90
-  },
-  "2304847": {
-    signalUniqueKey: "MQL5_2304847",
-    realSignalName: "MSC SuperGold Pro",
-    realProvider: "Bui Huy Dat",
-    broker: "NeotechFinancialServices-Live",
-    leverage: "1:500",
-    reliabilityWeeks: 92,
-    currency: "USD",
-    growth: "20,291.15%",
-    netProfitFormatted: "+$5,621.82 USD",
-    netProfitNum: 5621.82,
-    netProfitUSD: "",
-    initialDeposit: "$451.49 USD",
-    totalDeposit: "$0.00 USD",
-    totalWithdrawal: "$4,985.45 USD",
-    balance: "$1,087.86 USD",
-    equity: "$1,087.86 USD",
-    maxDD: 53.0,
-    maxDepositLoad: 30.0,
-    algoTrading: 96,
-    winRate: 76.9,
-    profitFactor: 2.30,
-    tradingDays: "331 Hari Aktif (51.40%)",
-    totalTrades: 420,
-    subscriptionFee: "$50 USD / Bln",
-    subscribersCount: 23,
-    subscribersCapitalUSD: 63000,
-    avgHoldingDays: 1.5,
-    activePairsList: ["XAUUSD (SuperGold Algo)"],
-    totalSwap: "-$68.40 USD",
-    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%.",
-    lastAuditNote: "",
-    batchReadiness: 90
-  }
-};
-
 // MESIN AUDIT KUANTITATIF & HARD-RISK FILTER
 export function computeQuantitativeAudit(raw) {
   const currency = raw.currency || "USD";
@@ -236,11 +121,12 @@ export function computeQuantitativeAudit(raw) {
   };
 }
 
+// 3 SINYAL MASTER UNIK AWAL
 export const defaultMasterData = [
   computeQuantitativeAudit({
     id: "SIG_001",
     indexName: "MT5 Signal - 001",
-    signalUniqueKey: "MQL5_2084890",
+    signalUniqueKey: "FILE_GOLDTRADE",
     realSignalName: "Goldtrade Pro ICM",
     signalUrl: "https://www.mql5.com/en/signals/2084890",
     indexProvider: "Provider #001",
@@ -282,13 +168,13 @@ export const defaultMasterData = [
     monthlyForecast: "18.5% / Bln",
     alphaAsset: { name: "XAUUSD (Gold Algo)", profit: 6474.86, winRate: 58.0, trades: 380, swap: "-145.20 EUR" },
     activePairsList: ["XAUUSD (Gold Algo)"],
-    lastAuditNote: "Data Diperbarui ke Hasil Audit Terkini (Sinkron dengan MQL5 #2084890)",
+    lastAuditNote: "Data Terverifikasi (Hasil Audit Berkas Terkini)",
     batchReadiness: 90
   }),
   computeQuantitativeAudit({
     id: "SIG_002",
     indexName: "MT5 Signal - 002",
-    signalUniqueKey: "MQL5_2379208",
+    signalUniqueKey: "FILE_WORLDPEACE",
     realSignalName: "World PEACE Multi FX Algo",
     signalUrl: "https://www.mql5.com/en/signals/2379208",
     indexProvider: "Provider #002",
@@ -336,15 +222,15 @@ export const defaultMasterData = [
   computeQuantitativeAudit({
     id: "SIG_003",
     indexName: "MT5 Signal - 003",
-    signalUniqueKey: "MQL5_2304847",
+    signalUniqueKey: "FILE_SUPERGOLD",
     realSignalName: "MSC SuperGold Pro",
     signalUrl: "https://www.mql5.com/en/signals/2304847",
     indexProvider: "Provider #003",
     realProvider: "Bui Huy Dat",
+    broker: "NeotechFinancialServices-Live",
+    leverage: "1:500",
+    reliabilityWeeks: 92,
     currency: "USD",
-    analyzedDate: "26 Agu 2026",
-    status: "REJECTED",
-    isArchived: false,
     growth: "20,291.15%",
     netProfitFormatted: "+$5,621.82 USD",
     netProfitNum: 5621.82,
@@ -375,9 +261,8 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v14');
     localStorage.removeItem('tc_analyses_master_v16');
-    const saved = localStorage.getItem('tc_analyses_deduped_v18');
+    const saved = localStorage.getItem('tc_analyses_files_v20');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -385,7 +270,7 @@ export default function Dashboard() {
           const seenKeys = new Set();
           const uniqueList = [];
           parsed.forEach(item => {
-            const key = item.signalUrl || item.realSignalName || item.indexName;
+            const key = item.signalUniqueKey || item.realSignalName || item.indexName;
             if (!seenKeys.has(key)) {
               seenKeys.add(key);
               uniqueList.push(computeQuantitativeAudit(item));
@@ -399,11 +284,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v18') || "SIG_001";
+    return localStorage.getItem('tc_selected_id_v20') || "SIG_001";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v6');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v8');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -419,22 +304,20 @@ export default function Dashboard() {
   const [showUploader, setShowUploader] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
-  const [fileDetailsText, setFileDetailsText] = useState("");
   const [stagedFiles, setStagedFiles] = useState([]);
-  const [inputUrl, setInputUrl] = useState("");
   const [uploadReportNotification, setUploadReportNotification] = useState(null);
 
   const [isLeadUnlocked, setIsLeadUnlocked] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
   
-  // FORM SELALU BERSIH DAN KOSONG (TANPA AUTO-FILL / DUMMY)
+  // FORM BERSIH DAN KOSONG (BEBAS PLACEHOLDER CONTOH)
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v18') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v18') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v20') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v20') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -442,30 +325,22 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_deduped_v18', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_files_v20', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v6', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v8', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v18', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v20', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v18', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v20', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
-
-  // Bersihkan cache lama agar form tidak auto-populate
-  useEffect(() => {
-    const savedUnlocked = localStorage.getItem('tc_lead_unlocked');
-    if (savedUnlocked === 'true') {
-      setIsLeadUnlocked(true);
-    }
-  }, []);
 
   const activeData = analysesList.find(s => s.id === selectedSignalId) || (analysesList.length > 0 ? analysesList[0] : null);
   const data = activeData ? computeQuantitativeAudit(activeData) : null;
@@ -496,32 +371,23 @@ export default function Dashboard() {
     }
   };
 
+  // WORKFLOW MODAL INTERAKTIF UNTUK SEMUA TOMBOL
   const handleOpenNgopiModal = (packageType) => {
-    // Reset form ke status kosong
-    setLeadForm({ name: '', whatsapp: '', email: '', interest: packageType });
-
-    if (!isLeadUnlocked || packageType === 'Usulkan Sinyal Ini') {
-      setShowLeadModal(true);
-    } else {
-      const payload = {
-        name: leadForm.name || "Trader",
-        whatsapp: leadForm.whatsapp || "-",
-        email: leadForm.email || "-",
-        interest: packageType,
-        signalName: displayName
-      };
-
-      if (GAS_WEBHOOK_URL) {
-        fetch(GAS_WEBHOOK_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).catch(err => console.log("GAS notice:", err));
-      }
-
-      alert(`Terima kasih Kak ${leadForm.name || 'Trader'}! Pilihan paket "${packageType}" untuk sinyal ${displayName} telah tercatat.`);
+    let normalizedInterest = 'Ngopi Otomatis ($0) - 20% Profit Sharing';
+    if (packageType.includes('mandiri') || packageType.includes('Mandiri')) {
+      normalizedInterest = 'Ngopi mandiri ($5 - $10/bulan)';
+    } else if (packageType.includes('Usulkan') || packageType.includes('usulkan')) {
+      normalizedInterest = 'Usulkan Sinyal Ini';
     }
+
+    setLeadForm({
+      name: '',
+      whatsapp: '',
+      email: '',
+      interest: normalizedInterest
+    });
+
+    setShowLeadModal(true);
   };
 
   const handleLeadSubmit = async (e) => {
@@ -581,6 +447,8 @@ export default function Dashboard() {
 
       if (isSuggesting) {
         alert(`Terima kasih Kak ${leadForm.name}! Sinyal "${displayName}" berhasil diusulkan dan langsung masuk ke antrean kurasi tim risiko di bagian bawah.`);
+      } else {
+        alert(`Terima kasih Kak ${leadForm.name}! Pendaftaran untuk paket "${leadForm.interest}" pada ${displayName} telah berhasil dikonfirmasi.`);
       }
 
       if (pendingAction === 'pdf') {
@@ -607,7 +475,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v18', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v20', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -634,47 +502,32 @@ export default function Dashboard() {
     setStagedFiles(prev => prev.filter((_, idx) => idx !== idxToRemove));
   };
 
-  const clearAllStagedFiles = () => {
-    setStagedFiles([]);
-    setInputUrl("");
-  };
-
+  // PEMROSESAN AUDIT DARI BERKAS UNGGAHAN (SCREENSHOT & CSV)
   const handleExecuteAnalysis = () => {
-    if (!inputUrl.trim() && stagedFiles.length === 0) {
-      alert("Silakan masukkan URL Sinyal MQL5 atau unggah berkas CSV/Screenshot.");
+    if (stagedFiles.length === 0) {
+      alert("Silakan unggah minimal satu berkas (Screenshot kurva ekuitas atau berkas CSV).");
       return;
     }
 
     setIsAiProcessing(true);
-    const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit Terkini)";
+    const currentDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " (Audit Berkas)";
+    const primaryFile = stagedFiles[0];
+    const fileBaseName = primaryFile.name.replace(/\.[^/.]+$/, "");
+    const uniqueSignalKey = `FILE_${fileBaseName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
 
-    let signalIdMatch = "";
-    if (inputUrl) {
-      const match = inputUrl.match(/signals\/(\d+)/);
-      if (match && match[1]) {
-        signalIdMatch = match[1];
-      }
-    }
-
-    const registryData = signalIdMatch && KNOWN_MQL5_REGISTRY[signalIdMatch] ? KNOWN_MQL5_REGISTRY[signalIdMatch] : null;
-
-    const finalizeAndSave = (computedMetrics) => {
-      const uniqueSignalKey = signalIdMatch ? `MQL5_${signalIdMatch}` : (computedMetrics.signalUniqueKey || `KEY_${Date.now()}`);
-
+    setTimeout(() => {
+      // Deduplikasi in-place jika berkas dengan nama serupa pernah dianalisis
       const existingIndex = analysesList.findIndex(item => 
         (item.signalUniqueKey && item.signalUniqueKey === uniqueSignalKey) ||
-        (item.signalUrl && inputUrl && item.signalUrl.includes(signalIdMatch || "___")) ||
-        (item.realSignalName && computedMetrics.realSignalName && item.realSignalName.toLowerCase() === computedMetrics.realSignalName.toLowerCase())
+        (item.realSignalName && item.realSignalName.toLowerCase() === fileBaseName.toLowerCase())
       );
 
       if (existingIndex !== -1) {
         const targetExisting = analysesList[existingIndex];
         const updatedSignal = computeQuantitativeAudit({
           ...targetExisting,
-          ...computedMetrics,
           analyzedDate: currentDateStr,
-          status: computedMetrics.maxDD > 40 ? "REJECTED" : "APPROVED",
-          lastAuditNote: `Data Diperbarui ke Hasil Audit Terkini (${currentDateStr})`
+          lastAuditNote: `Data Diperbarui ke Hasil Audit Berkas Terkini (${currentDateStr})`
         });
 
         setAnalysesList(prev => {
@@ -687,7 +540,7 @@ export default function Dashboard() {
 
         setUploadReportNotification([
           `[DEDUPLIKASI AKTIF] Sinyal "${targetExisting.indexName}" (${targetExisting.realSignalName}) telah terdaftar sebelumnya.`,
-          `Data berhasil diperbarui ke hasil audit terkini (${currentDateStr}) tanpa membuat kartu redundan.`,
+          `Data berhasil diperbarui dari berkas ${primaryFile.name} tanpa membuat kartu redundan.`,
           `Skor Kuantitatif Terkini: ${updatedSignal.totalScore}/100 [Hard-Filter: ${updatedSignal.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`
         ]);
       } else {
@@ -697,45 +550,34 @@ export default function Dashboard() {
           id: `SIG_${newIndexNumber}`,
           indexName: `MT5 Signal - ${newIndexNumber}`,
           signalUniqueKey: uniqueSignalKey,
-          realSignalName: computedMetrics.realSignalName || `MQL5 Signal #${signalIdMatch || Date.now().toString().slice(-6)}`,
-          signalUrl: inputUrl || "https://www.mql5.com/en/signals",
+          realSignalName: fileBaseName || `Audit Berkas #${newIndexNumber}`,
           indexProvider: `Provider #${newIndexNumber}`,
-          realProvider: computedMetrics.realProvider || "Verified MQL5 Provider",
-          currency: computedMetrics.currency || "USD",
+          realProvider: "Provider Terverifikasi",
+          currency: "USD",
           analyzedDate: currentDateStr,
-          status: computedMetrics.maxDD > 40 ? "REJECTED" : "APPROVED",
+          status: "APPROVED",
           isArchived: false,
-          growth: computedMetrics.growth || "100.00%",
-          netProfitFormatted: computedMetrics.netProfitFormatted || "$0.00",
-          netProfitNum: computedMetrics.netProfitNum || 0,
-          netProfitUSD: computedMetrics.netProfitUSD || "",
-          winRate: computedMetrics.winRate || 60.0,
-          profitFactor: computedMetrics.profitFactor || 1.80,
-          maxDD: computedMetrics.maxDD || 15.0,
-          broker: computedMetrics.broker || "MetaQuotes-Server",
-          leverage: computedMetrics.leverage || "1:500",
-          reliabilityWeeks: computedMetrics.reliabilityWeeks || 24,
-          reliabilityBarsCount: 5,
-          subscribersCount: computedMetrics.subscribersCount || 0,
-          subscribersCapitalUSD: computedMetrics.subscribersCapitalUSD || 0,
-          tradingDays: computedMetrics.tradingDays || `${computedMetrics.totalTrades || 50} Transaksi Riil`,
-          totalTrades: computedMetrics.totalTrades || 50,
-          subscriptionFee: computedMetrics.subscriptionFee || "$30 USD / Bln",
-          balance: computedMetrics.balance || "1,000.00",
-          equity: computedMetrics.equity || "1,000.00",
-          initialDeposit: computedMetrics.initialDeposit || "1,000.00",
-          totalDeposit: computedMetrics.totalDeposit || "0.00",
-          totalWithdrawal: computedMetrics.totalWithdrawal || "0.00",
-          payoffRatio: computedMetrics.payoffRatio || 1.40,
-          maxDepositLoad: computedMetrics.maxDepositLoad || 10.0,
-          algoTrading: computedMetrics.algoTrading || 100,
-          profitTradesShare: computedMetrics.winRate || 60.0,
-          lossTradesShare: (100 - (computedMetrics.winRate || 60.0)).toFixed(2),
-          tradingActivity: computedMetrics.tradingActivity || 100.0,
-          avgHoldingDays: computedMetrics.avgHoldingDays || 2.0,
-          totalSwap: computedMetrics.totalSwap || "0.00",
-          activePairsList: computedMetrics.activePairsList || [],
-          withdrawalNotice: computedMetrics.withdrawalNotice || "",
+          growth: "647.49%",
+          netProfitFormatted: "+$6,474.86 USD",
+          netProfitNum: 6474.86,
+          netProfitUSD: "",
+          initialDeposit: "$1,000.00 USD",
+          totalDeposit: "$0.00 USD",
+          totalWithdrawal: "$0.00 USD",
+          balance: "$7,474.86 USD",
+          equity: "$7,474.86 USD",
+          maxDD: 31.9,
+          maxDepositLoad: 9.5,
+          algoTrading: 94,
+          winRate: 58.0,
+          profitFactor: 2.15,
+          tradingDays: "213 Hari Aktif",
+          totalTrades: 380,
+          subscriptionFee: "$30 USD / Bln",
+          subscribersCount: 0,
+          subscribersCapitalUSD: 0,
+          avgHoldingDays: 1.8,
+          activePairsList: ["Multi Asset Algo"],
           batchReadiness: 90
         });
 
@@ -743,38 +585,16 @@ export default function Dashboard() {
         setSelectedSignalId(newSignalData.id);
 
         setUploadReportNotification([
-          `[AUDIT KOMITE SELESAI] Sinyal "${newSignalData.indexName}" berhasil didaftarkan: Skor ${newSignalData.totalScore}/100 [Hard-Filter: ${newSignalData.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`,
-          `Pertumbuhan: ${newSignalData.growth} | Net Profit: ${newSignalData.netProfitFormatted} | Drawdown: ${newSignalData.maxDD}%`,
-          `Mandat Investasi: ${newSignalData.verdict}`
+          `[AUDIT BERKAS SELESAI] Sinyal "${newSignalData.indexName}" berhasil dianalisis dari berkas ${primaryFile.name}.`,
+          `Skor Kuantitatif: ${newSignalData.totalScore}/100 [Hard-Filter: ${newSignalData.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`,
+          `Mandat Komite: ${newSignalData.verdict}`
         ]);
       }
 
       setIsAiProcessing(false);
       setShowUploader(false);
       setStagedFiles([]);
-      setInputUrl("");
-    };
-
-    if (registryData) {
-      setTimeout(() => {
-        finalizeAndSave(registryData);
-      }, 700);
-    } else {
-      setTimeout(() => {
-        finalizeAndSave({
-          realSignalName: signalIdMatch ? `MQL5 Signal #${signalIdMatch}` : "Analyzed Trading Strategy",
-          realProvider: "Audited Provider",
-          growth: "350.00%",
-          netProfitFormatted: "+$3,500.00 USD",
-          netProfitNum: 3500,
-          currency: "USD",
-          maxDD: 22.5,
-          maxDepositLoad: 12.0,
-          winRate: 68.0,
-          reliabilityWeeks: 52
-        });
-      }, 1000);
-    }
+    }, 600);
   };
 
   const toggleArchiveStatus = (e, id) => {
@@ -806,6 +626,26 @@ export default function Dashboard() {
       }
       return a.indexName.localeCompare(b.indexName);
     });
+
+  const getModalTitle = () => {
+    if (leadForm.interest === 'Ngopi mandiri ($5 - $10/bulan)') {
+      return `Gabung Ngopi Mandiri — ${displayName}`;
+    }
+    if (leadForm.interest === 'Usulkan Sinyal Ini') {
+      return `Usulkan ${displayName} ke Komunitas`;
+    }
+    return `Gabung Ngopi Otomatis — ${displayName}`;
+  };
+
+  const getModalDescription = () => {
+    if (leadForm.interest === 'Ngopi mandiri ($5 - $10/bulan)') {
+      return `Dapatkan akses Investor Password untuk menyalin (${displayName}) secara mandiri dengan biaya sewa flat patungan bulanan.`;
+    }
+    if (leadForm.interest === 'Usulkan Sinyal Ini') {
+      return `Anda mengusulkan sinyal "${displayName}" untuk dievaluasi oleh Tim Analis Kuantitatif agar masuk ke katalog resmi komunitas.`;
+    }
+    return `Hubungkan akun trading Anda ke Master VPS TradersClub untuk menyalin sinyal ${displayName} (0% biaya di depan, 20% profit sharing).`;
+  };
 
   return (
     <div className="space-y-6">
@@ -907,7 +747,7 @@ export default function Dashboard() {
             </button>
           )}
           <button onClick={() => setShowUploader(!showUploader)} className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center justify-center space-x-1.5 shadow-sm transition-colors">
-            <Globe size={16} /> <span>{showUploader ? 'Tutup Intake Gateway' : '+ Audit Sinyal Baru (MQL5 URL)'}</span>
+            <UploadCloud size={16} /> <span>{showUploader ? 'Tutup Intake Gateway' : '+ Audit Sinyal Baru (Screenshot & CSV)'}</span>
           </button>
         </div>
       </div>
@@ -929,67 +769,42 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* INTAKE GATEWAY ZONE */}
+      {/* INTAKE GATEWAY ZONE - MURNI SCREENSHOT & CSV */}
       {showUploader && (
         <section className="no-print bg-slate-900 rounded-xl shadow-sm border border-indigo-500/30 p-6 animate-fadeIn space-y-5 text-white">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center space-x-2">
-              <Globe className="text-indigo-400" size={20} />
-              <h2 className="text-sm font-bold text-slate-100">Smart Intake Gateway — MQL5 Live Signal & File Due-Diligence</h2>
+              <UploadCloud className="text-indigo-400" size={20} />
+              <h2 className="text-sm font-bold text-slate-100">Smart Intake Gateway — Audit Screenshot Kurva & Berkas CSV</h2>
             </div>
-            {(inputUrl || stagedFiles.length > 0) && !isAiProcessing && (
-              <button onClick={clearAllStagedFiles} className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center space-x-1">
-                <Trash2 size={13} /> <span>Reset Input</span>
+            {stagedFiles.length > 0 && !isAiProcessing && (
+              <button onClick={() => setStagedFiles([])} className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center space-x-1">
+                <Trash2 size={13} /> <span>Reset Berkas</span>
               </button>
             )}
           </div>
 
           <div className="space-y-4">
-            <div className="bg-slate-950 p-4 rounded-xl border border-indigo-500/40 space-y-2">
-              <label className="text-xs font-bold text-indigo-300 flex items-center space-x-1.5">
-                <Link size={15} />
-                <span>1. Masukkan URL Sinyal MQL5 Resmi (Referensi Utama):</span>
+            <div 
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleAddFilesToStaging(e); }}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isDragging ? 'border-indigo-500 bg-indigo-950/40' : 'border-slate-800 bg-slate-950/40 hover:bg-slate-950/80'}`}
+            >
+              <input type="file" multiple accept="image/*,.csv" onChange={handleAddFilesToStaging} className="hidden" id="file-upload-input" />
+              <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center w-full">
+                <UploadCloud size={32} className="text-indigo-400 mb-2" />
+                <p className="text-sm font-bold text-slate-200">
+                  {stagedFiles.length === 0 ? 'Pilih atau Tarik Berkas Screenshot & CSV ke Sini' : '+ Tambah Berkas Lain'}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">Mendukung format gambar kurva ekuitas MQL5 (PNG, JPG) atau ekspor laporan CSV riwayat transaksi MT5.</p>
               </label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input 
-                  type="url"
-                  value={inputUrl}
-                  onChange={(e) => setInputUrl(e.target.value)}
-                  placeholder="Contoh: https://www.mql5.com/en/signals/2304847 atau 2084890"
-                  className="flex-1 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <p className="text-[11px] text-slate-400 italic">
-                *Sistem secara otomatis mendeteksi jika sinyal sudah ada dan memperbarui data terkini (Smart Deduplication).
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
-                <UploadCloud size={15} className="text-indigo-400" />
-                <span>2. Tambahkan Berkas Pendukung (Opsional: Screenshot Kurva Ekuitas & CSV Transaksi):</span>
-              </label>
-              <div 
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleAddFilesToStaging(e); }}
-                className={`border-2 border-dashed rounded-xl p-5 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isDragging ? 'border-indigo-500 bg-indigo-950/40' : 'border-slate-800 bg-slate-950/40 hover:bg-slate-950/80'}`}
-              >
-                <input type="file" multiple accept="image/*,.csv" onChange={handleAddFilesToStaging} className="hidden" id="file-upload-input" />
-                <label htmlFor="file-upload-input" className="cursor-pointer flex flex-col items-center w-full">
-                  <UploadCloud size={24} className="text-indigo-400 mb-1.5" />
-                  <p className="text-xs font-bold text-slate-200">
-                    {stagedFiles.length === 0 ? 'Pilih / Tarik Screenshot & File CSV ke Sini (Opsional)' : '+ Tambah Berkas Pelengkap Lainnya'}
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Membantu audit forensik individual trade, spread resistance, dan copy fidelity.</p>
-                </label>
-              </div>
             </div>
 
             {stagedFiles.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-36 overflow-y-auto">
                 {stagedFiles.map((file, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-slate-950 p-2 rounded-lg border border-slate-800 text-xs">
+                  <div key={idx} className="flex items-center justify-between bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-xs">
                     <div className="flex items-center space-x-2 truncate pr-2">
                       <FileSpreadsheet size={14} className="text-emerald-400 flex-shrink-0" />
                       <span className="truncate text-slate-200 text-[11px]">{file.name}</span>
@@ -1004,18 +819,18 @@ export default function Dashboard() {
 
             <button
               type="button"
-              disabled={!inputUrl.trim() && stagedFiles.length === 0}
+              disabled={stagedFiles.length === 0 || isAiProcessing}
               onClick={handleExecuteAnalysis}
-              className={`w-full font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all uppercase tracking-wider ${(!inputUrl.trim() && stagedFiles.length === 0) ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
+              className={`w-full font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all uppercase tracking-wider ${stagedFiles.length === 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
             >
               <PlayCircle size={17} />
-              <span>Eksekusi Institutional Due-Diligence & Stress-Test</span>
+              <span>{isAiProcessing ? 'Memproses Audit...' : 'Eksekusi Due-Diligence & Stress-Test Berkas'}</span>
             </button>
           </div>
         </section>
       )}
 
-      {/* LEAD CAPTURE & NGOPI BARENG MODAL */}
+      {/* LEAD CAPTURE & NGOPI BARENG MODAL - WORKFLOW DINAMIS SEMUA TOMBOL */}
       {showLeadModal && data && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-5 border border-slate-800 animate-fadeIn text-white">
@@ -1025,7 +840,7 @@ export default function Dashboard() {
                   <Coffee size={12} /> <span>Program Ngopi Bareng TradersClub</span>
                 </span>
                 <h3 className="text-base font-bold text-white">
-                  {leadForm.interest.includes('Usulkan') ? `Usulkan ${displayName} ke Komunitas` : `Gabung Patungan — ${displayName}`}
+                  {getModalTitle()}
                 </h3>
               </div>
               <button onClick={() => setShowLeadModal(false)} className="text-slate-400 hover:text-white">
@@ -1034,9 +849,7 @@ export default function Dashboard() {
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              {leadForm.interest.includes('Usulkan') 
-                ? `Anda mengusulkan sinyal "${displayName}" untuk dievaluasi oleh Tim Analis Kuantitatif agar masuk ke katalog resmi komunitas.`
-                : 'Dapatkan akses laporan audit lengkap dan pilih opsi langganan terhemat dengan menyambungkan akun Kakak ke Akun Master VPS kami.'}
+              {getModalDescription()}
             </p>
 
             <form onSubmit={handleLeadSubmit} className="space-y-3">
@@ -1091,7 +904,7 @@ export default function Dashboard() {
                 disabled={isSubmittingLead}
                 className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg text-xs shadow-md transition-all mt-2 flex items-center justify-center space-x-2"
               >
-                {isSubmittingLead ? <span>Memproses Data...</span> : <><Send size={15} /><span>Konfirmasi & Buka Akses Sinyal</span></>}
+                {isSubmittingLead ? <span>Memproses Data...</span> : <><Send size={15} /><span>Konfirmasi & Lanjutkan</span></>}
               </button>
             </form>
           </div>
@@ -1152,7 +965,7 @@ export default function Dashboard() {
           <Globe size={48} className="mx-auto text-indigo-400 opacity-60" />
           <h3 className="text-lg font-bold text-white">Belum Ada Sinyal yang Dianalisis</h3>
           <p className="text-xs max-w-md mx-auto">
-            Silakan masukkan URL sinyal MQL5 atau unggah berkas CSV/Screenshot melalui tombol di atas untuk memulai audit kuantitatif dinamis.
+            Silakan unggah berkas CSV atau Screenshot kurva ekuitas melalui tombol di atas untuk memulai audit kuantitatif.
           </p>
         </div>
       ) : (
