@@ -458,7 +458,7 @@ export default function Dashboard() {
     }, 600);
   };
 
-  const handleAdminAuth = (e) => {
+  coconst handleAdminAuth = (e) => {
     e.preventDefault();
     const currentPass = adminPassword || "151264!";
     if (inputPassword === currentPass) {
@@ -467,8 +467,9 @@ export default function Dashboard() {
       setInputPassword("");
       setAuthError("");
     } else {
-      setAuthError("Password Admin salah! Wajib memasukkan tanda seru (151264!).");
+      setAuthError("Password Admin tidak valid. Silakan coba lagi.");
     }
+  };
   };
 
   const handlePasswordChange = (e) => {
