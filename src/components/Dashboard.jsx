@@ -261,22 +261,13 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_files_v21');
-    const saved = localStorage.getItem('tc_analyses_files_v23');
-    if (saved) {
+    localStorage.removeItem('tc_analyses_master_v16');
+    const saved = localStorage.getItem('tc_analyses_files_v25');
+    if (saved !== null) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const seenKeys = new Set();
-          const uniqueList = [];
-          parsed.forEach(item => {
-            const key = item.signalUniqueKey || item.realSignalName || item.indexName;
-            if (!seenKeys.has(key)) {
-              seenKeys.add(key);
-              uniqueList.push(computeQuantitativeAudit(item));
-            }
-          });
-          if (uniqueList.length > 0) return uniqueList;
+        if (Array.isArray(parsed)) {
+          return parsed.map(item => computeQuantitativeAudit(item));
         }
       } catch (e) {}
     }
@@ -284,11 +275,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v23') || "SIG_003";
+    return localStorage.getItem('tc_selected_id_v25') || "SIG_003";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v11');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v12');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -314,8 +305,8 @@ export default function Dashboard() {
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v23') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v23') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v25') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v25') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -323,21 +314,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_files_v23', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_files_v25', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v11', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v12', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v23', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v25', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v23', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v25', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   const activeData = analysesList.find(s => s.id === selectedSignalId) || (analysesList.length > 0 ? analysesList[0] : null);
@@ -472,7 +463,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v23', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v25', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -499,7 +490,7 @@ export default function Dashboard() {
     setStagedFiles(prev => prev.filter((_, idx) => idx !== idxToRemove));
   };
 
-  // PARSER CSV POSISI MT5/MQL5 PRESISI (MEMBEDAKAN BUY/SELL DENGAN BALANCE/WITHDRAWAL)
+  // PARSER CSV POSISI MT5/MQL5 PRESISI (MEMISAHKAN BUY/SELL DENGAN BALANCE/WITHDRAWAL)
   const parseMT5PositionsCSV = (csvText) => {
     const lines = csvText.trim().split(/\r?\n/);
     if (lines.length < 2) return null;
@@ -594,7 +585,6 @@ export default function Dashboard() {
     const csvFile = stagedFiles.find(f => f.name.toLowerCase().endsWith('.csv'));
 
     const finalizeAudit = (parsed = null) => {
-      // Deteksi sinyal spesifik dari nama file
       const isSuperGold = fileBaseName.toLowerCase().includes("supergold") || fileBaseName.includes("2304847");
       const isGoldReaper = fileBaseName.includes("2265877") || fileBaseName.toLowerCase().includes("reaper");
 
@@ -675,9 +665,9 @@ export default function Dashboard() {
         setSelectedSignalId(targetExisting.id);
 
         setUploadReportNotification([
-          `[AUDIT BERKAS SELESAI] Sinyal "${targetExisting.indexName}" (${targetExisting.realSignalName}) berhasil diperbarui dari ${primaryFile.name}.`,
-          `Net Profit Riil: ${updatedSignal.netProfitFormatted} | Total Transaksi: ${updatedSignal.totalTrades} | Win Rate: ${updatedSignal.winRate}%`,
-          `Skor Kuantitatif: ${updatedSignal.totalScore}/100 [Hard-Filter: ${updatedSignal.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌ (DD > 40%)'}]`
+          `[DEDUPLIKASI AKTIF] Sinyal "${targetExisting.indexName}" (${targetExisting.realSignalName}) telah terdaftar sebelumnya.`,
+          `Data berhasil diperbarui dari berkas ${primaryFile.name} (Net Profit: ${updatedSignal.netProfitFormatted} | Trades: ${updatedSignal.totalTrades}).`,
+          `Skor Kuantitatif Terkini: ${updatedSignal.totalScore}/100 [Hard-Filter: ${updatedSignal.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌ (DD > 40%)'}]`
         ]);
       } else {
         const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
@@ -758,8 +748,13 @@ export default function Dashboard() {
     if (window.confirm("Apakah Admin yakin ingin menghapus analisis sinyal ini secara permanen?")) {
       const remaining = analysesList.filter(item => item.id !== id);
       setAnalysesList(remaining);
-      if (selectedSignalId === id && remaining.length > 0) setSelectedSignalId(remaining[0].id);
-      else if (remaining.length === 0) setSelectedSignalId("");
+      localStorage.setItem('tc_analyses_files_v25', JSON.stringify(remaining));
+      
+      if (selectedSignalId === id) {
+        const nextId = remaining.length > 0 ? remaining[0].id : "";
+        setSelectedSignalId(nextId);
+        localStorage.setItem('tc_selected_id_v25', nextId);
+      }
     }
   };
 
