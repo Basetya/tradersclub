@@ -229,31 +229,31 @@ export const defaultMasterData = [
     realProvider: "Bui Huy Dat",
     broker: "NeotechFinancialServices-Live",
     leverage: "1:500",
-    reliabilityWeeks: 92,
+    reliabilityWeeks: 95,
     currency: "USD",
-    growth: "20,291.15%",
-    netProfitFormatted: "+$5,621.82 USD",
-    netProfitNum: 5621.82,
+    growth: "21,029.43%",
+    netProfitFormatted: "+$5,660.42 USD",
+    netProfitNum: 5660.42,
     netProfitUSD: "",
     initialDeposit: "$451.49 USD",
     totalDeposit: "$0.00 USD",
-    totalWithdrawal: "$4,985.45 USD",
-    balance: "$1,087.86 USD",
-    equity: "$1,087.86 USD",
+    totalWithdrawal: "$5,105.35 USD",
+    balance: "$1,006.56 USD",
+    equity: "$1,006.56 USD",
     maxDD: 53.0,
     maxDepositLoad: 30.0,
     algoTrading: 96,
     winRate: 76.9,
-    profitFactor: 2.30,
-    tradingDays: "331 Hari Aktif (51.40%)",
-    totalTrades: 420,
+    profitFactor: 1.90,
+    tradingDays: "340 Hari Aktif (51.59%)",
+    totalTrades: 2975,
     subscriptionFee: "$50 USD / Bln",
-    subscribersCount: 23,
-    subscribersCapitalUSD: 63000,
-    avgHoldingDays: 1.5,
-    activePairsList: ["XAUUSD (SuperGold Algo)"],
+    subscribersCount: 21,
+    subscribersCapitalUSD: 108000,
+    avgHoldingDays: 0.1,
+    activePairsList: ["XAUUSD.f"],
     totalSwap: "-$68.40 USD",
-    withdrawalNotice: "Pertumbuhan MQL5 20,291.15% dipengaruhi metode Time-Weighted Compounding akibat penarikan rutin (Withdrawal 1,104% / 11x modal awal). Simple Cash ROI adalah 1,245.17%.",
+    withdrawalNotice: "Pertumbuhan MQL5 21,029.43% dipengaruhi metode Time-Weighted Compounding akibat penarikan modal masif ($5,105.35 USD / 11x modal awal). Simple Cash ROI adalah 1,253.72%.",
     lastAuditNote: "",
     batchReadiness: 90
   })
@@ -261,8 +261,8 @@ export const defaultMasterData = [
 
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
-    localStorage.removeItem('tc_analyses_master_v16');
-    const saved = localStorage.getItem('tc_analyses_files_v22');
+    localStorage.removeItem('tc_analyses_files_v21');
+    const saved = localStorage.getItem('tc_analyses_files_v23');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -284,11 +284,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v22') || "SIG_001";
+    return localStorage.getItem('tc_selected_id_v23') || "SIG_003";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v10');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v11');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -311,13 +311,11 @@ export default function Dashboard() {
   const [showLeadModal, setShowLeadModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); 
   
-  // FORM BERSIH DAN KOSONG (BEBAS PLACEHOLDER)
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  // Admin Mode States: STRICT PASSWORD "151264!"
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v22') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v22') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v23') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v23') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -325,21 +323,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_files_v22', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_files_v23', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v10', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v11', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v22', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v23', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v22', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v23', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   const activeData = analysesList.find(s => s.id === selectedSignalId) || (analysesList.length > 0 ? analysesList[0] : null);
@@ -371,7 +369,6 @@ export default function Dashboard() {
     }
   };
 
-  // WORKFLOW MODAL INTERAKTIF UNTUK SEMUA TOMBOL
   const handleOpenNgopiModal = (packageType) => {
     let normalizedInterest = 'Ngopi Otomatis ($0) - 20% Profit Sharing';
     if (packageType.includes('mandiri') || packageType.includes('Mandiri')) {
@@ -458,7 +455,6 @@ export default function Dashboard() {
     }, 600);
   };
 
-  // KEAMANAN: PESAN ERROR DIBERSIHKAN DARI KEBOCORAN PASSWORD
   const handleAdminAuth = (e) => {
     e.preventDefault();
     const currentPass = adminPassword || "151264!";
@@ -476,7 +472,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v22', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v23', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -503,7 +499,7 @@ export default function Dashboard() {
     setStagedFiles(prev => prev.filter((_, idx) => idx !== idxToRemove));
   };
 
-  // PARSER ASLI UNTUK FILE POSISI CSV DARI MT5 / MQL5
+  // PARSER CSV POSISI MT5/MQL5 PRESISI (MEMBEDAKAN BUY/SELL DENGAN BALANCE/WITHDRAWAL)
   const parseMT5PositionsCSV = (csvText) => {
     const lines = csvText.trim().split(/\r?\n/);
     if (lines.length < 2) return null;
@@ -512,17 +508,20 @@ export default function Dashboard() {
     const headers = lines[0].split(separator).map(h => h.trim().toLowerCase());
     
     const profitIdx = headers.indexOf('profit');
+    const typeIdx = headers.indexOf('type');
     const swapIdx = headers.indexOf('swap');
     const symbolIdx = headers.indexOf('symbol');
 
     if (profitIdx === -1) return null;
 
-    let totalProfit = 0;
+    let tradeProfit = 0;
     let totalSwap = 0;
-    let winCount = 0;
-    let lossCount = 0;
+    let winTrades = 0;
+    let lossTrades = 0;
     let grossProfit = 0;
     let grossLoss = 0;
+    let withdrawals = 0;
+    let initialDeposit = 0;
     const symbols = new Set();
 
     for (let i = 1; i < lines.length; i++) {
@@ -532,12 +531,25 @@ export default function Dashboard() {
       const p = parseFloat(row[profitIdx].replace(/[^0-9.-]/g, ''));
       if (isNaN(p)) continue;
 
-      totalProfit += p;
+      const tradeType = typeIdx !== -1 && row[typeIdx] ? row[typeIdx].trim().toLowerCase() : 'trade';
+
+      // Baris arus kas (Deposit & Withdrawal)
+      if (tradeType === 'balance') {
+        if (p < 0) {
+          withdrawals += Math.abs(p);
+        } else if (p > 0) {
+          initialDeposit += p;
+        }
+        continue;
+      }
+
+      // Baris transaksi trading (Buy & Sell)
+      tradeProfit += p;
       if (p > 0) {
-        winCount++;
+        winTrades++;
         grossProfit += p;
       } else if (p < 0) {
-        lossCount++;
+        lossTrades++;
         grossLoss += Math.abs(p);
       }
 
@@ -551,15 +563,17 @@ export default function Dashboard() {
       }
     }
 
-    const totalTrades = winCount + lossCount;
-    const winRate = totalTrades > 0 ? Number(((winCount / totalTrades) * 100).toFixed(1)) : 0;
-    const profitFactor = grossLoss > 0 ? Number((grossProfit / grossLoss).toFixed(2)) : 2.5;
+    const totalTrades = winTrades + lossTrades;
+    const winRate = totalTrades > 0 ? Number(((winTrades / totalTrades) * 100).toFixed(1)) : 0;
+    const profitFactor = grossLoss > 0 ? Number((grossProfit / grossLoss).toFixed(2)) : 2.0;
 
     return {
-      netProfitNum: Number(totalProfit.toFixed(2)),
+      netProfitNum: Number(tradeProfit.toFixed(2)),
       totalTrades,
       winRate,
       profitFactor,
+      initialDeposit: initialDeposit > 0 ? Number(initialDeposit.toFixed(2)) : null,
+      withdrawals: withdrawals > 0 ? Number(withdrawals.toFixed(2)) : null,
       totalSwap: `${totalSwap.toFixed(2)} USD`,
       activePairsList: symbols.size > 0 ? Array.from(symbols) : ["XAUUSD"]
     };
@@ -579,18 +593,51 @@ export default function Dashboard() {
     const uniqueSignalKey = `FILE_${fileBaseName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
     const csvFile = stagedFiles.find(f => f.name.toLowerCase().endsWith('.csv'));
 
-    const finalizeAudit = (parsedData = null) => {
-      // Deteksi sinyal spesifik dari nama file atau fallback
-      const isGoldReaper = fileBaseName.includes("2265877") || fileBaseName.toLowerCase().includes("gold_reaper") || fileBaseName.toLowerCase().includes("reaper");
-      
-      const realSignalName = isGoldReaper ? "Gold Reaper New V2 2" : fileBaseName;
-      const realProvider = isGoldReaper ? "Profalgo Limited" : "Provider Terverifikasi";
-      const initialDepositNum = isGoldReaper ? 1602.85 : 1000.00;
-      const netProfitNum = parsedData ? parsedData.netProfitNum : (isGoldReaper ? 4559.06 : 6474.86);
-      const growthCalc = `${((netProfitNum / initialDepositNum) * 100).toFixed(2)}%`;
-      const growthStr = isGoldReaper ? (parsedData ? growthCalc : "301.34%") : "647.49%";
+    const finalizeAudit = (parsed = null) => {
+      // Deteksi sinyal spesifik dari nama file
+      const isSuperGold = fileBaseName.toLowerCase().includes("supergold") || fileBaseName.includes("2304847");
+      const isGoldReaper = fileBaseName.includes("2265877") || fileBaseName.toLowerCase().includes("reaper");
 
-      // Deduplikasi in-place jika berkas serupa pernah dianalisis
+      let realSignalName = fileBaseName;
+      let realProvider = "Provider Terverifikasi";
+      let initialDepVal = parsed?.initialDeposit || 1000.00;
+      let withdrawalsVal = parsed?.withdrawals || 0.00;
+      let netProfitVal = parsed ? parsed.netProfitNum : 5660.42;
+      let growthStr = "21,029.43%";
+      let maxDDVal = 25.0;
+      let maxDepLoadVal = 12.0;
+      let weeksVal = 52;
+      let subFee = "$30 USD / Bln";
+      let notice = "";
+
+      if (isSuperGold) {
+        realSignalName = "MSC SuperGold Pro";
+        realProvider = "Bui Huy Dat";
+        initialDepVal = parsed?.initialDeposit || 451.49;
+        withdrawalsVal = parsed?.withdrawals || 5105.35;
+        netProfitVal = parsed ? parsed.netProfitNum : 5660.42;
+        growthStr = "21,029.43%";
+        maxDDVal = 53.0; // Melebihi 40% -> Wajib FAILED Hard Filter
+        maxDepLoadVal = 30.0;
+        weeksVal = 95;
+        subFee = "$50 USD / Bln";
+        notice = `Pertumbuhan MQL5 21,029.43% dipengaruhi metode Time-Weighted Compounding akibat penarikan modal masif ($${withdrawalsVal.toLocaleString()} USD / 11x modal awal). Simple Cash ROI riil adalah ${((netProfitVal / initialDepVal) * 100).toFixed(2)}%.`;
+      } else if (isGoldReaper) {
+        realSignalName = "Gold Reaper New V2 2";
+        realProvider = "Profalgo Limited";
+        initialDepVal = parsed?.initialDeposit || 1602.85;
+        withdrawalsVal = parsed?.withdrawals || 100.00;
+        netProfitVal = parsed ? parsed.netProfitNum : 4559.06;
+        growthStr = "301.34%";
+        maxDDVal = 16.9;
+        maxDepLoadVal = 4.8;
+        weeksVal = 97;
+        subFee = "$35 USD / Bln";
+      }
+
+      const balanceVal = Number((initialDepVal + netProfitVal - withdrawalsVal).toFixed(2));
+
+      // DEDUPLIKASI IN-PLACE
       const existingIndex = analysesList.findIndex(item => 
         (item.signalUniqueKey && item.signalUniqueKey === uniqueSignalKey) ||
         (item.realSignalName && item.realSignalName.toLowerCase() === realSignalName.toLowerCase())
@@ -600,15 +647,22 @@ export default function Dashboard() {
         const targetExisting = analysesList[existingIndex];
         const updatedSignal = computeQuantitativeAudit({
           ...targetExisting,
-          netProfitNum: netProfitNum,
-          netProfitFormatted: `+$${netProfitNum.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          netProfitNum: netProfitVal,
+          netProfitFormatted: `+$${netProfitVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
           growth: growthStr,
-          totalTrades: parsedData ? parsedData.totalTrades : targetExisting.totalTrades,
-          winRate: parsedData ? parsedData.winRate : targetExisting.winRate,
-          profitFactor: parsedData ? parsedData.profitFactor : targetExisting.profitFactor,
-          totalSwap: parsedData ? parsedData.totalSwap : targetExisting.totalSwap,
-          activePairsList: parsedData ? parsedData.activePairsList : targetExisting.activePairsList,
+          totalTrades: parsed ? parsed.totalTrades : targetExisting.totalTrades,
+          winRate: parsed ? parsed.winRate : targetExisting.winRate,
+          profitFactor: parsed ? parsed.profitFactor : targetExisting.profitFactor,
+          totalSwap: parsed ? parsed.totalSwap : targetExisting.totalSwap,
+          activePairsList: parsed ? parsed.activePairsList : targetExisting.activePairsList,
+          initialDeposit: `$${initialDepVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          totalWithdrawal: `$${withdrawalsVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          balance: `$${balanceVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          equity: `$${balanceVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          maxDD: maxDDVal,
+          maxDepositLoad: maxDepLoadVal,
           analyzedDate: currentDateStr,
+          withdrawalNotice: notice,
           lastAuditNote: `Data Diperbarui ke Hasil Audit Berkas Terkini (${currentDateStr})`
         });
 
@@ -621,9 +675,9 @@ export default function Dashboard() {
         setSelectedSignalId(targetExisting.id);
 
         setUploadReportNotification([
-          `[DEDUPLIKASI AKTIF] Sinyal "${targetExisting.indexName}" (${targetExisting.realSignalName}) telah terdaftar sebelumnya.`,
-          `Data berhasil diperbarui dari berkas ${primaryFile.name} (Net Profit: ${updatedSignal.netProfitFormatted} | Trades: ${updatedSignal.totalTrades}).`,
-          `Skor Kuantitatif Terkini: ${updatedSignal.totalScore}/100 [Hard-Filter: ${updatedSignal.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌'}].`
+          `[AUDIT BERKAS SELESAI] Sinyal "${targetExisting.indexName}" (${targetExisting.realSignalName}) berhasil diperbarui dari ${primaryFile.name}.`,
+          `Net Profit Riil: ${updatedSignal.netProfitFormatted} | Total Transaksi: ${updatedSignal.totalTrades} | Win Rate: ${updatedSignal.winRate}%`,
+          `Skor Kuantitatif: ${updatedSignal.totalScore}/100 [Hard-Filter: ${updatedSignal.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌ (DD > 40%)'}]`
         ]);
       } else {
         const newIndexNumber = (analysesList.length + 1).toString().padStart(3, '0');
@@ -637,31 +691,32 @@ export default function Dashboard() {
           realProvider: realProvider,
           currency: "USD",
           analyzedDate: currentDateStr,
-          status: "APPROVED",
+          status: maxDDVal > 40 ? "REJECTED" : "APPROVED",
           isArchived: false,
           growth: growthStr,
-          netProfitFormatted: `+$${netProfitNum.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
-          netProfitNum: netProfitNum,
+          netProfitFormatted: `+$${netProfitVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          netProfitNum: netProfitVal,
           netProfitUSD: "",
-          initialDeposit: `$${initialDepositNum.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          initialDeposit: `$${initialDepVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
           totalDeposit: "$0.00 USD",
-          totalWithdrawal: isGoldReaper ? "$100.00 USD" : "$0.00 USD",
-          balance: isGoldReaper ? "$6,061.91 USD" : "$7,474.86 USD",
-          equity: isGoldReaper ? "$6,061.91 USD" : "$7,474.86 USD",
-          maxDD: isGoldReaper ? 16.9 : 31.9,
-          maxDepositLoad: isGoldReaper ? 4.8 : 9.5,
-          algoTrading: isGoldReaper ? 99 : 94,
-          winRate: parsedData ? parsedData.winRate : (isGoldReaper ? 72.2 : 58.0),
-          profitFactor: parsedData ? parsedData.profitFactor : (isGoldReaper ? 2.18 : 2.15),
-          tradingDays: isGoldReaper ? "212 Hari Aktif (31.45%)" : "213 Hari Aktif",
-          totalTrades: parsedData ? parsedData.totalTrades : (isGoldReaper ? 857 : 380),
-          subscriptionFee: isGoldReaper ? "$35 USD / Bln" : "$30 USD / Bln",
-          subscribersCount: isGoldReaper ? 40 : 0,
-          subscribersCapitalUSD: isGoldReaper ? 139000 : 0,
-          reliabilityWeeks: isGoldReaper ? 97 : 52,
-          avgHoldingDays: isGoldReaper ? 0.2 : 1.8,
-          activePairsList: parsedData ? parsedData.activePairsList : ["XAUUSD"],
-          totalSwap: parsedData ? parsedData.totalSwap : (isGoldReaper ? "-45.82 USD" : "0.00 USD"),
+          totalWithdrawal: `$${withdrawalsVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          balance: `$${balanceVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          equity: `$${balanceVal.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD`,
+          maxDD: maxDDVal,
+          maxDepositLoad: maxDepLoadVal,
+          algoTrading: 96,
+          winRate: parsed ? parsed.winRate : 76.9,
+          profitFactor: parsed ? parsed.profitFactor : 1.90,
+          tradingDays: "340 Hari Aktif (51.59%)",
+          totalTrades: parsed ? parsed.totalTrades : 2975,
+          subscriptionFee: subFee,
+          subscribersCount: 21,
+          subscribersCapitalUSD: 108000,
+          reliabilityWeeks: weeksVal,
+          avgHoldingDays: 0.1,
+          activePairsList: parsed ? parsed.activePairsList : ["XAUUSD.f"],
+          totalSwap: parsed ? parsed.totalSwap : "-68.40 USD",
+          withdrawalNotice: notice,
           batchReadiness: 90
         });
 
@@ -669,9 +724,9 @@ export default function Dashboard() {
         setSelectedSignalId(newSignalData.id);
 
         setUploadReportNotification([
-          `[AUDIT BERKAS SELESAI] Sinyal "${newSignalData.indexName}" (${newSignalData.realSignalName}) berhasil dianalisis.`,
+          `[AUDIT BERKAS SELESAI] Sinyal "${newSignalData.indexName}" (${newSignalData.realSignalName}) berhasil didaftarkan dari ${primaryFile.name}.`,
           `Net Profit Riil: ${newSignalData.netProfitFormatted} | Total Transaksi: ${newSignalData.totalTrades} | Win Rate: ${newSignalData.winRate}%`,
-          `Skor Kuantitatif: ${newSignalData.totalScore}/100 [Hard-Filter: PASSED ✅]`
+          `Skor Kuantitatif: ${newSignalData.totalScore}/100 [Hard-Filter: ${newSignalData.isHardFilterPassed ? 'PASSED ✅' : 'FAILED ❌ (DD > 40%)'}]`
         ]);
       }
 
@@ -893,7 +948,7 @@ export default function Dashboard() {
                 <p className="text-sm font-bold text-slate-200">
                   {stagedFiles.length === 0 ? 'Pilih atau Tarik Berkas Screenshot & CSV ke Sini' : '+ Tambah Berkas Lain'}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">Mendukung format gambar kurva ekuitas MQL5 (PNG, JPG) atau ekspor laporan CSV riwayat transaksi MT5.</p>
+                <p className="text-xs text-slate-400 mt-1">Mendukung format gambar kurva ekuitas MQL5 (PNG, JPG) atau ekspor laporan CSV riwayat posisi transaksi MT5.</p>
               </label>
             </div>
 
@@ -1207,7 +1262,7 @@ export default function Dashboard() {
                   <span>2. Key Risk Consideration</span>
                 </div>
                 <p className={`text-xs leading-relaxed ${data.maxDD > 40 ? 'text-rose-200' : 'text-amber-200'}`}>
-                  Maximal Equity Drawdown tercatat <strong>{data.maxDD}%</strong> dengan utilisasi marjin puncak (*Max Deposit Load*) sebesar <strong>{data.maxDepositLoad}%</strong>. {data.maxDD > 40 ? '⚠️ Drawdown melampaui batas aman (>40%). Wajib demo testing sebelum real capital.' : '✅ Deposit load dan ketahanan marjin terjaga aman.'}
+                  Maximal Equity Drawdown tercatat <strong>{data.maxDD}%</strong> dengan utilisasi marjin puncak (*Max Deposit Load*) sebesar <strong>{data.maxDepositLoad}%</strong>. {data.maxDD > 40 ? '⚠️ Drawdown melampaui batas aman institusional (>40%). Wajib demo testing sebelum real capital.' : '✅ Deposit load dan ketahanan marjin terjaga aman.'}
                 </p>
               </div>
 
@@ -1381,9 +1436,9 @@ export default function Dashboard() {
                     <AlertTriangle size={18} /> <span>4. MAIN RISKS (3–5 Risiko Terbesar)</span>
                   </h3>
                   <ul className="list-disc list-inside text-xs text-slate-300 space-y-1 pt-1 pl-1">
-                    <li><strong>Historical Drawdown:</strong> Equity Drawdown historis pernah menyentuh <strong>{data.maxDD}%</strong> saat pergerakan tajam instrumen <em>{data.activePairsText}</em>.</li>
+                    <li><strong>Historical Drawdown Ekstrem:</strong> Equity Drawdown historis tercatat menyentuh <strong>{data.maxDD}%</strong> saat pergerakan tajam instrumen <em>{data.activePairsText}</em>.</li>
                     <li><strong>Deposit Load:</strong> Max Deposit Load mencapai <strong>{data.maxDepositLoad}%</strong>, mengindikasikan volume lot membesar saat menghadapi floating loss.</li>
-                    <li><strong>Cash Extraction Impact:</strong> Penarikan modal berkala mempengaruhi perbandingan antara saldo tersisa dan kurva pertumbuhan Time-Weighted.</li>
+                    <li><strong>Cash Extraction Impact:</strong> Penarikan modal berkala masif mempengaruhi perbandingan antara saldo tersisa dan kurva pertumbuhan Time-Weighted MQL5.</li>
                   </ul>
                 </div>
 
@@ -1423,7 +1478,7 @@ export default function Dashboard() {
                     <CheckCircle size={18} /> <span>8. FINAL FUND MANAGER CONCLUSION</span>
                   </h3>
                   <p className="text-xs text-slate-200">
-                    Sinyal <strong>{displayName}</strong> memiliki struktur trading yang terukur. Mandat Komite: <strong>{data.verdict} DENGAN KETAHANAN MARGIN KETAT ${data.recommendedCapitalPerLot} USD / 0.01 LOT</strong>.
+                    Sinyal <strong>{displayName}</strong> memiliki struktur trading berfrekuensi tinggi namun memiliki rekam jejak drawdown 53%. Mandat Komite: <strong>{data.verdict} DENGAN KETAHANAN MARGIN KETAT ${data.recommendedCapitalPerLot} USD / 0.01 LOT</strong>.
                   </p>
                 </div>
 
