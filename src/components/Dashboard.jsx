@@ -262,7 +262,7 @@ export const defaultMasterData = [
 export default function Dashboard() {
   const [analysesList, setAnalysesList] = useState(() => {
     localStorage.removeItem('tc_analyses_master_v16');
-    const saved = localStorage.getItem('tc_analyses_files_v25');
+    const saved = localStorage.getItem('tc_analyses_files_v26');
     if (saved !== null) {
       try {
         const parsed = JSON.parse(saved);
@@ -275,11 +275,11 @@ export default function Dashboard() {
   });
 
   const [selectedSignalId, setSelectedSignalId] = useState(() => {
-    return localStorage.getItem('tc_selected_id_v25') || "SIG_003";
+    return localStorage.getItem('tc_selected_id_v26') || "SIG_003";
   });
 
   const [suggestionsList, setSuggestionsList] = useState(() => {
-    const saved = localStorage.getItem('tc_real_member_suggestions_v12');
+    const saved = localStorage.getItem('tc_real_member_suggestions_v13');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -305,8 +305,8 @@ export default function Dashboard() {
   const [leadForm, setLeadForm] = useState({ name: '', whatsapp: '', email: '', interest: 'Ngopi Otomatis ($0) - 20% Profit Sharing' });
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v25') === 'true');
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v25') || "151264!");
+  const [isAdminMode, setIsAdminMode] = useState(() => localStorage.getItem('tc_admin_mode_active_v26') === 'true');
+  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('tc_admin_pw_v26') || "151264!");
   const [inputPassword, setInputPassword] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -314,21 +314,21 @@ export default function Dashboard() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    localStorage.setItem('tc_analyses_files_v25', JSON.stringify(analysesList));
+    localStorage.setItem('tc_analyses_files_v26', JSON.stringify(analysesList));
   }, [analysesList]);
 
   useEffect(() => {
-    localStorage.setItem('tc_real_member_suggestions_v12', JSON.stringify(suggestionsList));
+    localStorage.setItem('tc_real_member_suggestions_v13', JSON.stringify(suggestionsList));
   }, [suggestionsList]);
 
   useEffect(() => {
     if (selectedSignalId) {
-      localStorage.setItem('tc_selected_id_v25', selectedSignalId);
+      localStorage.setItem('tc_selected_id_v26', selectedSignalId);
     }
   }, [selectedSignalId]);
 
   useEffect(() => {
-    localStorage.setItem('tc_admin_mode_active_v25', isAdminMode ? 'true' : 'false');
+    localStorage.setItem('tc_admin_mode_active_v26', isAdminMode ? 'true' : 'false');
   }, [isAdminMode]);
 
   const activeData = analysesList.find(s => s.id === selectedSignalId) || (analysesList.length > 0 ? analysesList[0] : null);
@@ -463,7 +463,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (newPasswordInput.trim().length >= 4) {
       setAdminPassword(newPasswordInput.trim());
-      localStorage.setItem('tc_admin_pw_v25', newPasswordInput.trim());
+      localStorage.setItem('tc_admin_pw_v26', newPasswordInput.trim());
       setNewPasswordInput("");
       setShowSettingsModal(false);
       alert("Password Admin Berhasil Diperbarui!");
@@ -748,12 +748,12 @@ export default function Dashboard() {
     if (window.confirm("Apakah Admin yakin ingin menghapus analisis sinyal ini secara permanen?")) {
       const remaining = analysesList.filter(item => item.id !== id);
       setAnalysesList(remaining);
-      localStorage.setItem('tc_analyses_files_v25', JSON.stringify(remaining));
+      localStorage.setItem('tc_analyses_files_v26', JSON.stringify(remaining));
       
       if (selectedSignalId === id) {
         const nextId = remaining.length > 0 ? remaining[0].id : "";
         setSelectedSignalId(nextId);
-        localStorage.setItem('tc_selected_id_v25', nextId);
+        localStorage.setItem('tc_selected_id_v26', nextId);
       }
     }
   };
@@ -1481,7 +1481,7 @@ export default function Dashboard() {
             </section>
           )}
 
-          {/* 6. STRUKTUR SALDO & ARUS KAS */}
+          {/* 6. STRUKTUR SALDO & ARUS KAS (LABEL DIUBAH KE DEPOSITS) */}
           <section className="print-section bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-6 text-white">
             <h2 className="text-lg font-bold mb-4 border-b border-slate-800 pb-2 flex items-center space-x-2">
               <DollarSign className="text-indigo-400" size={20} /> <span>Struktur Saldo, Penarikan, & Arus Kas Akun ({displayName})</span>
@@ -1500,7 +1500,7 @@ export default function Dashboard() {
                 <p className="text-base font-bold text-slate-200">{data.initialDeposit}</p>
               </div>
               <div className="print-card p-3 bg-slate-950 rounded-lg border border-slate-800">
-                <p className="text-xs text-slate-400">Total Deposit</p>
+                <p className="text-xs text-slate-400">Deposits</p>
                 <p className="text-base font-bold text-emerald-400">{data.totalDeposit}</p>
               </div>
               <div className="print-card p-3 bg-slate-950 rounded-lg border border-slate-800">
